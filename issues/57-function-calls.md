@@ -48,11 +48,11 @@ At runtime, arguments are always evaluated first, in left-to-right order, before
 Property ::= Word       "="  Expression;
 Case     ::= Expression "->" Expression;
 
-FunctionArguments
-	::= "(" ( ","?
-		| Expression#
-+		| (Expression# ",")? Property#
-	","? )? ")";
+FunctionArguments ::=
+	| "("                                        ")"
+	| "(" ","?  Expression#                 ","? ")"
++	| "(" ","? (Expression# ",")? Property# ","? ")"
+;
 ```
 
 ## Semantic Schema

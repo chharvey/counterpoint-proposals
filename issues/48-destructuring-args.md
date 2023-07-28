@@ -13,14 +13,14 @@ pythag.(side1= 3.0, side2= 4.0, hypotenuse= 5.0);
 
 % tuple destructuring:
 let tuple: float[3] = [3.0, 4.0, 5.0];
-pythag.((side1, side2, hypotenuse)= tuple);
+pythag.([side1, side2, hypotenuse]= tuple);
 % shorthand for:
 % pythag.(side1= tuple.0, side2= tuple.1, hypotenuse= tuple.2);
 
 
 % record destructuring:
 let record: [a: float, b: float, c: float] = [a= 3.0, b= 4.0, c= 5.0];
-pythag.((a as side1, b as side2, c as hypotenuse)= record);
+pythag.([a= side1, b= side2, c= hypotenuse]= record);
 % shorthand for:
 % pythag.(side1= record.a, side2= record.b, hypotenuse= record.c);
 ```
@@ -30,8 +30,8 @@ The arguments do not necessarily need to be destructured in the same argument; w
 % tuple destructuring:
 let tuple: float[3] = [3.0, 4.0, 5.0];
 pythag.(
-	(hypotenuse)=   [5.0],
-	(side1, side2)= tuple,
+	[hypotenuse]=   [5.0],
+	[side1, side2]= tuple,
 );
 % shorthand for:
 % pythag.(hypotenuse= 5.0, side1= tuple.0, side2= tuple.1);
@@ -40,8 +40,8 @@ pythag.(
 % record destructuring:
 let record: [a: float, b: float, c: float] = [a= 3.0, b= 4.0, c= 5.0];
 pythag.(
-	(c as hypotenuse)=        [c= 5.0],
-	(b as side2, a as side1)= record,
+	[c= hypotenuse]=      [c= 5.0],
+	[b= side2, a= side1]= record,
 );
 % shorthand for:
 % pythag.(hypotenuse= 5.0, side2= record.b, side1= record.a);
@@ -55,22 +55,22 @@ func nest(
 ): void {}
 nest.(
 	% regular argument destructuring, tuple
-	(a, b)= [1, 2],
+	[a, b]= [1, 2],
 
 	% regular argument destructuring, record
-	(c$, delta as d)= [c= 3, delta= 4],
+	[c$, delta= d]= [c= 3, delta= 4],
 
 	% nested argument destructuring, tuple within tuple
-	(g, (h, i))= [7, [8, 9]],
+	[g, [h, i]]= [7, [8, 9]],
 
 	% nested argument destructuring, record within tuple
-	(j, (k$, lima as l))= [10, [k= 11, lima= 12]],
+	[j, [k$, lima= l]]= [10, [k= 11, lima= 12]],
 
 	% nested argument destructuring, tuple within record
-	(m$, november as (n, o))= [m= 13, november= [14, 15]],
+	[m$, november= [n, o]]= [m= 13, november= [14, 15]],
 
 	% nested argument destructuring, record within record
-	(papa as p, quebec as (q$, romeo as r))= [papa= 16, quebec= [q= 17, romeo= 18]],
+	[papa= p, quebec= [q$, romeo= r]]= [papa= 16, quebec= [q= 17, romeo= 18]],
 );
 % shorthand for:
 %% nest.(
@@ -85,21 +85,27 @@ Syntax diff is identical to #44. Reiterating here for clarity.
 DestructurePropertyItem  ::= Word       | DestructureProperties;
 DestructureAssigneeItem  ::= Assignee   | DestructureAssignees;
 
-DestructurePropertyKey  ::= Word       "$" | Word "as" DestructurePropertyItem;
-DestructureAssigneeKey  ::= IDENTIFIER "$" | Word "as" DestructureAssigneeItem;
+DestructurePropertyKey  ::= Word       "$" | Word "=" DestructurePropertyItem;
+DestructureAssigneeKey  ::= IDENTIFIER "$" | Word "=" DestructureAssigneeItem;
 
 DestructureProperties ::=
-	| "(" ","? DestructurePropertyItem# ","? ")"
-	| "(" ","? DestructurePropertyKey#  ","? ")"
+	| "[" ","? DestructurePropertyItem# ","? "]"
+	| "[" ","? DestructurePropertyKey#  ","? "]"
 ;
 
 DestructureAssignees ::=
-	| "(" ","? DestructureAssigneeItem# ","? ")"
-	| "(" ","? DestructureAssigneeKey#  ","? ")"
+	| "[" ","? DestructureAssigneeItem# ","? "]"
+	| "[" ","? DestructureAssigneeKey#  ","? "]"
 ;
 
 Property ::=
 	| IDENTIFIER "$"
 	| (Word | DestructureProperties) "=" Expression
+;
+
+FunctionArguments ::=
+	| "("                                        ")"
+	| "(" ","?  Expression#                 ","? ")"
+	| "(" ","? (Expression# ",")? Property# ","? ")"
 ;
 ```
