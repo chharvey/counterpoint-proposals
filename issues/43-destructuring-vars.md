@@ -169,7 +169,7 @@ let [golf= g: int, hotel= h: int] = [golf= 42, h= 420];               %> TypeErr
 Of course, the assigned items must be assignable to the variables’ types.
 ```cp
 let [a, b, c]: int[3]       = [42, 420, 123.45];      %> TypeError (`123.45` is not an int)
-let [d$: int, echo= e: int] = [d= null, echo= '420']; %> TypeError
+let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 ```
 
 # Specfication

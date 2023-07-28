@@ -6,7 +6,7 @@ Destructuring parameters in function definitions.
 Consider this function:
 ```cp
 func printPlanet(planet: [str, float]): void {
-	'''The radius of {{ planet.0 }} is {{ planet.1 }}km.''';
+	"""The radius of {{ planet.0 }} is {{ planet.1 }}km.""";
 }
 % typeof printPlanet: (planet: [str, float]) => void
 ```
@@ -15,7 +15,7 @@ Rather than keep track of a tuple argument, we can **destructure the tuple** int
 func printPlanet(planet as [name: str, value: float]): void {
 %                ^ label for destructured parameter
 	planet; %> ReferenceError
-	'''The radius of {{ name }} is {{ value }}km.''';
+	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: (planet: [str, float]) => void
 ```
@@ -42,7 +42,7 @@ func add(numbers as [unfixed a, b]: int[2]): void {
 Above, we used **tuple destructuring**, that is, assigning the pattern *[`a`, `b`]* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter…
 ```cp
 func printPlanet(planet: [name: str, value: float]): void {
-	'''The radius of {{ planet.name }} is {{ planet.value }}km.''';
+	"""The radius of {{ planet.name }} is {{ planet.value }}km.""";
 }
 % typeof printPlanet: (planet: [name: str, value: float]) => void
 ```
@@ -50,7 +50,7 @@ we can destructure the record into separate parameters:
 ```cp
 func printPlanet(planet as [name$: str, value$: float]): void {
 	planet; %> ReferenceError
-	'''The radius of {{ name }} is {{ value }}km.''';
+	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: (planet: [name: str, value: float]) => void
 ```
@@ -61,7 +61,7 @@ Recall that with record destructuring for variables (#43), the symbol `$` is sho
 func printPlanet(planet as [name= n: str, value= v: float]): void {
 	name;  %> ReferenceError
 	value; %> ReferenceError
-	'''The radius of {{ n }} is {{ v }}km.''';
+	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanet: (planet: [name: str, value: float]) => void
 ```
@@ -85,15 +85,15 @@ func f(numbers as [
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cp
-func printPlanetNamed(planet as [name: str, value: float] = ['Earth', 6371.0]): void {
-	'''The radius of {{ name }} is {{ value }}km.''';
+func printPlanetNamed(planet as [name: str, value: float] = ["Earth", 6371.0]): void {
+	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [str, float]) => void
 ```
 We can also have optional record destructuring parameters:
 ```cp
-func printPlanetNamed(planet as [name= n: str, value= v: float] = [name= 'Earth', value= 6371.0]): void {
-	'''The radius of {{ n }} is {{ v }}km.''';
+func printPlanetNamed(planet as [name= n: str, value= v: float] = [name= "Earth", value= 6371.0]): void {
+	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [name: str, value: float]) => void
 ```

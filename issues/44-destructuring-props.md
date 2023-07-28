@@ -32,19 +32,19 @@ It’s worth mentioning that destructuring inside a record literal is a bit like
 ```cp
 let font_styles: FontStyles = [
 	weight= 600,
-	style=  'oblique',
+	style=  "oblique",
 	size=   16,
 ];
 let all_styles: Styles = [
-	color=     '#0000ff',
+	color=     "#0000ff",
 	underline= true,
 	[weight$, style$, size$]= font_styles, % kind of like spreading
 ];
 all_styles == [
-	color=     '#0000ff',
+	color=     "#0000ff",
 	underline= true,
 	weight=    600,
-	style=     'oblique',
+	style=     "oblique",
 	size=      16,
 ]; %== true
 ```
@@ -53,9 +53,9 @@ In contrast with spreading, we must explicitly list out all of the record’s pr
 But we can destructure a tuple inside a record, which is not possible with spread.
 ```cp
 let all_styles: Styles = [
-	color=     '#0000ff',
+	color=     "#0000ff",
 	underline= true,
-	[weight, style, size]= [600, 'oblique', 16], % impossible with spreading
+	[weight, style, size]= [600, "oblique", 16], % impossible with spreading
 ];
 ```
 
@@ -70,7 +70,7 @@ let my_dict: [:int] = [
 ];
 let my_record: [a: int, b: int, c: int, d: int, e: int] = [
 	[a, b, c]= [42, 420, 123.45],          %> TypeError (`123.45` is not an int)
-	[d$, echo= e]= [d= null, echo= '420'], %> TypeError
+	[d$, echo= e]= [d= null, echo= "420"], %> TypeError
 ];
 ```
 
