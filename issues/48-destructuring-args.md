@@ -102,4 +102,10 @@ Property ::=
 	| IDENTIFIER "$"
 	| (Word | DestructureProperties) "=" Expression
 ;
+
+FunctionArguments ::=
+	| "("                                        ")"
+	| "(" ","?  Expression#                 ","? ")"
+	| "(" ","? (Expression# ",")? Property# ","? ")"
+;
 ```

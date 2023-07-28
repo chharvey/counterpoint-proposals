@@ -12,7 +12,7 @@ The syntax `[[x, y]= my_data]` is shorthand for `[x= my_data.0, y= my_data.1]`.
 
 In the example above, we used tuple destructuring, but we could have just as well used record destructuring. Both are well-formed inside a record literal.
 ```cp
-let my_data: [x: int, y: int, z: int] = [x = 42, y = 420, z = 4200];
+let my_data: [x: int, y: int, z: int] = [x= 42, y= 420, z= 4200];
 let my_record: [x: int, y: int] = [[y$, x$]= my_data];
 my_record.x; %== 42
 my_record.y; %== 420
