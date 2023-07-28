@@ -28,15 +28,17 @@ let y: int = 420;
 ```
 … we can do so in one concise destructuring statement:
 ```cp
-let [x: int, y: int] = [42, 420];
+let [x, y]: [int, int] = [42, 420];
 x; %== 42
 y; %== 420
 ```
-
-Since both `x` and `y` are of type `int`, we can make our declaration even more consise, by moving the type annotation “outside the pattern”. Either of the following lines is sufficient.
+Since both `x` and `y` are of type `int`, we can make our declaration a little more consise by using tuple shorthand syntax.
 ```cp
-let [x, y]: int[2]     = [42, 420];
-let [x, y]: [int, int] = [42, 420];
+let [x, y]: int[2] = [42, 420];
+```
+Or we can move the type annotations inside the destructure pattern. All three variations are equivalent.
+```cp
+let [x: int, y: int] = [42, 420];
 ```
 
 Destructuring applies to unfixed variables as well.
@@ -48,13 +50,13 @@ set y = 0; % ok
 
 Above, we used **tuple destructuring**, that is, assigning the “pattern” *[`x`, `y`]* a tuple. We can also use **record destructuring** by assigning it a record.
 ```cp
-let [y$: int, x$: int] = [x= 42, y= 420];
+let [y$, x$]: [x: int, y: int] = [x= 42, y= 420];
 y; %== 420
 x; %== 42
 ```
-Or, with the “outside” type annotation, if you like:
+Or, with the “inside” type annotation, if you like:
 ```cp
-let [y$, x$]: [x: int, y: int] = [x= 42, y= 420];
+let [y$: int, x$: int] = [x= 42, y= 420];
 ```
 
 As with record punning (#24), the symbol `$` is shorthand for repeating the variable name — `[x$]` is shorthand for `[x= x]`, where the first `x` is the property in the record that we’re destructuring, and the second `x` is the new variable we want to declare. If our record has different property names, we can use aliases.

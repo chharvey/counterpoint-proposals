@@ -12,30 +12,29 @@ func printPlanet(planet: [str, float]): void {
 ```
 Rather than keep track of a tuple argument, we can **destructure the tuple** into function parameters.
 ```cp
-func printPlanet(planet as [name: str, value: float]): void {
+func printPlanet(planet as [name, value]: [str, float]): void {
 %                ^ label for destructured parameter
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: (planet: [str, float]) => void
 ```
-Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `[str, float]`, but inside the function body we can treat each component as if it were a separate parameter. Notice also the parameter name `planet`, followed by the keyword `as`. Inside the function body, it’s not defined, but the caller may still use it as the label of a named argument if they wish.
+Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `[str, float]`, but inside the function body we can treat each component as if it were a separate parameter. Notice also the parameter name `planet`, followed by the keyword `as`. It’s not defined inside the function body, but the caller may still use it as the label of a named argument if they wish.
 
-We can make our declaration even more consise by moving the type declaration outside the pattern.
+We can make our declaration a litle more consise by moving the typings inside the destructure pattern.
 ```cp
-func add(numbers as [a, b]: int[2]): void {
-	% typeof a == int
-	% typeof b == int
+func printPlanet(planet as [name: str, value: float]): void {
+	% typeof name  == str
+	% typeof value == float
 	;
 }
-% typeof add: (numbers: [int, int]) => void
 ```
 
 Destructuring applies to unfixed parameters as well.
 ```cp
-func add(numbers as [unfixed a, b]: int[2]): void {
-	set a = a + 1; % ok
-	set b = b - 1; %> AssignmentError
+func printPlanet(planet as [unfixed name, value]: [str, float]): void {
+	set name  = """Planet {{ name }}"""; % ok
+	set value = value + 1.0;             %> AssignmentError
 }
 ```
 
@@ -48,12 +47,18 @@ func printPlanet(planet: [name: str, value: float]): void {
 ```
 we can destructure the record into separate parameters:
 ```cp
-func printPlanet(planet as [name$: str, value$: float]): void {
+func printPlanet(planet as [name$, value$]: [name: str, value: float]): void {
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
-% typeof printPlanet: (planet: [name: str, value: float]) => void
 ```
+Or, with the “inside” type annotation, if you like:
+```cp
+func printPlanet(planet as [name$: str, value$: float]): void {
+	"""The radius of {{ name }} is {{ value }}km.""";
+}
+```
+
 As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why type aliases and abstract methods do not allow it.
 
 Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `[x$]` is shorthand for `[x= x]`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
