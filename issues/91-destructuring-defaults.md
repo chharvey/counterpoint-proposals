@@ -46,7 +46,7 @@ func f(arg as [a: int, b: int, c: int = 3]): obj {
 	return [a, b, c];
 }
 % typeof f: (arg: [int, int, ?: int]) => obj
-f([1, 2]); %== [1, 2, 3]
+f.([1, 2]); %== [1, 2, 3]
 
 func g(arg as [a= alfa: int, b= bravo: int = 3, c= charlie: int]): obj {
 	arg; %> ReferenceError
@@ -56,14 +56,14 @@ func g(arg as [a= alfa: int, b= bravo: int = 3, c= charlie: int]): obj {
 	return [alfa, bravo, charlie];
 }
 % typeof g: (arg: [a: int, b?: int, c: int]) => obj
-g([a= 1, c= 2]); %== [1, 3, 2]
+g.([a= 1, c= 2]); %== [1, 3, 2]
 
 func h(arg as [a$: int, b$: int = 3, c$: int]): obj {
 	arg; %> ReferenceError
 	return [a, b, c];
 };
 % typeof h: (arg: [a: int, b?: int, c: int]) => obj
-h([a= 1, c= 2]); %== [1, 3, 2]
+h.([a= 1, c= 2]); %== [1, 3, 2]
 ```
 Since named function parameters are required, we must **alias** the destructured parameter with the `as` keyword (#46). In the examples above, callers may assign the provided parameter to the named argument `arg`, even though that identifier isnâ€™t available in the body.
 
@@ -71,13 +71,13 @@ Just because a destructured function parameter may have optional entries doesnâ€
 ```cp
 func f(arg as [a: int, b: int, c: int = 3] = [4, 5, 6]): obj => [a, b, c];
 % typeof f: (arg?: [int, int, ?: int]) => obj
-f([1, 2]); %== [1, 2, 3]
-f();       %== [4, 5, 6]
+f.([1, 2]); %== [1, 2, 3]
+f.();       %== [4, 5, 6]
 
 func h(arg as [a$: int, b$: int = 3, c$: int] = [a= 4, c= 5]): obj => [a, b, c];
 % typeof h: (arg?: [a: int, b?: int, c: int]) => obj
-h([a= 1, c= 2]); %== [1, 3, 2]
-h();             %== [4, 3, 5]
+h.([a= 1, c= 2]); %== [1, 3, 2]
+h.();             %== [4, 3, 5]
 ```
 
 ## Syntax Note
