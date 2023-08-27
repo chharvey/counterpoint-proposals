@@ -33,9 +33,9 @@ type Or<A, B> = A | Or.<B, null>; %> ReferenceError: `Or` is not defined
 ## Optional Parameters
 Generic type aliases can be defined with **optional generic parameters**, which must have a default value. When the generic is specified, the argument may be omitted, in which case the default value is assumed. All optional parameters must come after all required parameters.
 ```cp
-type Or<T, U = null> = T | U;
-type X = Or.<int, bool>;      % resolves to type `int | bool`
-type Y = Or.<int>;            % resolves to type `int | null`
+type Or<T, U ?= null> = T | U;
+type X = Or.<int, bool>;       % resolves to type `int | bool`
+type Y = Or.<int>;             % resolves to type `int | null`
 ```
 
 ## Constrained Parmeters
@@ -58,7 +58,7 @@ Keyword :::=
 ## Syntax
 ```diff
 +ParameterGeneric<Optional>
-+	::= IDENTIFIER ("narrows" Type)? <Optional+>("=" Type);
++	::= IDENTIFIER ("narrows" Type)? <Optional+>("?=" Type);
 
 +ParametersGeneric ::=
 +	|  ParameterGeneric<-Optional># ","?
@@ -103,12 +103,12 @@ SemanticDeclaration =:=
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage Decorate(Type))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "=" Type) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?=" Type) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticDefaultType Decorate(Type))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "narrows" Type__0 "=" Type__1) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "narrows" Type__0 "?=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage Decorate(Type__0))
