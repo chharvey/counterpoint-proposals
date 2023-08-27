@@ -8,25 +8,10 @@ A tuple type may have optional items, meaning that a tuple assigned to it might 
 let unfixed x: [str, int, ?:bool] = ['hello', 42];
 x = ['hello', 42, true];
 ```
-We can use mutable tuple types as well.
-```cp
-let x: mutable [str, int, ?:bool] = ['hello', 42];
-x.2 = true;
-```
 
 Notice the new syntax in the type signature: The token `?:` indicates the item is optional. The symbol `?:` may be read aloud as “maybe”. In a tuple type, all optional items *must* come after all required items; it’s a syntax error otherwise.
 ```cp
 type X = [str, ?:bool, int]; %> ParseError
-```
-
-### Sparse Tuples
-A **sparse tuple** is a tuple value with a “hole” in it. “Holes” in tuples are entries where items doesn’t exist, but there exist items afterward. Sparse tuples are very dangerous because iterating over them will result in a runtime error. Using tuple types with optional items and at the same time avoiding sparse tuples requires precise and infallable logic.
-
-In the example below, `z.1` is never assigned, so attempting to access it results in a VoidError. There are multiple ways to address this, but it’s best to avoid sparse tuples altogether if possible.
-```cp
-let z: mutable [int, ?:int, ?:int] = [42];
-z.2 = 44;
-z.1;      %> VoidError
 ```
 
 ## Optional Record Properties
@@ -41,15 +26,6 @@ y = [
 	lastname=   'Washington',
 	middlename= 'Dandridge',
 ];
-```
-We can use mutable record types as well.
-```cp
-let y: mutable [firstname: str, middlename?: str, lastname: str] = [
-	firstname= 'Martha',
-	lastname=  'Dandridge',
-];
-y.middlename = 'Dandridge';
-y.lastname   = 'Washington';
 ```
 
 Notice the new syntax in the type signature: The token `?:` indicates the property is optional. The symbol `?:` may be read aloud as “maybe”. In a record type, optional properties *may* come before required properties.
