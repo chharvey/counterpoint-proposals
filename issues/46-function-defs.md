@@ -71,9 +71,9 @@ let subtract: BinaryOperatorType = (x: float, y: float): void { x - y; }; %> Typ
 
 This errors because a caller must be able to call `subtract` with the named arguments `first` and `second`.
 
-Luckily, function parameter syntax has a built-in mechanism for handling function assignment/implementation with named parameters. In the parameter name, use `first as x` to alias the real parameter `x` to the assignee parameter `first`.
+Luckily, function parameter syntax has a built-in mechanism for handling function assignment/implementation with named parameters. In the parameter name, use `first= x` to alias the real parameter `x` to the assignee parameter `first`.
 ```cp
-let subtract: BinaryOperatorType = (first as x: float, second as y: float): void { x - y; };
+let subtract: BinaryOperatorType = (first= x: float, second= y: float): void { x - y; };
 ```
 This lets the function author internally use the parameter names `x` and `y` while still allowing the caller to call the function with named arguments `first` and `second` repectively.
 
@@ -108,8 +108,6 @@ Punctuator :::=
 Keyword :::=
 	// storage
 +		| "func"
-	// modifier
-+		| "as"
 ;
 ```
 
@@ -136,7 +134,7 @@ Expression<Dynamic> ::=
 +	::= <Named+>(IDENTIFIER ":") Type;
 
 +ParameterFunction
-+	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type;
++	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type;
 
 +DeclarationFunction
 +	::= "func" IDENTIFIER ExpressionFunction;
@@ -232,13 +230,13 @@ SemanticBlock
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction ::= IDENTIFIER__0 "as" IDENTIFIER__1 ":" Type) -> SemanticParameter
++Decorate(ParameterFunction ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
++Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -274,7 +272,7 @@ SemanticBlock
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
++FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
 +	:= (SemanticParameterType
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__0)])
 +		Decorate(Type)

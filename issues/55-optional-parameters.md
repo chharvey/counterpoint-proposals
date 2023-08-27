@@ -110,9 +110,9 @@ ExpressionFunction
 +	::= <Named+>(IDENTIFIER <Optional->":") <Optional+>"?:" Type;
 
 -ParameterFunction
--	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type;
+-	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type;
 +ParameterFunction<Optional>
-+	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
++	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
 
 +ParametersType<Named> ::=
 +	|  ParameterType<?Named><-Optional># ","?
@@ -184,13 +184,13 @@ Decorate(ParameterFunction ::= "unfixed" IDENTIFIER ":" Type) -> SemanticParamet
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
-Decorate(ParameterFunction ::= IDENTIFIER__0 "as" IDENTIFIER__1 ":" Type) -> SemanticParameter
+Decorate(ParameterFunction ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=false]
 		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 		Decorate(Type)
 	);
-Decorate(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
+Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -208,14 +208,14 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Ty
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -264,7 +264,7 @@ FunctionTypeOf(ParameterFunction ::= "unfixed"? IDENTIFIER ":" Type) -> Semantic
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
-FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
+FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
 	:= (SemanticParameterType
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__0)])
 		Decorate(Type)

@@ -12,18 +12,18 @@ func printPlanet(planet: [str, float]): void {
 ```
 Rather than keep track of a tuple argument, we can **destructure the tuple** into function parameters.
 ```cp
-func printPlanet(planet as [name, value]: [str, float]): void {
+func printPlanet(planet= [name, value]: [str, float]): void {
 %                ^ label for destructured parameter
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: (planet: [str, float]) => void
 ```
-Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `[str, float]`, but inside the function body we can treat each component as if it were a separate parameter. Notice also the parameter name `planet`, followed by the keyword `as`. It’s not defined inside the function body, but the caller may still use it as the label of a named argument if they wish.
+Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `[str, float]`, but inside the function body we can treat each component as if it were a separate parameter. Notice also the parameter name `planet`, followed by the symbol `=` used for aliasing (#46). It’s not defined inside the function body, but the caller may still use it as the label of a named argument if they wish.
 
 We can make our declaration a litle more consise by moving the typings inside the destructure pattern.
 ```cp
-func printPlanet(planet as [name: str, value: float]): void {
+func printPlanet(planet= [name: str, value: float]): void {
 	% typeof name  == str
 	% typeof value == float
 	;
@@ -32,7 +32,7 @@ func printPlanet(planet as [name: str, value: float]): void {
 
 Destructuring applies to unfixed parameters as well.
 ```cp
-func printPlanet(planet as [unfixed name, value]: [str, float]): void {
+func printPlanet(planet= [unfixed name, value]: [str, float]): void {
 	set name  = """Planet {{ name }}"""; % ok
 	set value = value + 1.0;             %> AssignmentError
 }
@@ -47,14 +47,14 @@ func printPlanet(planet: [name: str, value: float]): void {
 ```
 we can destructure the record into separate parameters:
 ```cp
-func printPlanet(planet as [name$, value$]: [name: str, value: float]): void {
+func printPlanet(planet= [name$, value$]: [name: str, value: float]): void {
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
 Or, with the “inside” type annotation, if you like:
 ```cp
-func printPlanet(planet as [name$: str, value$: float]): void {
+func printPlanet(planet= [name$: str, value$: float]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
@@ -63,7 +63,7 @@ As with tuple destructuring, this doesn’t change the type signature of the fun
 
 Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `[x$]` is shorthand for `[x= x]`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
 ```cp
-func printPlanet(planet as [name= n: str, value= v: float]): void {
+func printPlanet(planet= [name= n: str, value= v: float]): void {
 	name;  %> ReferenceError
 	value; %> ReferenceError
 	"""The radius of {{ n }} is {{ v }}km.""";
@@ -74,7 +74,7 @@ The caller must supply a `[name: str, value: float]` argument, but the internal 
 
 Again, we can declare unfixed parameters.
 ```cp
-func f(numbers as [
+func f(numbers= [
 	w$:              int,
 	xray=         x: int,
 	y=    unfixed y: int,
@@ -90,14 +90,14 @@ func f(numbers as [
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cp
-func printPlanetNamed(planet as [name: str, value: float] ?= ["Earth", 6371.0]): void {
+func printPlanetNamed(planet= [name: str, value: float] ?= ["Earth", 6371.0]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [str, float]) => void
 ```
 We can also have optional record destructuring parameters:
 ```cp
-func printPlanetNamed(planet as [name= n: str, value= v: float] ?= [name= "Earth", value= 6371.0]): void {
+func printPlanetNamed(planet= [name= n: str, value= v: float] ?= [name= "Earth", value= 6371.0]): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [name: str, value: float]) => void
@@ -108,22 +108,22 @@ Like destructuring for variables, we can nest destructuing syntax for functions.
 ```cp
 func nest(
 	% regular parameter destructuring, tuple
-	ab as [a, b]: int[2],
+	ab= [a, b]: int[2],
 
 	% regular parameter destructuring, record
-	cd as [c$: int, delta= d: int],
+	cd= [c$: int, delta= d: int],
 
 	% nested parameter destructuring, tuple within tuple
-	ghi as [g: int, [h, i]: int[2]],
+	ghi= [g: int, [h, i]: int[2]],
 
 	% nested parameter destructuring, record within tuple
-	jkl as [j: int, [k$: int, lima= l: int]],
+	jkl= [j: int, [k$: int, lima= l: int]],
 
 	% nested parameter destructuring, tuple within record
-	mno as [m$: int, november= [n, o]: int[2]],
+	mno= [m$: int, november= [n, o]: int[2]],
 
 	% nested parameter destructuring, record within record
-	pqr as [papa= p: int, quebec= [q$: int, romeo= r: int]],
+	pqr= [papa= p: int, quebec= [q$: int, romeo= r: int]],
 ): void {
 	% typeof each of [a, b, c, d, g, h, i, j, k, l, m, n, o, p, q, r] == int
 	uniform;  %> ReferenceError
@@ -153,12 +153,12 @@ nest.(
 );
 
 func nestOptional(
-	s as [a, b]: int[2]                                   ?= [19, 20],
-	t as [c$: int, delta= d: int]                         ?= [c= 21, delta= 22],
-	u as [g: int, [h, i]: int[2]]                         ?= [23, [24, 25]],
-	v as [j: int, [k$: int, lima= l: int]]                ?= [26, [k= 27, lima= 28]],
-	w as [m$: int, november= (n, o): int[2]]              ?= [m= 29, november= [30, 31]],
-	x as [papa= p: int, quebec= [q$: int, romeo= r: int]] ?= [papa= 32, quebec= [q= 33, romeo= 34]],
+	s= [a, b]: int[2]                                   ?= [19, 20],
+	t= [c$: int, delta= d: int]                         ?= [c= 21, delta= 22],
+	u= [g: int, [h, i]: int[2]]                         ?= [23, [24, 25]],
+	v= [j: int, [k$: int, lima= l: int]]                ?= [26, [k= 27, lima= 28]],
+	w= [m$: int, november= (n, o): int[2]]              ?= [m= 29, november= [30, 31]],
+	x= [papa= p: int, quebec= [q$: int, romeo= r: int]] ?= [papa= 32, quebec= [q= 33, romeo= 34]],
 ): void {;}
 %% typeof nestOptional: (
 	s?: [int, int],
@@ -184,8 +184,8 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Optional> ::=
-		| (IDENTIFIER "as")? "unfixed"? IDENTIFIER        ":" Type  . <Optional+>("?=" Expression)
-+		|  IDENTIFIER "as"   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
-+		|  IDENTIFIER "as"   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
+		| (IDENTIFIER "=")? "unfixed"? IDENTIFIER        ":" Type  . <Optional+>("?=" Expression)
++		|  IDENTIFIER "="   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
++		|  IDENTIFIER "="   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
 ;
 ```
