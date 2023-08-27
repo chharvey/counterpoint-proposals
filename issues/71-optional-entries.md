@@ -96,8 +96,9 @@ For optional record properties, checking the count isn’t ideal, since there’
 ## Lexicon
 ```diff
 Punctuator :::=
-	// annotation
-+		| "?:"
+	// statement
+-		| ";" | ":" | "="
++		| ";" | ":" | "?:" | "="
 ;
 ```
 

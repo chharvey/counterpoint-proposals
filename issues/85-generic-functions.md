@@ -37,7 +37,7 @@ eq2.(42, '42'); % no error; returns `false` at runtime
 ## Optional & Constrained Parameters
 Like generic type aliases, generic functions can have optional generic parameters (with a default value). Below, if a type is not provided for `U`, it is `T` by default.
 ```cp
-func foldList<T, U = T>(list: T[], reducer: (U, T) => U, initial: U): U {
+func foldList<T, U ?= T>(list: T[], reducer: (U, T) => U, initial: U): U {
 	; % ...
 }
 let total: int = foldList.<int>([2, 3, 4], (a: int, b: int): int => a + b, 0);

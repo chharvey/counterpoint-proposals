@@ -4,12 +4,12 @@
 An optional parameter must have a **default value**, and when the argument for that optional parameter is omitted, the function is called as if the default value were provided.
 
 ```cp
-func moveForward(steps: int = 1): void {
+func moveForward(steps: int ?= 1): void {
 	steps; %: int
 }
 moveForward; %: (steps?: int) => void
 ```
-The code `= 1` is called an **initializer** and defines the default value of the `steps` parameter. It’s similar to the initializer of a variable declaration. When `moveForward` is called without that argument, the default value of `1` is assumed.
+The code `?= 1` is called an **initializer** and defines the default value of the `steps` parameter. It’s similar to the initializer of a variable declaration. When `moveForward` is called without that argument, the default value of `1` is assumed.
 
 Notice the type signature’s new syntax: `(steps?: int) => void`. This means that the function may be called with 0 or 1 argument, and if it is called with 1 argument, that argument *may* be given a name of `steps`, and it *must* be of type `int`. Function calls are not covered in this version.
 
@@ -21,18 +21,18 @@ The signature above indicates that a function of type `BinaryOperatorTypeUnnamed
 
 All optional parameters must be declared after all required parameters; otherwise it’s a syntax error.
 ```cp
-func breakfast(entree: str, dessert: str = ''): void {;} % fine, type `(entree: str, dessert?: str) => void`
-func dinner   (dessert: str = '', entree: str): void {;} %> ParseError
-type Meal = (?:str, str) => void;                        %> ParseError
+func breakfast(entree: str, dessert: str ?= ''): void {;} % fine, type `(entree: str, dessert?: str) => void`
+func dinner   (dessert: str ?= '', entree: str): void {;} %> ParseError
+type Meal = (?:str, str) => void;                         %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
 ```cp
-func moveForward(steps: int = false): void {;} %> TypeError: `false` not assignable to `int`
+func moveForward(steps: int ?= false): void {;} %> TypeError: `false` not assignable to `int`
 ```
 
 Optional parameters may be `unfixed` (reassignable within the function):
 ```cp
-func greet(unfixed greeting: str = 'Hello'): void {
+func greet(unfixed greeting: str ?= 'Hello'): void {
 	greeting = if greeting == '' then 'Hi' else greeting;
 	'''{{ greeting }}, world!''';
 }
@@ -45,17 +45,17 @@ Optional parameter initializers are evaluated when the function is *called*, not
 func sayHello(): void {
 	print.('hello');
 };
-func run(x: void = sayHello.()): void {}; % does not print 'hello' here
-run.();                                   % prints 'hello' here
-run.();                                   % prints 'hello' again
+func run(x: void ?= sayHello.()): void {}; % does not print 'hello' here
+run.();                                    % prints 'hello' here
+run.();                                    % prints 'hello' again
 ```
 
 However, if an optional parameter initializer references a variable, it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. This means that that initializer is updated upon variable *reassignment*, but not with variable *shadowing*. This is important to keep in mind when changing scope.
 ```cp
 %-- Variable Reassignment --%
 %% line 2 %% let unfixed init: bool = false;
-func say(b: bool = init): void { print.(b); }
-%                  ^ refers to the `init` from line 2
+func say(b: bool ?= init): void { print.(b); }
+%                   ^ refers to the `init` from line 2
 say.(); % prints 'false'
 if true then {
 	init = true; % reassigns `init`
@@ -65,8 +65,8 @@ if true then {
 
 %-- Variable Shadowing --%
 %% line 13 %% let init: bool = false;
-func say(b: bool = init): void { print.(b); }
-%                  ^ refers to the `init` from line 13
+func say(b: bool ?= init): void { print.(b); }
+%                   ^ refers to the `init` from line 13
 say.(); % prints 'false'
 if true then {
 	let init: bool = true; % shadows `init` from above
@@ -80,8 +80,9 @@ if true then {
 ## Lexicon
 ```diff
 Punctuator :::=
-	// annotation
-+		| "?:"
+	// statement
+-		| ";" | ":" | "?:" | "="
++		| ";" | ":" | "?:" | "=" | "?="
 ;
 
 ```
@@ -111,7 +112,7 @@ ExpressionFunction
 -ParameterFunction
 -	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type;
 +ParameterFunction<Optional>
-+	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type <Optional+>("=" Expression);
++	::= (IDENTIFIER "as")? "unfixed"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
 
 +ParametersType<Named> ::=
 +	|  ParameterType<?Named><-Optional># ","?
@@ -195,26 +196,26 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Ty
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 		Decorate(Type)
 	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER ":" Type "=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= "unfixed" IDENTIFIER ":" Type "=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= "unfixed" IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" IDENTIFIER__1 ":" Type "=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Type "=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "as" "unfixed" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])

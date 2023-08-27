@@ -90,14 +90,14 @@ func f(numbers as [
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cp
-func printPlanetNamed(planet as [name: str, value: float] = ["Earth", 6371.0]): void {
+func printPlanetNamed(planet as [name: str, value: float] ?= ["Earth", 6371.0]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [str, float]) => void
 ```
 We can also have optional record destructuring parameters:
 ```cp
-func printPlanetNamed(planet as [name= n: str, value= v: float] = [name= "Earth", value= 6371.0]): void {
+func printPlanetNamed(planet as [name= n: str, value= v: float] ?= [name= "Earth", value= 6371.0]): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [name: str, value: float]) => void
@@ -153,12 +153,12 @@ nest.(
 );
 
 func nestOptional(
-	s as [a, b]: int[2]                                   = [19, 20],
-	t as [c$: int, delta= d: int]                         = [c= 21, delta= 22],
-	u as [g: int, [h, i]: int[2]]                         = [23, [24, 25]],
-	v as [j: int, [k$: int, lima= l: int]]                = [26, [k= 27, lima= 28]],
-	w as [m$: int, november= (n, o): int[2]]              = [m= 29, november= [30, 31]],
-	x as [papa= p: int, quebec= [q$: int, romeo= r: int]] = [papa= 32, quebec= [q= 33, romeo= 34]],
+	s as [a, b]: int[2]                                   ?= [19, 20],
+	t as [c$: int, delta= d: int]                         ?= [c= 21, delta= 22],
+	u as [g: int, [h, i]: int[2]]                         ?= [23, [24, 25]],
+	v as [j: int, [k$: int, lima= l: int]]                ?= [26, [k= 27, lima= 28]],
+	w as [m$: int, november= (n, o): int[2]]              ?= [m= 29, november= [30, 31]],
+	x as [papa= p: int, quebec= [q$: int, romeo= r: int]] ?= [papa= 32, quebec= [q= 33, romeo= 34]],
 ): void {;}
 %% typeof nestOptional: (
 	s?: [int, int],
@@ -184,8 +184,8 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Optional> ::=
-		| (IDENTIFIER "as")? "unfixed"? IDENTIFIER        ":" Type  . <Optional+>("=" Expression)
-+		|  IDENTIFIER "as"   DestructureVariables<-Typed> ":" Type  . <Optional+>("=" Expression)
-+		|  IDENTIFIER "as"   DestructureVariables<+Typed>           . <Optional+>("=" Expression)
+		| (IDENTIFIER "as")? "unfixed"? IDENTIFIER        ":" Type  . <Optional+>("?=" Expression)
++		|  IDENTIFIER "as"   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
++		|  IDENTIFIER "as"   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
 ;
 ```
