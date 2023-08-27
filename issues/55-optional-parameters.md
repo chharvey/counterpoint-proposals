@@ -83,7 +83,6 @@ Punctuator :::=
 	// annotation
 +		| "?:"
 ;
-
 ```
 
 ## Syntax

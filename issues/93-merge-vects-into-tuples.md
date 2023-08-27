@@ -1,4 +1,4 @@
-This issue supercedes #51 and #90. It merges the functionality/semantics of Vects and Structs into that of Tuples and Records, respectively, while removing the “constant collection” (Vect and Struct) syntax. It also makes the equivalent change on the “type” side of things.
+This issue supercedes #51, #56, and #90. It merges the functionality/semantics of Vects and Structs into that of Tuples and Records, respectively, while removing the “constant collection” (Vect and Struct) syntax. It also makes the equivalent change on the “type” side of things.
 
 ## Value Types are Immutable
 Tuple types and Record types are now value types. Value types are always immutable, meaning that their entries cannot be reassigned. They keep their same syntax, while the syntax of Vects and Structs (`\[...]`) is removed.
