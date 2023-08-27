@@ -63,9 +63,9 @@ Mapping literals are expressions that conain a list of cases. **Cases** are corr
 ]
 ```
 
-There is currently no syntax production for the types of mapping literals, so we must use `obj` instead.
+There is currently no syntax production for the types of mapping literals, so we must use `Object` instead.
 ```
-let numbers: obj = [
+let numbers: Object = [
 	"one", "uno", "eine" |-> 1,
 	"two", "dos", "zwei" |-> 2,
 ];

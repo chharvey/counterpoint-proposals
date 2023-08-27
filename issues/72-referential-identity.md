@@ -10,7 +10,7 @@ As a review: **Referential identity** means two operands point to the exact same
 42 === 42.0; %== false
 42 !== 42.0; %== true
 
-let o1: obj = [42, 420];
+let o1: Object = [42, 420];
 
 [42, 420] === [42, 420]; %== false
 [42, 420] !== [42, 420]; %== true
@@ -19,7 +19,7 @@ o1 !== [42, 420]; %== true
 o1 === o1; %== true
 o1 !== o1; %== false
 
-let o2: obj = [a= 42, b= 420];
+let o2: Object = [a= 42, b= 420];
 
 [a= 42, b= 420] === [a= 42, b= 420]; %== false
 [a= 42, b= 420] !== [a= 42, b= 420]; %== true

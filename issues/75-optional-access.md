@@ -34,7 +34,7 @@ a4?.2; %> TypeError
 a5?.2; %> TypeError
 
 let unfixed n: null = null;
-let unfixed o: obj  = null;
+let unfixed o: Object = null;
 n?.2; % type `null`, produces `null`
 o?.2; %> TypeError
 ```

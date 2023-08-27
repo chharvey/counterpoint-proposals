@@ -17,13 +17,13 @@ let n: Name = <Name>"Alice"; % no error
 ```
 Think of type `Name` as a narrowing of type `str` and type `Age` as a narrowing of type `int`. Since `Person#age` is of type `Age`, we cannot assign an `int` without a type claim (#82).
 
-We can always widen types. Both `Name` and `Age` are subtypes of `obj`, and of course, since `unknown` is the Top Type, we can always assign any type (even if nominal) to it.
+We can always widen types. Both `Name` and `Age` are subtypes of `Object`, and of course, since `unknown` is the Top Type, we can always assign any type (even if nominal) to it.
 ```cp
 let n1: Name    = p.name; % ok
 let a1: Age     = p.age;  % ok
 let n2: str     = p.name; % ok
 let a2: int     = p.age;  % ok
-let unfixed o: obj     = p.name; % ok
+let unfixed o: Object  = p.name; % ok
 set o                  = p.age;  % ok
 let unfixed u: unknown = p.name; % ok
 set u                  = p.age;  % ok

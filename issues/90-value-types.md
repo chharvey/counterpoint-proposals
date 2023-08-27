@@ -7,14 +7,14 @@ Constant collections (#51) were syntax productions only a few additional semanti
 The first change is a relaxation on syntax and an improvement on semantics. #51 only allowed a certain subset of syntaxes within the delimiters `\[` and `]`. Now, `\[…]` represents *value* types/objects and `[…]` represents *reference* types/objects. These syntaxes may now contain identifiers and function calls, as long as those return value types/objects, determined by semantic analysis. Under the hood, a tag will be implemented on each type to indicate whether it’s a value or reference type.
 ```cp
 % constant collections now may include variable refs and func calls
-let x: obj = \[a, b.(c.d), e.f.[g]];
+let x: Object = \[a, b.(c.d), e.f.[g]];
 type X = \[A, B.<C.D>, E.F[3]];
 ```
 Note that these expressions no longer have to be foldable! Value objects may exist at runtime, as long as they only contain other value objects. In the example above, `a` might be an unfixed variable and `b.(c.d)` might only be computable at runtime; both of these expressions are dynamic (unknown to the compiler). However, semantic analysis at compile-time will allow or disallow the entries based on their type signature.
 ```cp
-let x: obj = \[a];       % TypeError only if `a` is a reference object
-let y: obj = \[b.()];    % TypeError only if `b` has a reference type return signature
-let z: obj = \[b.(c)];   % not a TypeError if `b` returns a value type, even if `c` is a reference object!
+let x: Object = \[a];       % TypeError only if `a` is a reference object
+let y: Object = \[b.()];    % TypeError only if `b` has a reference type return signature
+let z: Object = \[b.(c)];   % not a TypeError if `b` returns a value type, even if `c` is a reference object!
 
 type X = \[A];     % TypeError only if `A` is a reference type
 type Y = \[B.<C>]; % not a TypeError if B.<C> is a value type, even if `C` is a reference type!
@@ -76,7 +76,7 @@ type T = mutable float;
 type T = mutable str;
 
 % valid:
-type T = mutable obj;     % still valid, but just returns `obj`
+type T = mutable Object;  % still valid, but just returns `Object`
 type T = mutable unknown;
 type T = mutable (\[int, float] | [int, float]); % still valid even though result won’t be mutable
 type T = \[int, float] | mutable [int, float];

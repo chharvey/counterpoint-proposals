@@ -35,7 +35,6 @@ TypeKeyword ::=
 	| "int"
 	| "float"
 	| "str"
-	| "obj"
 ;
 
 TypeUnarySymbol ::=

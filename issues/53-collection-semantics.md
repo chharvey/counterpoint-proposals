@@ -28,32 +28,32 @@ we could reassign the `fontWeight` property a value of `700`.
 ### Mappings
 Mappings form associations (**cases**) of values (**antecedents**) to other values (**consequents**). The antecedents are unique in that each antecedent can be associated with only one consequent. The number of cases in a mapping is called its **count**.
 
-In this current version there is no API for manipulating mappings; they can only be set to and referenced by variables. For now, their type should be declared as `obj`, as there is not yet a more specific type available.
+In this current version there is no API for manipulating mappings; they can only be set to and referenced by variables. For now, their type should be declared as `Object`, as there is not yet a more specific type available.
 
 ## Type Compatibility
 
 ### Covariance
 For this issue, all tuple and record types are read-only types. Therefore, collection types are **covariant**: that is, for any types ‹S› and ‹T›, if ‹S› is a subtype of ‹T›, then ‹G›<‹S›> is a subtype of ‹G›<‹T›>, where ‹G› represents the abstract idea of a generic type or type function, taking one type parameter. (Generics / type functions are not part of this version.) Tuple and record types are covariant by entry.
 
-For example, type `[int, bool, str]` is a subtype of type `[int | float, bool!, obj]`, since, entry-wise:
+For example, type `[int, bool, str]` is a subtype of type `[int | float, bool!, Object]`, since, entry-wise:
 - `int` is a subtype of `int | float`
 - `bool` is a subtype of `bool!`
-- `str` is a subtype of `obj`
+- `str` is a subtype of `Object`
 
-Type `[a: int, b: bool, c: str]` is a subtype of type `[b: bool!, c: obj, a: int | float]` in the same manner.
+Type `[a: int, b: bool, c: str]` is a subtype of type `[b: bool!, c: Object, a: int | float]` in the same manner.
 
 ### Count
 Tuples of higher count are always assignable to tuples of lower count, but never vice versa. Records having more properties are always assignable to reords having fewer, but never vice versa.
 ```cp
 let tuple1: [int, bool] = [42, false, "hello world"];
-let record1: [a: obj, b: float] = [a= null, b= 4.2, c= true];
+let record1: [a: Object, b: float] = [a= null, b= 4.2, c= true];
 
 let tuple2: [int, bool, str] = [42, false];                   %> TypeError 1
-let record2: [a: obj, b: float, c: true] = [a= null, b= 4.2]; %> TypeError 2
+let record2: [a: Object, b: float, c: true] = [a= null, b= 4.2]; %> TypeError 2
 ```
 > 1. TypeError: Expression of type `[42, false]` is not assignable to type `[int, bool str]`.
 > 		- TypeError: Index `2` does not exist on type `[42, false]`.
-> 1. TypeError: Expression of type `[a: null, b: 4.2]` is not assignable to type `[a: obj, b: float, c: true]`.
+> 1. TypeError: Expression of type `[a: null, b: 4.2]` is not assignable to type `[a: Object, b: float, c: true]`.
 > 		- TypeError: Property `c` does not exist on type `[a: null, b: 4.2]`.
 
 # Specification

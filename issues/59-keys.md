@@ -8,9 +8,9 @@ Keys are values whose implementations are hidden.
 ```
 Key names are programmer-defined identifiers, and always follow a dot. They’re conventionally written in MACRO_CASE, but sometimes also in snake_case.
 
-The values of Keys are the only of their kind, and their implementations are unexposed. Keys can be thought of as integers or strings, but can’t be operated on as such and do not take up as much space. Keys are also not assignable to the `int` or `str` types. Like all values, keys can be assigned to types `obj` and `unknown`.
+The values of Keys are the only of their kind, and their implementations are unexposed. Keys can be thought of as integers or strings, but can’t be operated on as such and do not take up as much space. Keys are also not assignable to the `int` or `str` types. Like all values, keys can be assigned to types `Object` and `unknown`.
 ```cp
-let greet: obj = .hello_world;
+let greet: Object = .hello_world;
 ```
 
 Key names may be any keyword or identifier, starting with a letter or underscore, and subsequently containing letters, underscores, and/or digits. Key names may also be Unicode names, but this is not recommended as it hinders readability. As with Unicode identifiers, there are no escapes.
@@ -20,7 +20,7 @@ let greet: unknown = .'¡héllö wòrld!';
 .'\u{24}3.99' != .'$3.99';
 ```
 
-Other than `obj` and `unknown`, Keys are assignable to their unit types. (Unit types are types containing only one value — also referred to as “constant types”.)
+Other than `Object` and `unknown`, Keys are assignable to their unit types. (Unit types are types containing only one value — also referred to as “constant types”.)
 ```cp
 let earth: .EARTH = .EARTH;
 ```
@@ -84,7 +84,6 @@ Keyword :::=
 		| "int"
 		| "float"
 		| "str"
-		| "obj"
 	// operator
 		| "mutable"
 		| "is"
@@ -127,7 +126,6 @@ TypeKeyword ::=
 	| "int"
 	| "float"
 	| "str"
-	| "obj"
 ;
 ```
 
@@ -163,8 +161,6 @@ Decorate(TypeKeyword ::= "float") -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=Float]);
 Decorate(TypeKeyword ::= "str") -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=String]);
-Decorate(TypeKeyword ::= "obj") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=Object]);
 
 Decorate(TypeUnit ::= PrimitiveLiteral) -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=ToType(Decorate(PrimitiveLiteral).value)]);

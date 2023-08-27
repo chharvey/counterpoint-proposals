@@ -41,41 +41,41 @@ c; %== 2
 ## Parameter Destructuring
 Function parameters are destructured the same way.
 ```cp
-func f(arg as [a: int, b: int, c: int = 3]): obj {
+func f(arg as [a: int, b: int, c: int = 3]): Object {
 	arg; %> ReferenceError
 	return [a, b, c];
 }
-% typeof f: (arg: [int, int, ?: int]) => obj
+% typeof f: (arg: [int, int, ?: int]) => Object
 f.([1, 2]); %== [1, 2, 3]
 
-func g(arg as [a= alfa: int, b= bravo: int = 3, c= charlie: int]): obj {
+func g(arg as [a= alfa: int, b= bravo: int = 3, c= charlie: int]): Object {
 	arg; %> ReferenceError
 	a;   %> ReferenceError
 	b;   %> ReferenceError
 	c;   %> ReferenceError
 	return [alfa, bravo, charlie];
 }
-% typeof g: (arg: [a: int, b?: int, c: int]) => obj
+% typeof g: (arg: [a: int, b?: int, c: int]) => Object
 g.([a= 1, c= 2]); %== [1, 3, 2]
 
-func h(arg as [a$: int, b$: int = 3, c$: int]): obj {
+func h(arg as [a$: int, b$: int = 3, c$: int]): Object {
 	arg; %> ReferenceError
 	return [a, b, c];
 };
-% typeof h: (arg: [a: int, b?: int, c: int]) => obj
+% typeof h: (arg: [a: int, b?: int, c: int]) => Object
 h.([a= 1, c= 2]); %== [1, 3, 2]
 ```
 Since named function parameters are required, we must **alias** the destructured parameter with the `as` keyword (#46). In the examples above, callers may assign the provided parameter to the named argument `arg`, even though that identifier isn’t available in the body.
 
 Just because a destructured function parameter may have optional entries doesn’t mean the *entire parameter* is optional. The three examples above all have required parameters (an argument is required when calling). If we want the parameter to be optional, we must provide a *separate* default value (#55).
 ```cp
-func f(arg as [a: int, b: int, c: int = 3] = [4, 5, 6]): obj => [a, b, c];
-% typeof f: (arg?: [int, int, ?: int]) => obj
+func f(arg as [a: int, b: int, c: int = 3] = [4, 5, 6]): Object => [a, b, c];
+% typeof f: (arg?: [int, int, ?: int]) => Object
 f.([1, 2]); %== [1, 2, 3]
 f.();       %== [4, 5, 6]
 
-func h(arg as [a$: int, b$: int = 3, c$: int] = [a= 4, c= 5]): obj => [a, b, c];
-% typeof h: (arg?: [a: int, b?: int, c: int]) => obj
+func h(arg as [a$: int, b$: int = 3, c$: int] = [a= 4, c= 5]): Object => [a, b, c];
+% typeof h: (arg?: [a: int, b?: int, c: int]) => Object
 h.([a= 1, c= 2]); %== [1, 3, 2]
 h.();             %== [4, 3, 5]
 ```

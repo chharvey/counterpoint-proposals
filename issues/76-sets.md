@@ -1,7 +1,7 @@
 Sets are dynamic-sized unordered lists of values.
 
 ```cp
-let seasons: obj = {"winter", "spring", "summer", "fall"};
+let seasons: Object = {"winter", "spring", "summer", "fall"};
 ```
 
 Sets cannot contain identical (via `===`) elements. The set `{"hello", "hello"}` only contains 1 element.
@@ -10,14 +10,14 @@ Sets may have several elements that are un-identical but “equal”.
 ```cp
 let x: [str] = ["hello"];
 let y: [str] = ["hello"];
-let set: obj = {0.0, -0.0, x, y};
+let set: Object = {0.0, -0.0, x, y};
 ```
 Even though `0.0 == -0.0` and `x == y`, this set has four elements.
 
 Sets are considered equal (via `==`) iff they have equal elements. The order of elements in a set is not relevant.
 ```cp
-let x: obj = {"hello", "world"};
-let y: obj = {"world", "hello"};
+let x: Object = {"hello", "world"};
+let y: Object = {"world", "hello"};
 x === y; %== false
 x == y;  %== true
 ```

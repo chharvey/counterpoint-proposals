@@ -37,7 +37,7 @@ func divide(a: int, b: int): void {
 	"""I am not going to divide {{ a }} and {{ b }}.""";
 	% automatically returns here since it’s the end of the function body
 }
-let exp: obj = (a: int, b: int): void {
+let exp: Object = (a: int, b: int): void {
 	"""{{ a }} to the {{ b }} power is {{ a ^ b }}.""";
 	return; % explicit empty return statement
 };

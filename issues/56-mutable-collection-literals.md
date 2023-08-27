@@ -5,7 +5,7 @@ let tuple: mutable [str, str] = ["hello", "world"];
 tuple.[3 - 2] = "mundo";
 tuple == ["hello", "mundo"]; % true
 
-let record: mutable obj = [];
+let record: mutable Object = [];
 record.[[x= 5, y= 3]] = 2;
 record == [
 	[y= 3, x= 5] |-> 2,
