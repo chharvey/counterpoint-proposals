@@ -98,19 +98,19 @@ h.();             %== [4, 3, 5]
 	```
 
 ## Nested Destructuring
-Nested destructuring works the same as before, the only difference being the caveat mentioned above where a typing is required when providing a default value. With nesting, the type annotation doesn’t need to go on the entry itself, as long as its innards are all typed.
+Nested destructuring works the same as before. With nesting, the type annotation doesn’t need to go on the entry itself, as long as its innards are all typed.
 ```cp
-let [a: int, b: int, [c, d]: int[2]       = [3, 4]] = [1, 2]; % the typing can go on the optional entry,
-let [a: int, b: int, [c: int, d: int]     = [3, 4]] = [1, 2]; % or it can go in each of the nested entries.
-let [a: int, b: int, [c: int, d: int = 5] = [3, 4]] = [1, 2]; % we can even have nested defaults!
+let [a: int, b: int, [c, d]: int[2]        ?= [3, 4]] = [1, 2]; % the typing can go on the optional entry,
+let [a: int, b: int, [c: int, d: int]      ?= [3, 4]] = [1, 2]; % or it can go in each of the nested entries.
+let [a: int, b: int, [c: int, d: int ?= 5] ?= [3, 4]] = [1, 2]; % we can even have nested defaults!
 
-let [a: int, b: int, [c, d = 6]: [int, ?: int] = [4, 5]] = [1, 2, [3]]; % SyntaxError! optional `d` must be directly typed
-let [a: int, b: int, [c: int, d: int = 6]      = [4, 5]] = [1, 2, [3]]; % fixed
+let [a: int, b: int, [c, d ?= 6]: [int, ?: int] ?= [4, 5]] = [1, 2, [3]];
+let [a: int, b: int, [c: int, d: int ?= 6]      ?= [4, 5]] = [1, 2, [3]];
 
-let [a: int, b: int, [c, [d] = [6]]: [int, ?: [int]] = [4, [5]]] = [1, 2, [3]];     % SyntaxError! optional `[d]` must be directly typed
-let [a: int, b: int, [c: int, [d]: [int]   = [6]]    = [4, [5]]] = [1, 2, [3]];     % fix 1
-let [a: int, b: int, [c: int, [d: int]     = [6]]    = [4, [5]]] = [1, 2, [3]];     % fix 2
-let [a: int, b: int, [c: int, [d: int = 7] = [6]]    = [4, [5]]] = [1, 2, [3, []]]; % we can go deeper…
+let [a: int, b: int, [c, [d] ?= [6]]: [int, ?: [int]] ?= [4, [5]]] = [1, 2, [3]];
+let [a: int, b: int, [c: int, [d]: [int]    ?= [6]]   ?= [4, [5]]] = [1, 2, [3]];
+let [a: int, b: int, [c: int, [d: int]      ?= [6]]   ?= [4, [5]]] = [1, 2, [3]];
+let [a: int, b: int, [c: int, [d: int ?= 7] ?= [6]]   ?= [4, [5]]] = [1, 2, [3, []]]; % we can go deeper…
 ```
 
 ## Execution Order
