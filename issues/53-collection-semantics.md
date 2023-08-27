@@ -7,7 +7,7 @@ Follows from #21.
 ### Tuples
 Tuples are fixed-size ordered lists of indexed values, with indices starting at `0`. The values in a tuple are called **items** (the actual values) or **entries** (the slots the values are stored in). The number of entries in a tuple is called its **count**. The count of a tuple is fixed and known at compile-time, as is the type of each entry in the tuple. If the tuple is mutable, the entries of the tuple may be reassigned, but only to values of the correct type.
 
-For example, the tuple `[3, 4.0, 'five']` has an integer in the first position at index `0`, followed by a float at index `1`, followed by a string at index `2`. Entries cannot be added or removed — the count of the tuple cannot change — but entries can be reassigned: We could set the last entry to the string `'twelve'`. (Tuple mutation is not covered in this issue.)
+For example, the tuple `[3, 4.0, "five"]` has an integer in the first position at index `0`, followed by a float at index `1`, followed by a string at index `2`. Entries cannot be added or removed — the count of the tuple cannot change — but entries can be reassigned: We could set the last entry to the string `"twelve"`. (Tuple mutation is not covered in this issue.)
 
 There are no such things as “sparse tuples”: Tuples cannot have “empty slots” where items should be.
 
@@ -17,9 +17,9 @@ Records are fixed-size unordered lists of keyed values. Key–value pairs are ca
 For example, given the record
 ```cp
 [
-	fontFamily= 'sans-serif',
+	fontFamily= "sans-serif",
 	fontSize=   1.25,
-	fontStyle=  'oblique',
+	fontStyle=  "oblique",
 	fontWeight= 400,
 ]
 ```
@@ -45,7 +45,7 @@ Type `[a: int, b: bool, c: str]` is a subtype of type `[b: bool!, c: obj, a: int
 ### Count
 Tuples of higher count are always assignable to tuples of lower count, but never vice versa. Records having more properties are always assignable to reords having fewer, but never vice versa.
 ```cp
-let tuple1: [int, bool] = [42, false, 'hello world'];
+let tuple1: [int, bool] = [42, false, "hello world"];
 let record1: [a: obj, b: float] = [a= null, b= 4.2, c= true];
 
 let tuple2: [int, bool, str] = [42, false];                   %> TypeError 1

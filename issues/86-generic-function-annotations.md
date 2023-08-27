@@ -18,8 +18,8 @@ func myFunction<T> implements Voider.<str, T> (x: str, y: T): void {
 	;
 }
 
-myFunction.<bool>('hello', false);
-myFunction.<int>('hello', 42);
+myFunction.<bool>("hello", false);
+myFunction.<int>("hello", 42);
 ```
 The function `myFunction` above has a generic parameter, which is required whenever the function is called. That parameter also happens to be used as an argument of the `Voider` generic type.
 
@@ -35,7 +35,7 @@ func h<U> implements Nuller.<bool> (i: bool, j: U): null {
 }
 
 g.<float>(42, 4.2);
-h.<str>(true, 'world');
+h.<str>(true, "world");
 ```
 
 And as mentioned in #84, functions that have an `implements` clause don’t need to have explicit parameter/return types written.

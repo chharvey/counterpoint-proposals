@@ -8,11 +8,11 @@ This issue covers defining void synchronous functions only, which do return but 
 This is a function declaration:
 ```cp
 func add(a: int, b: int): void {
-	'''
+	"""
 		The first argument is {{ a }}.
 		The second argument is {{ b }}.
-	''';
-	'This function does not return a value.';
+	""";
+	"This function does not return a value.";
 }
 ```
 The **name** of this function is `add`. It has two input **parameters** `a` and `b`, each of type `int`. When a function is called (see v0.7.0), the values sent into the function are **arguments**. This function’s **return type** is `void`, because it has no output value. Its **body** is the set of statements within the curly braces.
@@ -20,11 +20,11 @@ The **name** of this function is `add`. It has two input **parameters** `a` and 
 This is a function expression (lambda):
 ```cp
 (a: int, b: int): void {
-	'''
+	"""
 		The first argument is {{ a }}.
 		The second argument is {{ b }}.
-	''';
-	'This function does not return a value.';
+	""";
+	"This function does not return a value.";
 };
 ```
 Lambdas are normal expressions that can be operated on and passed around like any other value. For instance, lambdas can be assigned to variables. Lambdas are always “truthy”.

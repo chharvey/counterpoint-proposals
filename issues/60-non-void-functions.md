@@ -23,7 +23,7 @@ let math: [
 	%                             ^ return type
 ] = [
 	add= (a: int, b: int): int {
-		'''The sum will be {{ a + b }}.''';
+		"""The sum will be {{ a + b }}.""";
 		return a + b;
 	},
 	subtract= (x as a: int, y as b: int): int => a - b,
@@ -34,11 +34,11 @@ let math: [
 A function body may have no return statement, or it may have an empty return statement (`return;` with no expression), in which case the function “returns void” (it returns, but it does not return a value) and its return type is `void`. Functions with implicit returns cannot return void — they must return a value. Functions that do not return (do not complete execution) are not covered in this issue, nor are asynchronous functions.
 ```cp
 func divide(a: int, b: int): void {
-	'''I am not going to divide {{ a }} and {{ b }}.''';
+	"""I am not going to divide {{ a }} and {{ b }}.""";
 	% automatically returns here since it’s the end of the function body
 }
 let exp: obj = (a: int, b: int): void {
-	'''{{ a }} to the {{ b }} power is {{ a ^ b }}.''';
+	"""{{ a }} to the {{ b }} power is {{ a ^ b }}.""";
 	return; % explicit empty return statement
 };
 ```

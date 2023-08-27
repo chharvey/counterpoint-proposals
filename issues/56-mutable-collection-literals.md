@@ -1,9 +1,9 @@
 Assignment of mutable data structures’ entries. Depends on #25.
 
 ```cp
-let tuple: mutable [str, str] = ['hello', 'world'];
-tuple.[3 - 2] = 'mundo';
-tuple == ['hello', 'mundo']; % true
+let tuple: mutable [str, str] = ["hello", "world"];
+tuple.[3 - 2] = "mundo";
+tuple == ["hello", "mundo"]; % true
 
 let record: mutable obj = [];
 record.[[x= 5, y= 3]] = 2;
@@ -34,20 +34,20 @@ font.[if font.size < 24 then .style else .sTyLe] = .OBLIQUE;
 Tuple and record types that are mutable are **invariant** as supertypes, meaning for any types ‹S› and ‹T›, if ‹S› is a subtype of ‹T›, then it is never the case that ‹G›<‹S›> is a subtype of ‹G›<​mutable ‹T›>. This invariance ensures type safety for mutating operations.
 ```cp
 let sub: mutable [int, int] = [4, 2];
-let `super`: mutable [int?, int?] = sub; %> TypeError
+let 'super': mutable [int?, int?] = sub; %> TypeError
 ```
 > TypeError: Expression of type `mutable [int, int]` is not assignable to type `mutable [int?, int?]`.
 
-We get a type error, even though `int` is assignable to `int?`. Without this type safety, we’d be able to mutate `` `super` `` in a way that would otherwise be invalid for `sub`:
+We get a type error, even though `int` is assignable to `int?`. Without this type safety, we’d be able to mutate `'super'` in a way that would otherwise be invalid for `sub`:
 ```cp
-`super`.0 = null;
+'super'.0 = null;
 ```
-The type checker wouldn’t see a problem with this, but by setting `` `super`.0 = null `` we would be actually setting `sub.0 = null` at runtime (since `` `super` `` points to `sub`), and that’s invalid because `sub` cannot contain `null`.
+The type checker wouldn’t see a problem with this, but by setting `'super'.0 = null` we would be actually setting `sub.0 = null` at runtime (since `'super'` points to `sub`), and that’s invalid because `sub` cannot contain `null`.
 
 However, *immutable* tuple and record types remain **covariant** as discussed in #53.
 ```cp
 let sub: mutable [int, int] = [4, 2];
-let `super`: [int?, int?] = sub; % no error
+let 'super': [int?, int?] = sub; % no error
 ```
 Type `mutable [int, int]` is a subtype of type `[int?, int?]`, even if the former is mutable.
 

@@ -24,14 +24,14 @@ Generic parameters also allow us to better control parameter types.
 func eq1<T>(a: T, b: T): bool {
 	return a == b;
 }
-eq1.<int>(42, '42'); %> TypeError
+eq1.<int>(42, "42"); %> TypeError
 ```
 If we had used `unknown`, we wouldn’t have gotten a compile-time error.
 ```cp
 func eq2(a: unknown, b: unknown): bool {
 	return a == b;
 }
-eq2.(42, '42'); % no error; returns `false` at runtime
+eq2.(42, "42"); % no error; returns `false` at runtime
 ```
 
 ## Optional & Constrained Parameters
@@ -46,17 +46,17 @@ let total: int = foldList.<int>([2, 3, 4], (a: int, b: int): int => a + b, 0);
 Generic parameters that are not optional are required. Currently type inference is not supported.
 ```cp
 func makeBox<T>(v: T): [T] => [v];
-makeBox.('42'); %> TypeError: Got 0 type arguments, but expected 1.
+makeBox.("42"); %> TypeError: Got 0 type arguments, but expected 1.
 ```
 Even though the compiler knows the type of the argument, it expects `makeBox` to be called with an explicit generic argument.
 
 Generic parameters can also be constrained, using the `narrows` or `widens` keywords.
 ```cp
 func makeBox<T narrows str?>(v: T): [T] => [v];
-makeBox.<str>('42');  %: [str] %== ['42']
+makeBox.<str>("42");  %: [str] %== ["42"]
 makeBox.<int>(42);    %> TypeError: Type `int` is not a subtype of type `str | null`.
 makeBox.<str>(42);    %> TypeError: Expression of type `42` is not assignable to type `str`.
-makeBox.<null>('42'); %> TypeError: Expression of type `'42'` is not assignable to type `null`.
+makeBox.<null>("42"); %> TypeError: Expression of type `"42"` is not assignable to type `null`.
 ```
 
 ## Generic Function Types
@@ -70,7 +70,7 @@ let lessThan1: Comparator1 = <U>(a: U, b: U): int {
 	; % ...
 }
 lessThan1.<int>(3, 4);            %== true
-lessThan1.<int>('three', 'four'); %== false
+lessThan1.<int>("three", "four"); %== false
 ```
 
 This is different from a *generic type alias that happens to be a function type*:
@@ -98,7 +98,7 @@ let h: Nuller.<bool> = <U>(i: bool, j: U): null {
 };
 
 g.<float>(42, 4.2);
-h.<str>(true, 'world');
+h.<str>(true, "world");
 ```
 
 (To make matters worse, both concepts above are unrelated to *type functions* (#73).)

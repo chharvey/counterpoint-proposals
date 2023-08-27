@@ -5,12 +5,12 @@ The optional property access operator `?.` does not throw an error if the proper
 ## Optional Access
 The **optional access** operator `?.` acts like index/property access, except that it doesn’t throw a VoidError if the binding object doesn’t have the accessed entry; instead it produces `null`. This operator works really nicely with optional entries and the nullish type operator (#70). Thus instead of using conditional checks to test whether a collection has an entry, we can simply use optional access as a fallback. The expression `a?.b` is generally equivalent to (pseudocode) `try { produce a.b; } catch { produce null; };`.
 ```cp
-let x: [str, int, ?:bool] = ['hello', 42];
+let x: [str, int, ?:bool] = ["hello", 42];
 let x_2: bool? = x?.2;                     % Produce `x.2` if it exists, else produce `null`.
 
 let y: [firstname: str, middlename?: str, lastname?: str] = [
-	firstname= 'Martha',
-	lastname=  'Dandridge',
+	firstname= "Martha",
+	lastname=  "Dandridge",
 ];
 let y_middlename: str? = y?.middlename; % Produce `y.middlename` if it exists, else produce `null`.
 ```
@@ -22,11 +22,11 @@ At *compile-time*, the type of an expression `a?.b` varies depending on the type
 - If type `A` is a subtype of `null`, then the type of `a?.b` is also `null`. (This allows chained optional access, noted below.)
 - If type `A` is not a subtype of `null` and it has *no* bound property `b`, then attempting `a?.b` will result in a TypeError as ususal.
 ```cp
-let unfixed a1: [str, int,    bool] = ['hello', 42, true];
-let unfixed a2: [str, int, ?: bool] = ['hello', 42, true];
-let unfixed a3: [str, int, ?: bool] = ['hello', 42];
-let unfixed a4: [str, int]          = ['hello', 42, 4.2];
-let unfixed a5: [str, int]          = ['hello', 42];
+let unfixed a1: [str, int,    bool] = ["hello", 42, true];
+let unfixed a2: [str, int, ?: bool] = ["hello", 42, true];
+let unfixed a3: [str, int, ?: bool] = ["hello", 42];
+let unfixed a4: [str, int]          = ["hello", 42, 4.2];
+let unfixed a5: [str, int]          = ["hello", 42];
 a1?.2; % type `bool`,  produces `true`
 a2?.2; % type `bool?`, produces `true`
 a3?.2; % type `bool?`, produces `null`
@@ -45,13 +45,13 @@ The optional access does not short-circuit. That is, if `a?.b` produces null, th
 ## Claim Access
 The **claim access** operator `!.` is a compile-time operator that *claims* (makes a type-assertion) that the type of the accessed optional property is not `void`. Rather than producing `null` at runtime, like optional access does, this operator simply accesses the property as normal. However, at compile-time, it tells the type-checker, “no, we’re absolutely sure this property exists and it’s not an Exception.” (Exceptions are not covered in this version).
 ```cp
-let x: [str, int, ?:bool] = ['hello', 42, false];
+let x: [str, int, ?:bool] = ["hello", 42, false];
 let x_2: bool = x!.2;                             % Claim `x.2` definitely exists and is not `void`
 
 let y: [firstname: str, middlename?: str, lastname?: str] = [
-	firstname=  'Martha',
-	middlename= 'Dandridge',
-	lastname=   'Washington',
+	firstname=  "Martha",
+	middlename= "Dandridge",
+	lastname=   "Washington",
 ];
 let y_middlename: str = y!.middlename; % Claim `y.middlename` definitely exists and is not `void`.
 ```

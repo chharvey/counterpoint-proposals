@@ -5,7 +5,7 @@ Collection literals include list literals, record literals, and mapping literals
 ## List Literals
 List literals are syntax expressions that contain a list of comma-separated expressions. Nesting is allowed.
 ```
-[1, 2.0, 'three', [4]]
+[1, 2.0, "three", [4]]
 ```
 
 List literals can be of type Tuple. Tuple types are written as a list of type expressions. The list above has the following type:
@@ -14,25 +14,25 @@ List literals can be of type Tuple. Tuple types are written as a list of type ex
 ```
 We can declare a variable with a tuple type and then assign it a list literal.
 ```
-let my_tuple : [int, float, str] = [3, 4.0, 'five'];
+let my_tuple : [int, float, str] = [3, 4.0, "five"];
 ```
 
 ## Record Literals
 Record literals are expressions that conatin a list of properties. **Properties** are key-value pairs. **Keys** are keywords or identifiers, and **values** are expressions. The key and value within a property are delimited by an equals sign. Properties are separated by commas. Nesting is allowed.
 ```
 [
-	first=  'who',
-	second= ['what'],
-	third=  [i= 'don’t know'],
+	first=  "who",
+	second= ["what"],
+	third=  [i= "don’t know"],
 ]
 ```
 Keys may be reserved keywords, not just restricted to identifiers. This is because the record key will always be lexically bound to the record — it will never stand alone, so there’s no risk of syntax error.
 ```
 [
-	let=   'to initialize a variable',
-	is=    'referential identity',
-	int=   'the Integer type',
-	false= 'the negative boolean value',
+	let=   "to initialize a variable",
+	is=    "referential identity",
+	int=   "the Integer type",
+	false= "the negative boolean value",
 ]
 ```
 Conventionally, whitespace is omitted between the key name and the equals sign delimiter `=`. This practice helps programmers differentiate between record properties and variable declarations/assignments.
@@ -41,14 +41,14 @@ Records have literal types as well. They are similar to record values, except th
 ```
 type StyleMap = [
 	fontWeight: int,
-	fontStyle:  'normal' | 'italic' | 'oblique',
+	fontStyle:  "normal" | "italic" | "oblique",
 	fontSize:   float,
 	fontFamily: string,
 ];
 let my_styles: StyleMap = [
-	fontFamily= 'sans-serif',
+	fontFamily= "sans-serif",
 	fontSize=   1.25;
-	fontStyle=  'oblique',
+	fontStyle=  "oblique",
 	fontWeight= 400,
 ];
 ```
@@ -57,17 +57,17 @@ let my_styles: StyleMap = [
 Mapping literals are expressions that conain a list of cases. **Cases** are correspondances from one or more antecedents to one consequent. **Antecedents** and **consequents** are expressions. The antecedent(s) and consequent within a case are delimited with the symbol `|->`. Antecedents within a case, and cases themselves, are separated by commas. Nesting is allowed.
 ```
 [
-	1        |-> 'who',
-	2, '2nd' |-> ['what'],
-	1 + 2    |-> ['i' |-> ['don’t' |-> 'know']],
+	1        |-> "who",
+	2, "2nd" |-> ["what"],
+	1 + 2    |-> ["i" |-> ["don’t" |-> "know"]],
 ]
 ```
 
 There is currently no syntax production for the types of mapping literals, so we must use `obj` instead.
 ```
 let numbers: obj = [
-	'one', 'uno', 'eine' |-> 1,
-	'two', 'dos', 'zwei' |-> 2,
+	"one", "uno", "eine" |-> 1,
+	"two", "dos", "zwei" |-> 2,
 ];
 ```
 

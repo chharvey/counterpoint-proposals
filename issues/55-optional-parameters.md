@@ -21,8 +21,8 @@ The signature above indicates that a function of type `BinaryOperatorTypeUnnamed
 
 All optional parameters must be declared after all required parameters; otherwise it’s a syntax error.
 ```cp
-func breakfast(entree: str, dessert: str = ''): void {;} % fine, type `(entree: str, dessert?: str) => void`
-func dinner   (dessert: str = '', entree: str): void {;} %> ParseError
+func breakfast(entree: str, dessert: str = ""): void {;} % fine, type `(entree: str, dessert?: str) => void`
+func dinner   (dessert: str = "", entree: str): void {;} %> ParseError
 type Meal = (?:str, str) => void;                        %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
@@ -32,9 +32,9 @@ func moveForward(steps: int = false): void {;} %> TypeError: `false` not assigna
 
 Optional parameters may be `unfixed` (reassignable within the function):
 ```cp
-func greet(unfixed greeting: str = 'Hello'): void {
-	greeting = if greeting == '' then 'Hi' else greeting;
-	'''{{ greeting }}, world!''';
+func greet(unfixed greeting: str = "Hello"): void {
+	greeting = if greeting == "" then "Hi" else greeting;
+	"""{{ greeting }}, world!""";
 }
 greet; %: (greeting?: str) => void
 ```
@@ -43,11 +43,11 @@ greet; %: (greeting?: str) => void
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cp
 func sayHello(): void {
-	print.('hello');
+	print.("hello");
 };
-func run(x: void = sayHello.()): void {}; % does not print 'hello' here
-run.();                                   % prints 'hello' here
-run.();                                   % prints 'hello' again
+func run(x: void = sayHello.()): void {}; % does not print "hello" here
+run.();                                   % prints "hello" here
+run.();                                   % prints "hello" again
 ```
 
 However, if an optional parameter initializer references a variable, it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. This means that that initializer is updated upon variable *reassignment*, but not with variable *shadowing*. This is important to keep in mind when changing scope.
@@ -56,10 +56,10 @@ However, if an optional parameter initializer references a variable, it refers t
 %% line 2 %% let unfixed init: bool = false;
 func say(b: bool = init): void { print.(b); }
 %                  ^ refers to the `init` from line 2
-say.(); % prints 'false'
+say.(); % prints `false`
 if true then {
 	init = true; % reassigns `init`
-	say.();      % now prints 'true'
+	say.();      % now prints `true`
 	%   ^ reads from same `init` as line 2 (with updated value)
 } else {};
 
@@ -67,10 +67,10 @@ if true then {
 %% line 13 %% let init: bool = false;
 func say(b: bool = init): void { print.(b); }
 %                  ^ refers to the `init` from line 13
-say.(); % prints 'false'
+say.(); % prints `false`
 if true then {
 	let init: bool = true; % shadows `init` from above
-	say.();                % still prints 'false'
+	say.();                % still prints `false`
 	%   ^ reads from same `init` as line 13 (not new `init` from line 18)
 } else {};
 ```

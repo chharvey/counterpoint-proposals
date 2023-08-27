@@ -5,8 +5,8 @@ Optional entries in tuple and record types.
 ## Optional Tuple Items
 A tuple type may have optional items, meaning that a tuple assigned to it might or might not have those items.
 ```cp
-let unfixed x: [str, int, ?:bool] = ['hello', 42];
-x = ['hello', 42, true];
+let unfixed x: [str, int, ?:bool] = ["hello", 42];
+x = ["hello", 42, true];
 ```
 
 Notice the new syntax in the type signature: The token `?:` indicates the item is optional. The symbol `?:` may be read aloud as “maybe”. In a tuple type, all optional items *must* come after all required items; it’s a syntax error otherwise.
@@ -18,13 +18,13 @@ type X = [str, ?:bool, int]; %> ParseError
 A record type may have optional properties, meaning that a record assigned to it might or might not have those properties.
 ```cp
 let unfixed y: [firstname: str, middlename?: str, lastname: str] = [
-	firstname= 'Martha',
-	lastname=  'Dandridge',
+	firstname= "Martha",
+	lastname=  "Dandridge",
 ];
 y = [
-	firstname=  'Martha',
-	lastname=   'Washington',
-	middlename= 'Dandridge',
+	firstname=  "Martha",
+	lastname=   "Washington",
+	middlename= "Dandridge",
 ];
 ```
 
@@ -36,13 +36,13 @@ If a tuple has optional items, its count (its length) is a range of integers rat
 For record types, count is computed the same way (as a range of integers, by minimum). Further, optionality is considered. Required properties are assignable to their optional counterparts, but not the other way around. E.g., `[a: str, b?: int, c: bool]` is a subtype of `[a?: str, b?: int, c: bool]`, but is *not* a subtype of `[a?: str, b: int, c: bool]`.
 
 ## VoidError
-A new type of runtime error, `VoidError`, is thrown when the runtime virtual machine attempts to access a value that does not exist. This happens when an expression with no value is operated on, given as an entry to a collection (such as a tuple or record), given as a function argument, or assigned to a variable. The standard code for this error is *3100* and the standard message is *'Value is undefined.'*.
+A new type of runtime error, `VoidError`, is thrown when the runtime virtual machine attempts to access a value that does not exist. This happens when an expression with no value is operated on, given as an entry to a collection (such as a tuple or record), given as a function argument, or assigned to a variable. The standard code for this error is *3100* and the standard message is *"Value is undefined."*.
 
 ## Voidish Entries
 If an entry in a tuple or record is optional, its type is automatically unioned with `void` (#70). This prevents careless assignment at compile-time.
 ```cp
-let x: [str, int, ?:bool] = ['hello', 42];
-% typeof x.2 == 'bool | void';
+let x: [str, int, ?:bool] = ["hello", 42];
+% typeof x.2 == "bool | void";
 
 let x_2: bool = x.2; %> TypeError: `bool | void` not assignable to `bool`.
 ```
@@ -60,10 +60,10 @@ Since `x.count` is at least 3, the type-checker knows `x.2` must be of type `boo
 
 ```cp
 let y: [firstname: str, middlename?: str, lastname?: str] = [
-	firstname= 'Martha',
-	lastname=  'Dandridge',
+	firstname= "Martha",
+	lastname=  "Dandridge",
 ];
-let y_middlename: str = if y.count >=2 then y.middlename else ''; % TypeError: `str | void` not assinable to `str`.
+let y_middlename: str = if y.count >=2 then y.middlename else ""; % TypeError: `str | void` not assinable to `str`.
 ```
 For optional record properties, checking the count isn’t ideal, since there’s no guarantee of the order of properties. Even if the count of `y` is at least 2, the compiler can’t be certain that `y.middlename` is set, so the type of that expression is still `str | void`.
 
