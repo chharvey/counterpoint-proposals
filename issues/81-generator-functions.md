@@ -114,8 +114,8 @@ StatementThrow  ::= "throw"  Expression? ";";
 	| Declaration
 ;
 
--StatementBlock<Break, Return, Throw>        ::= "{" Statement<?Break><?Return><?Throw>*         "}";
-+StatementBlock<Break, Return, Throw, Yield> ::= "{" Statement<?Break><?Return><?Throw><?Yield>* "}";
+-Block<Break, Return, Throw>        ::= "{" Statement<?Break><?Return><?Throw>+         "}";
++Block<Break, Return, Throw, Yield> ::= "{" Statement<?Break><?Return><?Throw><?Yield>+ "}";
 
 -DeclarationFunction        ::= "func"               IDENTIFIER DeclaredFunction;
 +DeclarationFunction<Yield> ::= "func" <Yield+>"gen" IDENTIFIER DeclaredFunction<?Yield>;

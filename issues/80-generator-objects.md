@@ -51,8 +51,8 @@ countdown; %: Generator.<int>
 let results: mutable int[] = List.<int>([]);
 let i: int = 0;
 for n: int of countdown do {
-	results.[i] = n;
-	i += 1;
+	set results.[i] = n;
+	set i += 1;
 };
 results; %== [3, 2, 1]
 ```
@@ -74,11 +74,11 @@ The executor function executes every time the Generator is iterated (every time 
 ```cp
 let countdown: Generator.<str> = newGenerator.<str>((yielder, returner, counter) {
 	if counter == 0 then {
-		yielder.('three');
+		yielder.("three");
 	} else if counter == 1 then {
-		yielder.('two');
+		yielder.("two");
 	} else if counter == 2 then {
-		yielder.('one');
+		yielder.("one");
 	} else {
 		returner.();
 	};
@@ -129,6 +129,18 @@ Decorate(ExpressionCompound ::= ExpressionCompound FunctionCall) -> SemanticCall
 		Decorate(ExpressionCompound)
 		...(...Decorate(FunctionCall))
 	);
+```
+
+## TypeOf
+```diff
+Type! TypeOfUnfolded(SemanticOperation[operator: NEXT] expr) :=
+	1. *Assert:* `expr.children.count` is 1.
+	2. *Let* `base_type` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *If* `base_type` is a Generator type:
+		1. *Return:* the yield type of `base_type`.
+	4. *Else:*
+		1. *Throw:* a new TypeErrorInvalidOperation.
+;
 ```
 
 ## Core
