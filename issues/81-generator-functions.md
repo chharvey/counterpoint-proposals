@@ -21,7 +21,7 @@ let countdown: Generator.<int> = newGenerator.<int>((yielder, returner, counter)
 ```
 Same example using generator function syntax:
 ```cp
-func gen countdownFactory(): int {
+function gen countdownFactory(): int {
 	yield 3;
 	yield 2;
 	yield 1;

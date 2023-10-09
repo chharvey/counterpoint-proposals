@@ -20,34 +20,34 @@ let ex: Exception = [message= 'error!'];
 ## Throw Statements
 Exceptions may be **thrown** by functions. This introduces a new `throw` keyword and statement. When an object is thrown, the throwing function “completes abruptly”: it does not finish execution, but instead sends the thrown object up to its caller, which in turn will do the same, until the top of the program is reached, at which point it will crash. There is no catching Exceptions or Exception handling. Functions that *definitely always throw* may be annotated with a return type of `never`, since they never truly return.
 ```cp
-func throwException(message: str): never {
+function throwException(message: str): never {
 	let err: Exception = [message$];
 	throw err;
 }
 ```
 Only Exception objects may be thrown. Attempting to throw a non-exception results in type error.
 ```cp
-func throwInt(n: int): never {
+function throwInt(n: int): never {
 	throw n; %> TypeError: Expression of type `int` is not assignable to type `Exception`.
 }
 ```
 
 However, there is a shorthand syntax for throwing an Exception: using `throw` on a string. This doesn’t actually throw the string, but wraps it in an Exception type.
 ```cp
-func throwHello(): never {
+function throwHello(): never {
 	throw 'hello'; % equivalent to `throw [message= 'hello'];`
 }
 ```
 An even shorter syntax is to use `throw` with no operand (throwing an Exception with an empty message). It’s not particularly helpful in production, but it can be ergonomic for debugging.
 ```cp
-func throwEmpty(): never {
+function throwEmpty(): never {
 	throw; % equivalent to `throw [message= ''];`
 }
 ```
 
 Since Exceptions cannot be caught, we should only throw them in truly unrecoverable situations. For “exceptional circumstances”, the best practice is to *return* the Exception instead.
 ```cp
-func sqrt(x: float): float | Exception
+function sqrt(x: float): float | Exception
 	=> if x < 0.0
 		then [message= 'Argument must not be negative.']
 		else x ^ 0.5;
@@ -72,7 +72,7 @@ type IntOrException = int!; % int | Exception
 ```
 The new “Exception-ish” operator is a nice shorthand for function return types.
 ```cp
-func sqrt(x: float): float!
+function sqrt(x: float): float!
 	=> if x < 0.0
 		then [message= 'Argument must not be negative.']
 		else x ^ 0.5;

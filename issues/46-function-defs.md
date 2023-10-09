@@ -7,7 +7,7 @@ This issue covers defining void synchronous functions only, which do return but 
 
 This is a function declaration:
 ```cp
-func add(a: int, b: int): void {
+function add(a: int, b: int): void {
 	"""
 		The first argument is {{ a }}.
 		The second argument is {{ b }}.
@@ -36,7 +36,7 @@ let my_fn: (a: int, b: int) => void =
 
 Some parameters may be declared `unfixed`, which means they can be reassigned within the function body.
 ```cp
-func add(unfixed a: int, b: int): void {
+function add(unfixed a: int, b: int): void {
 	a = a + 1; % ok
 	b = b - 1; %> AssignmentError
 }
@@ -107,7 +107,7 @@ Punctuator :::=
 
 Keyword :::=
 	// storage
-+		| "func"
++		| "function"
 ;
 ```
 
@@ -137,7 +137,7 @@ Expression<Dynamic> ::=
 +	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type;
 
 +DeclarationFunction
-+	::= "func" IDENTIFIER ExpressionFunction;
++	::= "function" IDENTIFIER ExpressionFunction;
 
 Declaration ::=
 	| DeclarationVariable

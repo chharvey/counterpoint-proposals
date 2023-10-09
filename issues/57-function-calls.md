@@ -9,7 +9,7 @@ Function arguments may be a mix of **positional arguments** and **named argument
 
 All of the function calls below are equivalent to `subtract.(a= 5, b= 3)`.
 ```cp
-func subtract(a: int, b: int): int {
+function subtract(a: int, b: int): int {
 	return a - b;
 }
 subtract.(5, 3);       %== 2
@@ -32,7 +32,7 @@ subtract.(b= 2, a= 5, b= 3); % same as `subtract.(a= 5, b= 3)~`
 
 After all arguments are assigned, and assuming no type errors, any unassigned optional parameters are then evaluated. This happens in the function *call*, not in its definition.
 ```cp
-func multiply(a: float, b: float = 1.0): float {
+function multiply(a: float, b: float = 1.0): float {
 	return a * b;
 };
 multiply.(2.0);    % evaluates default `b` here

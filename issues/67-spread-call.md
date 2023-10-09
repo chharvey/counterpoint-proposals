@@ -5,7 +5,7 @@ Functions have a static arity, that is, the number of parameters is known at com
 
 We will use the following example to demonstrate:
 ```cp
-func joinStrings(a: str, b: str, c: str, d: str, e: str, f: str): str
+function joinStrings(a: str, b: str, c: str, d: str, e: str, f: str): str
 	=> '''{{ a }}{{ b }}{{ c }}{{ d }}{{ e }}{{ f }}''';
 ```
 

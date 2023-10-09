@@ -3,13 +3,13 @@ Non-void functions return values.
 # Discussion
 This issue adds the ability for functions to return values to their caller. It adds return types, `return` statements, and implicit returns.
 ```cp
-func add(a: int, b: int): int {
-%                         ^ return type
+function add(a: int, b: int): int {
+%                             ^ return type
 	return a + b;
 	% ^ return statement
 }
-func subtract(a: int, b: int): int => a - b;
-%                                  ^ implicit return
+function subtract(a: int, b: int): int => a - b;
+%                                      ^ implicit return
 ```
 
 When a function returns, it completes execution and returns control back to the caller where the call occurs. When a function returns *a value*, it sends a value along with control back to the caller. The **return type** of a function is the static type of the returned value, and it tells the compiler the type of the call expression (v0.7.0). If a function returns a value, then its body, the statement block, must have a **`return` statement**, which contains the expression to evaluate and return. A function may have no body but an **implicit return** (using a fat arrow `=>`), which is the single expression that is returned. A function with an implicit return cannot contain any statements.
@@ -33,7 +33,7 @@ let math: [
 
 A function body may have no return statement, or it may have an empty return statement (`return;` with no expression), in which case the function “returns void” (it returns, but it does not return a value) and its return type is `void`. Functions with implicit returns cannot return void — they must return a value. Functions that do not return (do not complete execution) are not covered in this issue, nor are asynchronous functions.
 ```cp
-func divide(a: int, b: int): void {
+function divide(a: int, b: int): void {
 	"""I am not going to divide {{ a }} and {{ b }}.""";
 	% automatically returns here since it’s the end of the function body
 }

@@ -1,10 +1,10 @@
 **Generic function annotations** allow functions to implement generic types. Follows #84 and #85.
 
 ```cp
-func lessThan1<U> implements Comparator1 (a: U, b: U): int {
+function lessThan1<U> implements Comparator1 (a: U, b: U): int {
 	; % ...
 }
-func lessThan2 implements Comparator2.<float> (a: float, b: float): int {
+function lessThan2 implements Comparator2.<float> (a: float, b: float): int {
 	; % ...
 }
 ```
@@ -13,8 +13,8 @@ The only thing to remember here is that the generic parameters of a function dec
 ```cp
 type Voider<A, B> = (A, B) => void;
 
-func myFunction<T> implements Voider.<str, T> (x: str, y: T): void {
-%               ^ generic parameter is here, on the function name
+function myFunction<T> implements Voider.<str, T> (x: str, y: T): void {
+%                   ^ generic parameter is here, on the function name
 	;
 }
 
@@ -27,10 +27,10 @@ More examples:
 ```cp
 type Nuller<T> = <U>(T, U) => null;
 
-func g<U> implements Nuller.<int> (i: int, j: U): null {
+function g<U> implements Nuller.<int> (i: int, j: U): null {
 	i; j; return null;
 }
-func h<U> implements Nuller.<bool> (i: bool, j: U): null {
+function h<U> implements Nuller.<bool> (i: bool, j: U): null {
 	i; j; return null;
 }
 
@@ -40,17 +40,17 @@ h.<str>(true, "world");
 
 And as mentioned in #84, functions that have an `implements` clause don’t need to have explicit parameter/return types written.
 ```cp
-func myFunction<T> implements Voider.<str, T> (x, y) {
+function myFunction<T> implements Voider.<str, T> (x, y) {
 	x; % implied `str`
 	y; % implied `T` (specified when function is called)
 }
 
-func g<U> implements Nuller.<int> (i, j) {
+function g<U> implements Nuller.<int> (i, j) {
 	i; %: int
 	j; %: U
 	return null;
 }
-func h<U> implements Nuller.<bool> (i, j) {
+function h<U> implements Nuller.<bool> (i, j) {
 	i; %: bool
 	j; %: U
 	return null;

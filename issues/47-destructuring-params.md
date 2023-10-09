@@ -5,14 +5,14 @@ Destructuring parameters in function definitions.
 ## Function Parameter Declaration
 Consider this function:
 ```cp
-func printPlanet(planet: [str, float]): void {
+function printPlanet(planet: [str, float]): void {
 	"""The radius of {{ planet.0 }} is {{ planet.1 }}km.""";
 }
 % typeof printPlanet: (planet: [str, float]) => void
 ```
 Rather than keep track of a tuple argument, we can **destructure the tuple** into function parameters.
 ```cp
-func printPlanet(planet= [name, value]: [str, float]): void {
+function printPlanet(planet= [name, value]: [str, float]): void {
 %                ^ label for destructured parameter
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
@@ -23,7 +23,7 @@ Notice the “pattern” in the brackets. The function still has one parameter, 
 
 We can make our declaration a litle more consise by moving the typings inside the destructure pattern.
 ```cp
-func printPlanet(planet= [name: str, value: float]): void {
+function printPlanet(planet= [name: str, value: float]): void {
 	% typeof name  == str
 	% typeof value == float
 	;
@@ -32,7 +32,7 @@ func printPlanet(planet= [name: str, value: float]): void {
 
 Destructuring applies to unfixed parameters as well.
 ```cp
-func printPlanet(planet= [unfixed name, value]: [str, float]): void {
+function printPlanet(planet= [unfixed name, value]: [str, float]): void {
 	set name  = """Planet {{ name }}"""; % ok
 	set value = value + 1.0;             %> AssignmentError
 }
@@ -40,21 +40,21 @@ func printPlanet(planet= [unfixed name, value]: [str, float]): void {
 
 Above, we used **tuple destructuring**, that is, assigning the pattern *[`a`, `b`]* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter…
 ```cp
-func printPlanet(planet: [name: str, value: float]): void {
+function printPlanet(planet: [name: str, value: float]): void {
 	"""The radius of {{ planet.name }} is {{ planet.value }}km.""";
 }
 % typeof printPlanet: (planet: [name: str, value: float]) => void
 ```
 we can destructure the record into separate parameters:
 ```cp
-func printPlanet(planet= [name$, value$]: [name: str, value: float]): void {
+function printPlanet(planet= [name$, value$]: [name: str, value: float]): void {
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
 Or, with the “inside” type annotation, if you like:
 ```cp
-func printPlanet(planet= [name$: str, value$: float]): void {
+function printPlanet(planet= [name$: str, value$: float]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
@@ -63,7 +63,7 @@ As with tuple destructuring, this doesn’t change the type signature of the fun
 
 Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `[x$]` is shorthand for `[x= x]`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
 ```cp
-func printPlanet(planet= [name= n: str, value= v: float]): void {
+function printPlanet(planet= [name= n: str, value= v: float]): void {
 	name;  %> ReferenceError
 	value; %> ReferenceError
 	"""The radius of {{ n }} is {{ v }}km.""";
@@ -74,7 +74,7 @@ The caller must supply a `[name: str, value: float]` argument, but the internal 
 
 Again, we can declare unfixed parameters.
 ```cp
-func f(numbers= [
+function f(numbers= [
 	w$:              int,
 	xray=         x: int,
 	y=    unfixed y: int,
@@ -90,14 +90,14 @@ func f(numbers= [
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cp
-func printPlanetNamed(planet= [name: str, value: float] ?= ["Earth", 6371.0]): void {
+function printPlanetNamed(planet= [name: str, value: float] ?= ["Earth", 6371.0]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [str, float]) => void
 ```
 We can also have optional record destructuring parameters:
 ```cp
-func printPlanetNamed(planet= [name= n: str, value= v: float] ?= [name= "Earth", value= 6371.0]): void {
+function printPlanetNamed(planet= [name= n: str, value= v: float] ?= [name= "Earth", value= 6371.0]): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: (planet?: [name: str, value: float]) => void
@@ -106,7 +106,7 @@ func printPlanetNamed(planet= [name= n: str, value= v: float] ?= [name= "Earth",
 ## Nested Destructuring
 Like destructuring for variables, we can nest destructuing syntax for functions.
 ```cp
-func nest(
+function nest(
 	% regular parameter destructuring, tuple
 	ab= [a, b]: int[2],
 
@@ -152,7 +152,7 @@ nest.(
 	[papa= 16, quebec= [q= 17, romeo= 18]],
 );
 
-func nestOptional(
+function nestOptional(
 	s= [a, b]: int[2]                                   ?= [19, 20],
 	t= [c$: int, delta= d: int]                         ?= [c= 21, delta= 22],
 	u= [g: int, [h, i]: int[2]]                         ?= [23, [24, 25]],

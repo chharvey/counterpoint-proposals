@@ -6,7 +6,7 @@ Constant collections (#51) were syntax productions only a few additional semanti
 ## Syntax Updates
 The first change is a relaxation on syntax and an improvement on semantics. #51 only allowed a certain subset of syntaxes within the delimiters `\[` and `]`. Now, `\[…]` represents *value* types/objects and `[…]` represents *reference* types/objects. These syntaxes may now contain identifiers and function calls, as long as those return value types/objects, determined by semantic analysis. Under the hood, a tag will be implemented on each type to indicate whether it’s a value or reference type.
 ```cp
-% constant collections now may include variable refs and func calls
+% constant collections now may include variable references and function calls
 let x: Object = \[a, b.(c.d), e.f.[g]];
 type X = \[A, B.<C.D>, E.F[3]];
 ```

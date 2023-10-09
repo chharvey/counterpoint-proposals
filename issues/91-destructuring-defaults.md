@@ -42,14 +42,14 @@ c; %== 2
 ## Parameter Destructuring
 Function parameters are destructured the same way.
 ```cp
-func f(arg= [a: int, b: int, c: int ?= 3]): Object {
+function f(arg= [a: int, b: int, c: int ?= 3]): Object {
 	arg; %> ReferenceError
 	return [a, b, c];
 }
 % typeof f: (arg: [int, int, ?: int]) => Object
 f.([1, 2]); %== [1, 2, 3]
 
-func g(arg= [a= alfa: int, b= bravo: int ?= 3, c= charlie: int]): Object {
+function g(arg= [a= alfa: int, b= bravo: int ?= 3, c= charlie: int]): Object {
 	arg; %> ReferenceError
 	a;   %> ReferenceError
 	b;   %> ReferenceError
@@ -59,7 +59,7 @@ func g(arg= [a= alfa: int, b= bravo: int ?= 3, c= charlie: int]): Object {
 % typeof g: (arg: [a: int, b?: int, c: int]) => Object
 g.([a= 1, c= 2]); %== [1, 3, 2]
 
-func h(arg= [a$: int, b$: int ?= 3, c$: int]): Object {
+function h(arg= [a$: int, b$: int ?= 3, c$: int]): Object {
 	arg; %> ReferenceError
 	return [a, b, c];
 };
@@ -70,12 +70,12 @@ Since named function parameters are required, we must **alias** the destructured
 
 Just because a destructured function parameter may have optional entries doesn’t mean the *entire parameter* is optional. The three examples above all have required parameters (an argument is required when calling). If we want the parameter to be optional, we must provide a *separate* default value (#55).
 ```cp
-func f(arg= [a: int, b: int, c: int ?= 3] ?= [4, 5, 6]): Object => [a, b, c];
+function f(arg= [a: int, b: int, c: int ?= 3] ?= [4, 5, 6]): Object => [a, b, c];
 % typeof f: (arg?: [int, int, ?: int]) => Object
 f.([1, 2]); %== [1, 2, 3]
 f.();       %== [4, 5, 6]
 
-func h(arg= [a$: int, b$: int ?= 3, c$: int] ?= [a= 4, c= 5]): Object => [a, b, c];
+function h(arg= [a$: int, b$: int ?= 3, c$: int] ?= [a= 4, c= 5]): Object => [a, b, c];
 % typeof h: (arg?: [a: int, b?: int, c: int]) => Object
 h.([a= 1, c= 2]); %== [1, 3, 2]
 h.();             %== [4, 3, 5]

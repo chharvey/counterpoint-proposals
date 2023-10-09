@@ -151,7 +151,7 @@ type Generator<T> = [
 	executor: ((T) => void, () => void, int) => void,
 ];
 
-func newGenerator<T>(executor: ((T) => void, () => void, int) => void): Generator.<T> => [
+function newGenerator<T>(executor: ((T) => void, () => void, int) => void): Generator.<T> => [
 	count=    0,
 	done=     false,
 	executor= executor,

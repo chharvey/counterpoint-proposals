@@ -8,8 +8,8 @@ A declared function may be specified to implement a type signature using the `im
 A function’s type signature is basically its *type*, with additional information such as parameter names and optionality. Since function declarations have types in their syntax, their function signatures are built in.
 
 ```cp
-func add(x: float, y: float): float => x + y;
-%         ^         ^       ^ these types form the type signature
+function add(x: float, y: float): float => x + y;
+%             ^         ^       ^ these types form the type signature
 add; %: (x: float, y: float) => float
 ```
 
@@ -20,7 +20,7 @@ let sum: float = foldList.<float>([4.2, 40.2], add); %== 44.4
 ```
 In fact, `add` could be used many times in dozens of higher-order functions like `foldList`. But what if the type signature of `add` changes? This could break our function call.
 ```cp
-func add(x: float, y: float, z: float): float => x + y + z;
+function add(x: float, y: float, z: float): float => x + y + z;
 let sum: float = foldList.<float>([4.2, 40.2], add); %> TypeError
 ```
 > TypeError: `(x: float, y: float, z: float) => float` not assignable to `(float, float) => float`.
@@ -31,7 +31,7 @@ It’s a good thing this error is raised, because it’s warning us that the fun
 This is where function annotations save the day. Functions can be **annotated** with the `implements` keyword, indicating their type signature must match the given type.
 ```cp
 type BinaryOperatorFloat = (float, float) => float;
-func add implements BinaryOperatorFloat (x: float, y: float): float => x + y;
+function add implements BinaryOperatorFloat (x: float, y: float): float => x + y;
 ```
 Since the type signature of `foldList.<float>` expects a `(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
 ```cp
@@ -39,7 +39,7 @@ let sum: float = foldList.<float>([4.2, 40.2], add); % ok
 ```
 Now when we make a breaking change to `add`, we get only one new error, right at the source of that change.
 ```cp
-func add implements BinaryOperatorFloat (x: float, y: float, z: float): float => x + y + z; %> TypeError
+function add implements BinaryOperatorFloat (x: float, y: float, z: float): float => x + y + z; %> TypeError
 let sum: float = foldList.<float>([4.2, 40.2], add); % error is suppressed
 ```
 > TypeError: `(x: float, y: float, z: float) => float` not assignable to `BinaryOperatorFloat`.
@@ -48,8 +48,8 @@ In the function call on the second line, the error is suppressed because because
 
 To improve things even more, we’re allowed to omit the types in the function declaration and let the type-checker do all the work. The parameter and return types of the function are now implicit, thanks to the annotation.
 ```cp
-func add implements BinaryOperatorFloat (x, y) {
-%                                         ^ no types needed!
+function add implements BinaryOperatorFloat (x, y) {
+%                                             ^ no types needed!
 	x; %: float
 	y; %: float
 	return x + y; %: float

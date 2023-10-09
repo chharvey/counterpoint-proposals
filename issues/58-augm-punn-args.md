@@ -1,7 +1,7 @@
 Dependent on #15, #24, and #57.
 
 ```
-func myFunction(
+function myFunction(
 	a: int,
 	b: int = default_b,
 	c: int = default_c,
