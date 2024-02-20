@@ -50,8 +50,8 @@ As value objects, Vects and Structs are **immutable**: It’s impossible to chan
 ```cp
 set \[42, 420, 4200].3 = 42000; %> MutabilityError
 
-let values: mutable int[3] = \[42, 420, 4200];  %> TypeError03
-let times10: mutable [n42: int, n420: int] = \[ %> TypeError03
+let values: mut int[3] = \[42, 420, 4200];  %> TypeError03
+let times10: mut [n42: int, n420: int] = \[ %> TypeError03
 	n42=  42,
 	n420= 420,
 ];

@@ -85,7 +85,7 @@ Keyword :::=
 		| "float"
 		| "str"
 	// operator
-		| "mutable"
+		| "mut"
 		| "is"
 		| "isnt"
 		| "if"

@@ -1,11 +1,11 @@
 Assignment of mutable data structures’ entries. Depends on #25.
 
 ```cp
-let tuple: mutable [str, str] = ["hello", "world"];
+let tuple: mut [str, str] = ["hello", "world"];
 tuple.[3 - 2] = "mundo";
 tuple == ["hello", "mundo"]; % true
 
-let record: mutable Object = [];
+let record: mut Object = [];
 record.[[x= 5, y= 3]] = 2;
 record == [
 	[y= 3, x= 5] |-> 2,
@@ -19,7 +19,7 @@ type Font = [
 	size:   float,
 	style:  .BOLD | .ITALIC | .OBLIQUE,
 ];
-let font: mutable Font = [
+let font: mut Font = [
 	weight= 400,
 	size=   12.0,
 	style=  .ITALIC,
@@ -31,12 +31,12 @@ font.[if font.size < 24 then .style else .sTyLe] = .OBLIQUE;
 ```
 
 ## Invariance
-Tuple and record types that are mutable are **invariant** as supertypes, meaning for any types ‹S› and ‹T›, if ‹S› is a subtype of ‹T›, then it is never the case that ‹G›<‹S›> is a subtype of ‹G›<​mutable ‹T›>. This invariance ensures type safety for mutating operations.
+Tuple and record types that are mutable are **invariant** as supertypes, meaning for any types ‹S› and ‹T›, if ‹S› is a subtype of ‹T›, then it is never the case that ‹G›<‹S›> is a subtype of ‹G›<​mut ‹T›>. This invariance ensures type safety for mutating operations.
 ```cp
-let sub: mutable [int, int] = [4, 2];
-let 'super': mutable [int?, int?] = sub; %> TypeError
+let sub: mut [int, int] = [4, 2];
+let 'super': mut [int?, int?] = sub; %> TypeError
 ```
-> TypeError: Expression of type `mutable [int, int]` is not assignable to type `mutable [int?, int?]`.
+> TypeError: Expression of type `mut [int, int]` is not assignable to type `mut [int?, int?]`.
 
 We get a type error, even though `int` is assignable to `int?`. Without this type safety, we’d be able to mutate `'super'` in a way that would otherwise be invalid for `sub`:
 ```cp
@@ -46,17 +46,17 @@ The type checker wouldn’t see a problem with this, but by setting `'super'.0 =
 
 However, *immutable* tuple and record types remain **covariant** as discussed in #53.
 ```cp
-let sub: mutable [int, int] = [4, 2];
+let sub: mut [int, int] = [4, 2];
 let 'super': [int?, int?] = sub; % no error
 ```
-Type `mutable [int, int]` is a subtype of type `[int?, int?]`, even if the former is mutable.
+Type `mut [int, int]` is a subtype of type `[int?, int?]`, even if the former is mutable.
 
 # Specification
 
 ## Syntactic Grammar
 ```diff
 TypeUnarySymbol   ::= TypeUnit        | TypeUnarySymbol "?";
-+TypeUnaryKeyword ::= TypeUnarySymbol | "mutable" TypeUnaryKeyword;
++TypeUnaryKeyword ::= TypeUnarySymbol | "mut" TypeUnaryKeyword;
 
 -TypeIntersection ::= (TypeIntersection "&")? TypeUnarySymbol;
 +TypeIntersection ::= (TypeIntersection "&")? TypeUnaryKeyword;
@@ -93,7 +93,7 @@ SemanticAssignment
 ```diff
 +Decorate(TypeUnaryKeyword ::= TypeUnarySymbol) -> SemanticType
 +	:= Decorate(TypeUnarySymbol);
-+Decorate(TypeUnaryKeyword ::= "mutable" TypeUnaryKeyword) -> SemanticTypeOperation
++Decorate(TypeUnaryKeyword ::= "mut" TypeUnaryKeyword) -> SemanticTypeOperation
 +	:= (SemanticTypeOperation[operator=MUTABLE]
 +		Decorate(TypeUnaryKeyword)
 +	);
@@ -130,6 +130,6 @@ Decorate(StatementAssignment ::= Assignee "=" Expression ";") -> SemanticAssignm
 # Checklist
 - [x] add & document error type `MutabilityError`
 - [x] update subtyping & variance rules
-- [x] lex, parse, & decorate `mutable` type operator
+- [x] lex, parse, & decorate `mut` type operator
 - [x] lex, parse, & decorate property assignment statements
 - [x] update var/type-checking of assignment statements

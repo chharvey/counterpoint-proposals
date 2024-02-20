@@ -6,7 +6,7 @@ Tuple types and Record types are now value types. Value types are always immutab
 let foo: [bool, int, str] = [false, 42, "hello"];
 set foo.0 = true; %> MutabilityError: Mutation of an object of immutable type `[bool, int, str]`.
 
-let bar: mutable (bool | float)[2] = [4.2, true]; %> TypeError: Invalid operation.
+let bar: mut (bool | float)[2] = [4.2, true]; %> TypeError: Invalid operation.
 
 type Diz = \[bool, int]; %> ParseError
 let diz: Diz = \[false, 43]; %> ParseError
@@ -53,7 +53,7 @@ Map.<int, float>([
 ```cp
 type T = [
 	ints:   List.<int>,
-	floats: mutable List.<float>,
+	floats: mut List.<float>,
 ]; % no longer a Type Error!
 
 let qux: T = [
@@ -85,9 +85,9 @@ let b: Object = [n42= 42, n420= 420];
 let c: interface { n42: int; n420: int; } = [n42= 42, n420= 420];
 
 % still errors: cannot assign value objects to mutable reference types
-let d: mutable Object = [42, 420, 4200];                                    %> TypeError
-let e: mutable Object = [n42= 42, n420= 420];                               %> TypeError
-let f: mutable (interface { n42: int; n420: int; }) = [n42= 42, n420= 420]; %> TypeError
+let d: mut Object = [42, 420, 4200];                                    %> TypeError
+let e: mut Object = [n42= 42, n420= 420];                               %> TypeError
+let f: mut (interface { n42: int; n420: int; }) = [n42= 42, n420= 420]; %> TypeError
 
 % still allowed: assigning reference objects to value types
 % (unboxing is performed)

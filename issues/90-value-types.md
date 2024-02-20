@@ -46,8 +46,8 @@ let b: [n42: int, n420: int] = \[
 ];
 
 % still errors: cannot assign value objects to mutable reference types
-let e: mutable int[3] = \[42, 420, 4200];
-let f: mutable [n42: int, n420: int] = \[
+let e: mut int[3] = \[42, 420, 4200];
+let f: mut [n42: int, n420: int] = \[
 	n42=  42,
 	n420= 420,
 ];
@@ -63,21 +63,21 @@ The types `int\[3]` and `\[n42: int, n420: int]` are **value types** and can onl
 
 
 ## Type Operation Updates
-Value types can no longer have the `mutable` operator applied.
+Value types can no longer have the `mut` operator applied.
 ```cp
 % invalid:
-type T = mutable \[int, float, str];
-type T = mutable never;
-type T = mutable void;
-type T = mutable null;
-type T = mutable bool;
-type T = mutable int;
-type T = mutable float;
-type T = mutable str;
+type T = mut \[int, float, str];
+type T = mut never;
+type T = mut void;
+type T = mut null;
+type T = mut bool;
+type T = mut int;
+type T = mut float;
+type T = mut str;
 
 % valid:
-type T = mutable Object;  % still valid, but just returns `Object`
-type T = mutable unknown;
-type T = mutable (\[int, float] | [int, float]); % still valid even though result won’t be mutable
-type T = \[int, float] | mutable [int, float];
+type T = mut Object;  % still valid, but just returns `Object`
+type T = mut unknown;
+type T = mut (\[int, float] | [int, float]); % still valid even though result won’t be mutable
+type T = \[int, float] | mut [int, float];
 ```

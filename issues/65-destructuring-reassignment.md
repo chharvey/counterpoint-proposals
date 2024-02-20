@@ -24,8 +24,8 @@ y == 450;
 
 Destructuring for index/key reassignment allows us to reassign items on mutable tuples and properties on mutable records. Note: Punning (`k$`) can only be used for variable reassignment, not for property reassignment.
 ```cp
-let t: mutable [float, float] = [4.2, 0.42];
-let r: mutable [x: int, y: int] = [x= 42, y= 420];
+let t: mut [float, float] = [4.2, 0.42];
+let r: mut [x: int, y: int] = [x= 42, y= 420];
 
 set [t.0, t.1] = [4.3, 0.43];
 set [r.x, r.y] = [43, 430];

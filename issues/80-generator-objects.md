@@ -48,7 +48,7 @@ Notice that after a generator is `done`, it continues to yield `null` and doesnâ
 Generators may be iterated over in a `for-of` loop (#28), where the variable represents the yielded items. Notice we donâ€™t need to use the `++` operator, as the `for` loop does this implicitly. The `for` loop stops iteration once the generator is `done`.
 ```cp
 countdown; %: Generator.<int>
-let results: mutable int[] = List.<int>([]);
+let results: mut int[] = List.<int>([]);
 let i: int = 0;
 for n: int of countdown do {
 	set results.[i] = n;

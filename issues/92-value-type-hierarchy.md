@@ -5,11 +5,11 @@ The `Object` class will be a class of which every reference object is an instanc
 ## Reserved Keywords
 The `obj` keyword is retired and replaced with a new temporary keyword, `Object`, hard-coded into the grammar. Once we have the `Object` class, it will be removed from the grammar and it will be considered an identifier instead (just like the plan for `List`, `Dict`, `Set`, and `Map`). `obj` can now be used as a regular identifier.
 ```cp
-let o1: mutable obj = my_object; % ReferenceError (`obj` was never declared)
-let o2: obj = o1;                % ReferenceError (`obj` was never declared)
+let o1: mut obj = my_object; % ReferenceError (`obj` was never declared)
+let o2: obj = o1;            % ReferenceError (`obj` was never declared)
 
-let o1: mutable Object = my_object; % fixed
-let o2: Object = o1;                % fixed
+let o1: mut Object = my_object; % fixed
+let o2: Object = o1;            % fixed
 
 let obj: int = 42; % a regular identifier now
 ```
@@ -70,13 +70,13 @@ let val0: int = <int>ref0; % unboxing is performed: a copy of ref0’s value is 
 ref0 === 42;
 val0 === 42;
 
-let ref1: mutable int[3] = [42, 420, 4200];
+let ref1: mut int[3] = [42, 420, 4200];
 let val1: int\[3] = ref1;    % unboxing
 set ref1.0 = 42000;          % ref1 is mutated
 ref1 == \[42000, 420, 4200]; % observe ref1 change
 val1 === \[42, 420, 4200];   % val1 is unchanged
 
-let ref2: mutable [n42: int, n420: int] = [n42= 42, n420= 420];
+let ref2: mut [n42: int, n420: int] = [n42= 42, n420= 420];
 let val2: \[n42: int, n420: int] = ref2; % unboxing
 set ref2.n42 = 42000;
 ref2 == \[n42= 42000, n420= 420];
@@ -90,7 +90,7 @@ interface data FullNameData {
 	readonly first: str;
 	readonly last:  str;
 }
-let ref3: mutable FullName = FullName.("Isaac", "Newton");
+let ref3: mut FullName = FullName.("Isaac", "Newton");
 let val3: FullNameData = ref3; % unboxing
 set [ref3.first, ref3.last] = ["Albert", "Einstein"];
 ref3 == FullName.("Albert", "Einstein");
