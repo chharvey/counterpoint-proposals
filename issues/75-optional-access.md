@@ -22,19 +22,19 @@ At *compile-time*, the type of an expression `a?.b` varies depending on the type
 - If type `A` is a subtype of `null`, then the type of `a?.b` is also `null`. (This allows chained optional access, noted below.)
 - If type `A` is not a subtype of `null` and it has *no* bound property `b`, then attempting `a?.b` will result in a TypeError as ususal.
 ```cp
-let unfixed a1: [str, int,    bool] = ["hello", 42, true];
-let unfixed a2: [str, int, ?: bool] = ["hello", 42, true];
-let unfixed a3: [str, int, ?: bool] = ["hello", 42];
-let unfixed a4: [str, int]          = ["hello", 42, 4.2];
-let unfixed a5: [str, int]          = ["hello", 42];
+let a1: [str, int,    bool] = ["hello", 42, true];
+let a2: [str, int, ?: bool] = ["hello", 42, true];
+let a3: [str, int, ?: bool] = ["hello", 42];
+let a4: [str, int]          = ["hello", 42, 4.2];
+let a5: [str, int]          = ["hello", 42];
 a1?.2; % type `bool`,  produces `true`
 a2?.2; % type `bool?`, produces `true`
 a3?.2; % type `bool?`, produces `null`
 a4?.2; %> TypeError
 a5?.2; %> TypeError
 
-let unfixed n: null = null;
-let unfixed o: Object = null;
+let n: null = null;
+let o: Object = null;
 n?.2; % type `null`, produces `null`
 o?.2; %> TypeError
 ```

@@ -28,7 +28,7 @@ let earth: .EARTH = .EARTH;
 Key unit types can be unioned to form an enumeration of values.
 ```cp
 type Element = .WATER | .EARTH | .FIRE | .AIR;
-let unfixed el: Element = .FIRE;
+let var el: Element = .FIRE;
 set el = .AIR;
 set el = .AETHER; %> TypeError
 ```
@@ -39,7 +39,7 @@ type Impossible = .WATER & .EARTH; % type `never`
 
 Counterpoint has a designated `key` type, which is conceptually the infinite union of all Key values. Any Key value is assignable to the `key` type, and *only* Key values are assignable to this type.
 ```cp
-let unfixed el: key = .FIRE;
+let var el: key = .FIRE;
 set el = .AIR;
 set el = .AETHER;
 set el = 42;         %> TypeError
@@ -95,7 +95,7 @@ Keyword :::=
 		| "let"
 		| "type"
 	// modifier
-		| "unfixed"
+		| "var"
 ;
 ```
 

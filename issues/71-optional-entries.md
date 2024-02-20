@@ -5,7 +5,7 @@ Optional entries in tuple and record types.
 ## Optional Tuple Items
 A tuple type may have optional items, meaning that a tuple assigned to it might or might not have those items.
 ```cp
-let unfixed x: [str, int, ?:bool] = ["hello", 42];
+let var x: [str, int, ?:bool] = ["hello", 42];
 x = ["hello", 42, true];
 ```
 
@@ -17,7 +17,7 @@ type X = [str, ?:bool, int]; %> ParseError
 ## Optional Record Properties
 A record type may have optional properties, meaning that a record assigned to it might or might not have those properties.
 ```cp
-let unfixed y: [firstname: str, middlename?: str, lastname: str] = [
+let var y: [firstname: str, middlename?: str, lastname: str] = [
 	firstname= "Martha",
 	lastname=  "Dandridge",
 ];

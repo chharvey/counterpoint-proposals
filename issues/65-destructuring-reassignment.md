@@ -3,8 +3,8 @@ Destructuring for variable & property reassignment. Depends on #43.
 # Discussion
 Destructuring reassignment is shorthand syntax for reassignment of variables and properties. As with variable and property declaration, we can use either tuple or record destructuring.
 ```cp
-let unfixed x: int = 42;
-let unfixed y: int = 420;
+let var x: int = 42;
+let var y: int = 420;
 
 % tuple destructuring:
 set [x, y] = [43, 430];
@@ -53,8 +53,8 @@ set [papa= object.p, quebec= (q$, romeo= object.r)] = [papa= 16, quebec= [q= 17,
 
 With destructuring for reassignment, we can use the variables’ previous values.
 ```cp
-let unfixed x: int = 42;
-let unfixed y: int = 420;
+let var x: int = 42;
+let var y: int = 420;
 
 set [x, y] = [x + 1, y + 10];
 x == 43;
@@ -67,8 +67,8 @@ y == 43;
 
 We can reassign variables in the same destructuring statement without affecting each other.
 ```cp
-let unfixed x: int = 42;
-let unfixed y: int = 0;
+let var x: int = 42;
+let var y: int = 0;
 
 set [x, y] = [x + 2, x * 10]; % evaluated first as `[44, 420]`
 x == 44;

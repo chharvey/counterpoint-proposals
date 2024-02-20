@@ -32,7 +32,7 @@ function printPlanet(planet= [name: str, value: float]): void {
 
 Destructuring applies to unfixed parameters as well.
 ```cp
-function printPlanet(planet= [unfixed name, value]: [str, float]): void {
+function printPlanet(planet= [var name, value]: [str, float]): void {
 	set name  = """Planet {{ name }}"""; % ok
 	set value = value + 1.0;             %> AssignmentError
 }
@@ -75,10 +75,10 @@ The caller must supply a `[name: str, value: float]` argument, but the internal 
 Again, we can declare unfixed parameters.
 ```cp
 function f(numbers= [
-	w$:              int,
-	xray=         x: int,
-	y=    unfixed y: int,
-	zulu= unfixed z: int,
+	w$:          int,
+	xray=     x: int,
+	y=    var y: int,
+	zulu= var z: int,
 ]): void {
 	set w = 0; %> AssignmentError
 	set x = 0; %> AssignmentError
@@ -184,7 +184,7 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Optional> ::=
-		| (IDENTIFIER "=")? "unfixed"? IDENTIFIER        ":" Type  . <Optional+>("?=" Expression)
+		| (IDENTIFIER "=")? "var"? IDENTIFIER            ":" Type  . <Optional+>("?=" Expression)
 +		|  IDENTIFIER "="   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
 +		|  IDENTIFIER "="   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
 ;

@@ -34,9 +34,9 @@ let my_fn: (a: int, b: int) => void =
 !!my_fn; %== true
 ```
 
-Some parameters may be declared `unfixed`, which means they can be reassigned within the function body.
+Some parameters may be declared with `var`, which means they can be reassigned within the function body.
 ```cp
-function add(unfixed a: int, b: int): void {
+function add(var a: int, b: int): void {
 	a = a + 1; % ok
 	b = b - 1; %> AssignmentError
 }
@@ -134,7 +134,7 @@ Expression<Dynamic> ::=
 +	::= <Named+>(IDENTIFIER ":") Type;
 
 +ParameterFunction
-+	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type;
++	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type;
 
 +DeclarationFunction
 +	::= "function" IDENTIFIER ExpressionFunction;
@@ -225,7 +225,7 @@ SemanticBlock
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction ::= "unfixed" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction ::= "var" IDENTIFIER ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
@@ -236,7 +236,7 @@ SemanticBlock
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
++Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -267,12 +267,12 @@ SemanticBlock
 +			FunctionTypeOf(ParameterFunction),
 +		];
 
-+FunctionTypeOf(ParameterFunction ::= "unfixed"? IDENTIFIER ":" Type) -> SemanticParameterType
++FunctionTypeOf(ParameterFunction ::= "var"? IDENTIFIER ":" Type) -> SemanticParameterType
 +	:= (SemanticParameterType
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
++FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "var"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
 +	:= (SemanticParameterType
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__0)])
 +		Decorate(Type)

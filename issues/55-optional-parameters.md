@@ -30,9 +30,9 @@ Specifying an initializer that mismatches the parameter type results in a TypeEr
 function moveForward(steps: int ?= false): void {;} %> TypeError: `false` not assignable to `int`
 ```
 
-Optional parameters may be `unfixed` (reassignable within the function):
+Optional parameters may be unfixed (reassignable within the function):
 ```cp
-function greet(unfixed greeting: str ?= "Hello"): void {
+function greet(var greeting: str ?= "Hello"): void {
 	greeting = if greeting == "" then "Hi" else greeting;
 	"""{{ greeting }}, world!""";
 }
@@ -53,7 +53,7 @@ run.();                                        % prints "hello" again
 However, if an optional parameter initializer references a variable, it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. This means that that initializer is updated upon variable *reassignment*, but not with variable *shadowing*. This is important to keep in mind when changing scope.
 ```cp
 %-- Variable Reassignment --%
-%% line 2 %% let unfixed init: bool = false;
+%% line 2 %% let var init: bool = false;
 function say(b: bool ?= init): void { print.(b); }
 %                       ^ refers to the `init` from line 2
 say.(); % prints `false`
@@ -109,9 +109,9 @@ ExpressionFunction
 +	::= <Named+>(IDENTIFIER <Optional->":") <Optional+>"?:" Type;
 
 -ParameterFunction
--	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type;
+-	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type;
 +ParameterFunction<Optional>
-+	::= (IDENTIFIER "=")? "unfixed"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
++	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
 
 +ParametersType<Named> ::=
 +	|  ParameterType<?Named><-Optional># ","?
@@ -178,7 +178,7 @@ Decorate(ParameterFunction ::= IDENTIFIER ":" Type) -> SemanticParameter
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
-Decorate(ParameterFunction ::= "unfixed" IDENTIFIER ":" Type) -> SemanticParameter
+Decorate(ParameterFunction ::= "var" IDENTIFIER ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
@@ -189,7 +189,7 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type) -> Sema
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 		Decorate(Type)
 	);
-Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type) -> SemanticParameter
+Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -201,7 +201,7 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Typ
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= "unfixed" IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= "var" IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
@@ -214,7 +214,7 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Typ
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
@@ -258,12 +258,12 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed" IDENTIFIER__1 ":" Typ
 +FunctionTypeOf(ExpressionFunction ::= "(" ","? ParametersFunction ")" ":" "void" StatementBlock<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
 
-FunctionTypeOf(ParameterFunction ::= "unfixed"? IDENTIFIER ":" Type) -> SemanticParameterType
+FunctionTypeOf(ParameterFunction ::= "var"? IDENTIFIER ":" Type) -> SemanticParameterType
 	:= (SemanticParameterType
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
-FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "unfixed"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
+FunctionTypeOf(ParameterFunction ::= IDENTIFIER__0 "=" "var"? IDENTIFIER__1 ":" Type) -> SemanticParameterType
 	:= (SemanticParameterType
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__0)])
 		Decorate(Type)

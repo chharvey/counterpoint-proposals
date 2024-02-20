@@ -23,10 +23,10 @@ let n1: Name    = p.name; % ok
 let a1: Age     = p.age;  % ok
 let n2: str     = p.name; % ok
 let a2: int     = p.age;  % ok
-let unfixed o: Object  = p.name; % ok
-set o                  = p.age;  % ok
-let unfixed u: unknown = p.name; % ok
-set u                  = p.age;  % ok
+let var o: Object  = p.name; % ok
+set o              = p.age;  % ok
+let var u: unknown = p.name; % ok
+set u              = p.age;  % ok
 ```
 
 The motivation behind nominal types are that they’re useful for distinguishing different formats of data. For example, even though “string” (`str`) is one type, there can be different string formats: timestamps, UUIDs, numeric strings in different formats, and even source code such as JSON. The same goes for numbers: when dealing with currency or units (dimensional analysis) for example. Nominal typing requires us to be explicit when assigning primitive values and provides a double-check that, “yes, this is really what I meant to do”.

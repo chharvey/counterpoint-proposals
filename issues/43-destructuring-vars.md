@@ -43,7 +43,7 @@ let [x: int, y: int] = [42, 420];
 
 Destructuring applies to unfixed variables as well.
 ```cp
-let [x, unfixed y]: int[2] = [42, 420];
+let [x, var y]: int[2] = [42, 420];
 set x = 0; %> AssignmentError
 set y = 0; % ok
 ```
@@ -73,10 +73,10 @@ Record destructuring has an advantage over tuple destructuring: we can change up
 Again, we can assign unfixed variables.
 ```cp
 let [
-	w$:              int,
-	xray=         x: int,
-	y=    unfixed y: int,
-	zulu= unfixed z: int,
+	w$:          int,
+	xray=     x: int,
+	y=    var y: int,
+	zulu= var z: int,
 ] = [
 	w=       42,
 	y=      420,
@@ -124,7 +124,7 @@ let [papa= p: int, quebec= [q$: int, romeo= r: int]]                          = 
 [g, h, i, j,  k,  l,  m,  n,  o,  p,  q,  r ] ==
 [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; %== true
 ```
-Any variable in a nested destructure may be preceded with the modifier `unfixed`.
+Any variable in a nested destructure may be preceded with the modifier `var`.
 
 ## Errors and Caveats
 
@@ -178,7 +178,7 @@ let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 ## Syntax Grammar
 ```diff
 +DestructureVariableItem<Typed> ::=
-+	| "unfixed"? IDENTIFIER . <Typed+>(":" Type)
++	| "var"? IDENTIFIER . <Typed+>(":" Type)
 +	| DestructureVariables<?Typed>
 +	| <Typed+>(DestructureVariables<-Typed> ":" Type)
 +;
@@ -194,7 +194,7 @@ let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 +;
 
 DeclarationVariable ::=
-	| "let" "unfixed"? IDENTIFIER        ":" Type "=" Expression ";"
+	| "let" "var"? IDENTIFIER            ":" Type "=" Expression ";"
 +	| "let" DestructureVariables<-Typed> ":" Type "=" Expression ";"
 +	| "let" DestructureVariables<+Typed>          "=" Expression ";"
 ;
