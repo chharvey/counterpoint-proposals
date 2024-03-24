@@ -73,6 +73,19 @@ if true then {
 	say.();                % still prints `false`
 	%   ^ reads from same `init` as line 13 (not new `init` from line 18)
 } else {};
+
+%-- Imports --%
+% Module "a"
+let init: bool = false;
+public function say(b: bool ?= init): void { print.(b); }
+%                              ^ refers to the `init` from line 13
+say.(); % prints `false`
+
+% Module "b"
+from "a" import say;
+let init: bool = true;
+say.();                % still prints `false`
+%   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
 ```
 
 # Specification
@@ -106,12 +119,12 @@ ExpressionFunction
 -ParameterType<Named>
 -	::= <Named+>(IDENTIFIER ":") Type;
 +ParameterType<Named, Optional>
-+	::= <Named+>(IDENTIFIER <Optional->":") <Optional+>"?:" Type;
++	::= <Named+>(IDENTIFIER . <Optional->":") <Optional+>"?:" Type;
 
 -ParameterFunction
 -	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type;
 +ParameterFunction<Optional>
-+	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type <Optional+>("?=" Expression);
++	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type . <Optional+>("?=" Expression);
 
 +ParametersType<Named> ::=
 +	|  ParameterType<?Named><-Optional># ","?
@@ -195,26 +208,26 @@ Decorate(ParameterFunction ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type) -
 		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 		Decorate(Type)
 	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction<+Optional> ::= IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= "var" IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction<+Optional> ::= "var" IDENTIFIER ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction<+Optional> ::= IDENTIFIER__0 "=" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
 +		Decorate(Type)
 +		Decorate(Expression)
 +	);
-+Decorate(ParameterFunction_Optional ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
++Decorate(ParameterFunction<+Optional> ::= IDENTIFIER__0 "=" "var" IDENTIFIER__1 ":" Type "?=" Expression) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER__0)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER__1)])
