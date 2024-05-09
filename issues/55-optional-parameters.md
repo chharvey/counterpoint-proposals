@@ -42,43 +42,32 @@ greet; %: (greeting?: str) => void
 ## Default Parameter Evaluation
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cp
-function sayHello(): void {
+function say_hello(): void {
 	print.("hello");
 };
-function run(x: void ?= sayHello.()): void {}; % does not print "hello" here
-run.();                                        % prints "hello" here
-run.();                                        % prints "hello" again
+function run[say_hello](x: void ?= say_hello.()): void {}; % does not print "hello" here
+run.();                                                    % prints "hello" here
+run.();                                                    % prints "hello" again
 ```
 
-However, if an optional parameter initializer references a variable, it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. This means that that initializer is updated upon variable *reassignment*, but not with variable *shadowing*. This is important to keep in mind when changing scope.
+If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cp
 %-- Variable Reassignment --%
 %% line 2 %% let var init: bool = false;
-function say(b: bool ?= init): void { print.(b); }
-%                       ^ refers to the `init` from line 2
+function say[init](b: bool ?= init): void { print.(b); }
+%                             ^ refers to the `init` from line 2
 say.(); % prints `false`
-if true then {
-	init = true; % reassigns `init`
-	say.();      % now prints `true`
-	%   ^ reads from same `init` as line 2 (with updated value)
-} else {};
 
-%-- Variable Shadowing --%
-%% line 13 %% let init: bool = false;
-function say(b: bool ?= init): void { print.(b); }
-%                       ^ refers to the `init` from line 13
-say.(); % prints `false`
-if true then {
-	let init: bool = true; % shadows `init` from above
-	say.();                % still prints `false`
-	%   ^ reads from same `init` as line 13 (not new `init` from line 18)
-} else {};
-
-%-- Imports --%
+set init = true; % reassigns `init` from line 2, but not captured variable on line 3
+say.();          % still prints `false`
+%   ^ reads from the value `false` in line 2
+```
+```cp
+%-- Import Shadowing --%
 % Module "a"
-let init: bool = false;
-public function say(b: bool ?= init): void { print.(b); }
-%                              ^ refers to the `init` from line 13
+%% line 3 %% let init: bool = false;
+public function say[init](b: bool ?= init): void { print.(b); }
+%                                    ^ refers to the `init` from line 3
 say.(); % prints `false`
 
 % Module "b"
@@ -86,6 +75,14 @@ from "a" import say;
 let init: bool = true;
 say.();                % still prints `false`
 %   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
+```
+```cp
+%-- Variable Mutation --%
+let a: mut int[] = List.<int>([42]);
+function twice[a](x: int ?= a.[0]): int => x * 2;
+twice.(); %== 84
+set a.[0] = 12;
+twice.(); %== 24
 ```
 
 # Specification
