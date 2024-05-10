@@ -36,10 +36,10 @@ With the restriction lifted, the produced *value* of the operator is the value o
 ```cp
 let result1: [value: int] | [message: str] = [value= 42];
 let i: int? = result1?.value;   %== 42
-let s: str? = result1?.message; %== `null`
+let s: str? = result1?.message; %== null
 
 let result2: [value: int] | [message: str] = [message= "error!"];
-let i: int? = result2?.value;   %== `null`
+let i: int? = result2?.value;   %== null
 let s: str? = result2?.message; %== "error!"
 ```
 
@@ -53,7 +53,7 @@ result?.val; % potential access: still a TypeError
 If *multiple* components of the union have the same property name, their types are unioned.
 ```cp
 claim result: [isInt: true, value: int] | [isFloat: true, value: float] | [message: str];
-result.value; %> TypeError
+result.value;                         %> TypeError
 let v: int? | float? = result?.value; % produces the value at `result.value` if it exists, else `null`
 ```
 
@@ -99,7 +99,7 @@ let i: int = result2!.value;   % type `int`, but `null` at runtime
 let s: str = result2!.message; %== "error!"
 ```
 
-Claim access only makes an assertion to the type-checker; it does not affect the compmiled output. In the example below, the last line evaluates `return_0.()` (and executes the print statement), but ultimately results in a runtime error, since `result` is `null`.
+Claim access only makes an assertion to the type-checker; it does not affect the compmiled output. In other words, `a!.b` compiles to the same output as `a.b`. In the example below, the last line evaluates `return_0.()` (and executes the print statement), but ultimately results in a runtime error, since `result` is `null`.
 ```cp
 function return_0(): int {
 	print.("I am returning 0.");
@@ -126,8 +126,8 @@ The algorithm for type-checking is roughly as follows.
 1. If `A` is not a union type, then the type of `a?.b` is just the type of `a.b`, that is, (assuming `a` is of type `A`) type `A.b` if it exists, otherwise throw a TypeError. If `a` is just type `null`, then `a?.b` throws a TypeError.
 1. If `A` is a union type `A1 | A2 | A3`, then to get the type of `a?.b`: If at least one component of `A` has a `.b` property, map each component `A‹n›` of `A` to type `A‹n›.b` if it exists, else `null`, and then union those all. (This applies if any component is `null` as well.) Otherwise, throw a TypeError.
 
-The algorithm for evaluation is basically the same as before, just replacing `null` with `void`.
-1. If `a.b` exists, then the value of `a?.b` at runtime is `a.b`;
+The algorithm for evaluation is basically the same as before.
+1. If `a.b` exists, then the value of `a?.b` at runtime is `a.b` (even if `a.b` is `null`);
 1. If `a.b` does not exist, then `a?.b` produces `null`.
 
 The algorithm for expression bracket access adds the following short-circuit:
@@ -139,7 +139,7 @@ This section will not be developed; it is only a design discussion.
 The **potential function call** `fn?.(‹args›)` can be thought of as the potential access of a property of `fn` — think of `fn?.(‹args›)` as something like `fn?.call`.
 1. If `fn` is callable and *only* callable, then the type of `fn?.(‹args›)` is the type of `fn.(‹args›)` (assuming the arguments are type-valid).
 1. If `fn` is not at all callable, including the case that `fn` is equal to `null`, then a TypeError is thrown.
-1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn.(‹args›)` (again, assuming valid arguments) unioned with `null`.
+1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn_c.(‹args›)` (again, assuming valid arguments, and `fn_c` being the “callable part” of `fn`) unioned with `null`.
 
 Runtime evaluation:
 1. If `fn` is callable, then `fn?.(‹args›)` produces the result of calling `fn` with the evaluated `‹args›`.

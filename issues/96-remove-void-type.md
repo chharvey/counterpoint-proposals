@@ -46,35 +46,34 @@ This patten is similar to optional tuple/record entries. The entry might not exi
 ```cp
 let greetings: [?: str] = [];
 greetings.0;                  %: str?
-set greetings.0 = null;       %> TypeError: Expression of type `null` is not assignable to type `str`.
-set greetings.0 = "a string"; % ok
+set greetings.0 = "a string"; %: str
 ```
 
 Issue #55 is updated to include uninitialized optional parameters.
 ```cp
 function moveForward(var steps?: int): void {
-	steps; %: int?
-	set steps = null; %> TypeError
-	set steps = 3;    % ok
+	steps;            %: int?
+	set steps = 3;    %: int
 }
 ```
 
 ## Optional Entries
-For static types (tuples, records), optional entries now have a default value of `null`. The value exists in the object at the time of construction. For dynamic types (lists, dicts), if no value exists in the object at the access point, an IndexOutOfBoundsException will be thrown at runtime at the time of access.
+For static types (tuples, records), optional entries now have a default value of `null` when accessed. For dynamic types (lists, dicts), if no value exists in the object at the access point, an IndexOutOfBoundsException will be thrown at runtime at the time of access.
 ```cp
-let tup: [int, float, ?: str] = [0, 1.1]; % contains three values when constructed: `0`, `1.1`, and `null`
-let list: int[] = List.<int>([2, 3]);     % contains only two values when constructed: `2` and `3`
+let tup: [int, float, ?: str] = [0, 1.1]; % contains two values when constructed: `0` and `1.1`
+let list: int[] = List.<int>([2, 3]);     % contains two values when constructed: `2` and `3`
 ```
 If `a` is an object with an optional property `b`, then regular access (`a.b`) is still typed as `B?`. At runtime this always produces the value of `a.b`, even if it’s `null`.
 ```cp
 let s: str  = tup.2;   %> TypeError: `str | null` is not assignable to `str`
 let s: str? = tup.2;   % ok, produces `null` at runtime
 
-let i: int = list.[2]; % ok, but throws IndexOutOfBoundsException at runtime
+let i: int = list.[2]; % ok, but unsafe: throws IndexOutOfBoundsException at runtime
 ```
+(As an aside, it is not usually safe to access dynamic collections with static indices. The recommended technique is to loop over the collection dynamically.)
 
-### Optional Access
-Optional access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`.
+### Potential Access
+Potential access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
 let list: int[] = List.<int>([2, 3]);
@@ -91,7 +90,7 @@ let list2_r: int = list.[2]; % throws IndexOutOfBoundsException at runtime
 let list1_o: int = list?.[1]; % same as regular access
 let list2_o: int = list?.[2]; % same as regular access
 ```
-As shown above, optional access is not very useful for objects of a single type, but we can still use it if the binding object could be `null` or, as introduced in #94, a union of collection types. Therefore it may be more accurate to change the name of the `?.` operator to **“potential access”**.
+As shown above, potential access is not very useful for objects of a single type, but we can still use it if the binding object could be `null` or, as introduced in #94, a union of collection types.
 ```cp
 let voidable_rec?: [prop: str];
 voidable_rec.prop;  %> TypeError: Property `prop` does not exist on type `[prop: str] | null`.
@@ -115,8 +114,8 @@ tup!.2.length;       % error at runtime!
 ```
 
 ## NullError
-`VoidError` was used to represent attempts at accessing a value that does not exist. This is renamed to `NullError`, and is used for attempting to access properties on `null`.
+`NullError` is a new class of runtime error that communicates an invalid access to a property on `null`.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
-tup!.2.length; % NullError at runtime
+tup!.2.length; % no error at compile time, but NullError at runtime
 ```
