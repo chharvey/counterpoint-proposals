@@ -13,9 +13,10 @@ function add(a: int, b: int): void {
 		The second argument is {{ b }}.
 	""";
 	"This function does not return a value.";
+	return;
 }
 ```
-The **name** of this function is `add`. It has two input **parameters** `a` and `b`, each of type `int`. When a function is called (see v0.7.0), the values sent into the function are **arguments**. This function’s **return type** is `void`, because it has no output value. Its **body** is the set of statements within the curly braces.
+The **name** of this function is `add`. It has two input **parameters** `a` and `b`, each of type `int`. When a function is called (see v0.7.0), the values sent into the function are **arguments**. This function’s **return type** is `void`, because it has no output value. Its **body** is the set of statements within the curly braces. The body of a void function *must* include a `return;` statement in every code path.
 
 This is a function expression (lambda):
 ```cp
@@ -25,12 +26,13 @@ This is a function expression (lambda):
 		The second argument is {{ b }}.
 	""";
 	"This function does not return a value.";
+	return;
 };
 ```
 Lambdas are normal expressions that can be operated on and passed around like any other value. For instance, lambdas can be assigned to variables. Lambdas are always “truthy”.
 ```cp
 let my_fn: (a: int, b: int) => void =
-	(a: int, b: int): void { a + b; };
+	(a: int, b: int): void { a + b; return; };
 !!my_fn; %== true
 ```
 
@@ -39,6 +41,7 @@ Some parameters may be declared with `var`, which means they can be reassigned w
 function add(var a: int, b: int): void {
 	a = a + 1; % ok
 	b = b - 1; %> AssignmentError
+	return;
 }
 ```
 
@@ -46,7 +49,7 @@ function add(var a: int, b: int): void {
 A function’s **type signature** is its type, written in the form of `(‹params›) => ‹return›`. It indicates what types of arguments are accepted and what type the function returns. This issue only covers functions that return `void`.
 ```cp
 let my_fn: (a: int, b: int) => void =
-	(a: int, b: int): void { a + b; };
+	(a: int, b: int): void { a + b; return; };
 
 % typeof my_fn: (a: int, b: int) => void
 ```
@@ -56,7 +59,7 @@ let my_fn: (a: int, b: int) => void =
 When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned parameter order must match up with the assignee parameters.
 ```cp
 type BinaryOperatorType = (first: int, second: float) => void;
-let add: BinaryOperatorType = (second: float, first: int): void { first + second; }; %> TypeError
+let add: BinaryOperatorType = (second: float, first: int): void { first + second; return; }; %> TypeError
 ```
 > TypeError: Type `(second: float, first: int) => void` is not assignable to type `(first: int, second: float) => void`.
 
@@ -65,7 +68,7 @@ The reason for this error is that one should expect to be able to call any `Bina
 From another perspective, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
 ```cp
 type BinaryOperatorType = (first: float, second: float) => void;
-let subtract: BinaryOperatorType = (x: float, y: float): void { x - y; }; %> TypeError
+let subtract: BinaryOperatorType = (x: float, y: float): void { x - y; return; }; %> TypeError
 ```
 > TypeError: Type `(x: float, y: float) => void` is not assignable to type `(first: float, second: float) => void`.
 
@@ -73,7 +76,12 @@ This errors because a caller must be able to call `subtract` with the named argu
 
 Luckily, function parameter syntax has a built-in mechanism for handling function assignment/implementation with named parameters. In the parameter name, use `first= x` to alias the real parameter `x` to the assignee parameter `first`.
 ```cp
-let subtract: BinaryOperatorType = (first= x: float, second= y: float): void { x - y; };
+let subtract: BinaryOperatorType = (first= x: float, second= y: float): void {
+	first;  %> ReferenceError
+	second; %> ReferenceError
+	x - y;
+	return;
+};
 ```
 This lets the function author internally use the parameter names `x` and `y` while still allowing the caller to call the function with named arguments `first` and `second` repectively.
 
@@ -84,6 +92,7 @@ Function parameter types are **contravariant**. This means that when assigning a
 type UnaryOperator = (float | str) => void;
 let g: UnaryOperator = (x: float): void { %> TypeError
 	x; %: float
+	return;
 };
 ```
 A type error is raised because we cannot assign a `(float) => void` type to a `(float | str) => void` type. Even though the parameter’s type is narrower, a caller should expect to be able to call any `UnaryOperator` implementation with a `str` argument, and our implementation doesn’t allow that.
@@ -92,6 +101,7 @@ However, we can *widen* the parameter types:
 ```cp
 let h: UnaryOperator = (x: int | float | str): void {
 	x; %: int | float | str
+	return;
 };
 ```
 This meets the requirements of `UnaryOperator` but still has a wider type for its parameter.
@@ -108,6 +118,8 @@ Punctuator :::=
 Keyword :::=
 	// storage
 +		| "function"
+	// statement
++		| "return"
 ;
 ```
 
@@ -122,13 +134,31 @@ Type ::=
 ;
 
 +ExpressionFunction
-+	::= "(" ","? ParameterFunction# ","? ")" ":" "void" StatementBlock<-Break>;
++	::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
 
-Expression<Dynamic> ::=
-	| ExpressionDisjunctive<?Dynamic>
-	| ExpressionConditional<?Dynamic>
-+	| <Dynamic+>ExpressionFunction
+Expression ::=
+	| ExpressionDisjunctive
+	| ExpressionConditional
++	| ExpressionFunction
 ;
+
+-Statement<Break> ::=
++Statement<Break, Return> ::=
+	| Expression? ";"
+	| StatementAssignment
+	| StatementIf    <?Break>
+	| StatementUnless<?Break>
+	| StatementWhile
+	| StatementUntil
+	| StatementFor
+	| <Break+>StatementBreak
+	| <Break+>StatementContinue
++	| <Return+>("return" ";");
+	| Declaration
+;
+
+-Block<Break>         ::= "{" Statement<?Break>*          "}";
++Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
 
 +ParameterType<Named>
 +	::= <Named+>(IDENTIFIER ":") Type;

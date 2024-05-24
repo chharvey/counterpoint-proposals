@@ -25,33 +25,30 @@ let sum: float = foldList.<float>([4.2, 40.2], add); %> TypeError
 ```
 > TypeError: `(x: float, y: float, z: float) => float` not assignable to `(float, float) => float`.
 
-It’s a good thing this error is raised, because it’s warning us that the function type is not valid where it’s used. But the problem is, the error is reported *wherever* the function is used incorrectly; making one change to `add` could result in dozens of new compile-time errors, possibly far away from where the change even occurred. It would be nice to have a stricter form of function signature, to warn us that we shouldn’t change `add` in the first place.
+It’s a good thing this error is raised, because it’s warning us that the function type is not valid where it’s used. But the problem is, the error is reported at the *call sites*, wherever the function is used, instead of just once at the *source site*. Making one change to `add` could result in dozens of new compile-time errors, possibly far away from where the change even occurred. It would be nice to have a stricter form of function signature, to warn us that we shouldn’t change `add` in the first place.
 
 ## Description
-This is where function annotations save the day. Functions can be **annotated** with the `implements` keyword, indicating their type signature must match the given type.
+This is where function annotations save the day. Functions can be **annotated** with the `impl` keyword, indicating their type signature must match the given type.
 ```cp
 type BinaryOperatorFloat = (float, float) => float;
-function add implements BinaryOperatorFloat (x: float, y: float): float => x + y;
-```
-Since the type signature of `foldList.<float>` expects a `(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
-```cp
-let sum: float = foldList.<float>([4.2, 40.2], add); % ok
-```
-Now when we make a breaking change to `add`, we get only one new error, right at the source of that change.
-```cp
-function add implements BinaryOperatorFloat (x: float, y: float, z: float): float => x + y + z; %> TypeError
-let sum: float = foldList.<float>([4.2, 40.2], add); % error is suppressed
-```
-> TypeError: `(x: float, y: float, z: float) => float` not assignable to `BinaryOperatorFloat`.
-
-In the function call on the second line, the error is suppressed because because `add` is still of type `BinaryOperatorFloat` according to the compiler. This is also the case wherever `add` is used in that manner. The only error is where `add` is trying to meet the implementation.
-
-To improve things even more, we’re allowed to omit the types in the function declaration and let the type-checker do all the work. The parameter and return types of the function are now implicit, thanks to the annotation.
-```cp
-function add implements BinaryOperatorFloat (x, y) {
-%                                             ^ no types needed!
+function add(x, y) impl BinaryOperatorFloat {
 	x; %: float
 	y; %: float
 	return x + y; %: float
 }
 ```
+Since the type signature of `foldList.<float>` expects a `(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
+```cp
+let sum: float = foldList.<float>([4.2, 40.2], add); % ok
+```
+When annotating a function type implementation, explicit parameter and return type annotations must be removed. The type-checker uses the `impl` clause to determine the function type, so explicit annotations are redundant.
+```cp
+function add(x: float, y: float): float impl BinaryOperatorFloat => x + y; %> SyntaxError
+```
+
+Now when we make a breaking change to `add`, we get only one new error, right at the source of that change.
+```cp
+function add(x, y, z) impl BinaryOperatorFloat => x + y + z; %> TypeError
+let sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported here
+```
+> TypeError: Got 3 parameters, but expected 2.

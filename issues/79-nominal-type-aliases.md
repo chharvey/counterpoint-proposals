@@ -38,7 +38,7 @@ let p1: Person = [name= "Bob", age= 42];         %> TypeError: `[name: "Bob", ag
 let p2: Person = <Person>[name= "Bob", age= 42]; % ok
 ```
 
-When a `nominal` type alias is assigned a function type, only named functions that `implements` it (#84) may be assigned to it.
+When a `nominal` type alias is assigned a function type, only named functions that `impl` it (#84) may be assigned to it.
 ```cp
 type nominal Operation = (float, float) => float;
 function applyOperation(op: Operation): float => op.(3.0, 4.0);
@@ -47,7 +47,7 @@ applyOperation.(op= (a: float, b: float): float => a + b);              %> TypeE
 applyOperation.(op= <Operation>((a: float, b: float): float => a + b)); % ok, using type claim
 
 function add(a: float, b: float): float => a + b;
-function subtract implements Operation (a: float, b: float): float => a - b;
+function subtract(a, b) impl Operation => a - b;
 applyOperation.(add);      %> TypeError
 applyOperation.(subtract); % ok
 ```

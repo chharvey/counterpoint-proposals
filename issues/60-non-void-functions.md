@@ -53,19 +53,11 @@ When a caller calls an implementation of `BinaryOperator`, they should expect it
 
 # Specification
 
-## Lexicon
-```diff
-Keyword :::=
-	// statement
-+		| "return"
-;
-```
-
 ## Syntax
 ```diff
 TypeFunction<Named>
--	::= "(" ","? ParameterType<?Named># ","? ")" "=>" "void";
-+	::= "(" ","? ParameterType<?Named># ","? ")" "=>" Type<+Function>;
+-	::= "(" ","? ParameterType<?Named># ","? ")" "=>"  "void";
++	::= "(" ","? ParameterType<?Named># ","? ")" "=>" ("void" | Type<+Function>);
 
 -Type ::=
 +Type<Function> ::=
@@ -74,14 +66,7 @@ TypeFunction<Named>
 +	| <Function+>TypeFunction<-Named, +Named>
 ;
 
--ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void"           Block<-Break>;
-+ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" Type<-Function> (Block<-Break> | "=>" Expression);
-+DeclaredFunction   ::= "(" ","? ParameterFunction# ","? ")" ":" Type<-Function> (Block<-Break> | "=>" Expression ";");
-
-+StatementReturn ::= "return" Expression? ";";
-
--Statement<Break> ::=
-+Statement<Break, Return> ::=
+Statement<Break, Return> ::=
 	| Expression? ";"
 	| StatementAssignment
 	| StatementIf    <?Break>
@@ -91,16 +76,18 @@ TypeFunction<Named>
 	| StatementFor
 	| <Break+>StatementBreak
 	| <Break+>StatementContinue
-+	| <Return+>StatementReturn;
+-	| <Return+>("return"             ";");
++	| <Return+>("return" Expression? ";");
 	| Declaration
 ;
+
+-ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void"                    Block<-Break><+Return>;
++DeclaredFunction   ::= "(" ","? ParameterFunction# ","? ")" ":" "void" | Type<-Function> (Block<-Break><+Return> | "=>" Expression ";");
++ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" | Type<-Function> (Block<-Break><+Return> | "=>" Expression);
 
 DeclarationFunction
 -	::= "func" IDENTIFIER ExpressionFunction;
 +	::= "func" IDENTIFIER DeclaredFunction;
-
--Block<Break>         ::= "{" Statement<?Break>*          "}";
-+Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
 ```
 
 ## Semantics
