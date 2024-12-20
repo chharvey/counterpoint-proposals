@@ -20,7 +20,7 @@ class Point {
 }
 
 let untyped_var = (a: int, b: int): int => a + b; %: (a: int, b: int) => int
-let untyped_var = Point.(1.1, 2.2);               %: Point      % assuming it’s a data class
+let untyped_var = Vector.(1.1, 2.2);              %: Vector     % assuming it’s a data class
 let untyped_var = Person.("Doe", "John");         %: mut Person % assuming it’s not a data class
 
 let untyped_var = (class data {
@@ -29,6 +29,10 @@ let untyped_var = (class data {
 		public y: float,
 	) {}
 }).(1.1, 2.2); %: interface { readonly x: float, readonly y: float }
+
+let untyped_var = (class data {
+	new (private const name: str) {}
+}).("world"); %: unknown % data class with no public members
 
 let untyped_var = (class {
 	new (private name: str) {}
