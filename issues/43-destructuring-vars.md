@@ -16,7 +16,7 @@ There are five areas where destructuring can be used:
 	5. to declare function parameters
 
 Additional topics not covered here:
-- destructuring defaults for function parameters
+- destructuring defaults for variables and function parameters
 
 # Discussion
 
@@ -117,11 +117,11 @@ let [m$: int, november= [n, o]: int[2]]                = [m= 13, november= [14, 
 let [m$: int, november= [n: int, o: int]]              = [m= 13, november= [14, 15]];
 
 % nested variable destructuring, record within record
-let [papa= p, quebec= [q$, romeo= r]]: [p: int, quebec: [q: int, romeo: int]] = [papa= 16, quebec= [q= 17, romeo= 18]];
-let [papa= p: int, quebec= [q$, romeo= r]: [q: int, romeo: int]]              = [papa= 16, quebec= [q= 17, romeo= 18]];
-let [papa= p: int, quebec= [q$: int, romeo= r: int]]                          = [papa= 16, quebec= [q= 17, romeo= 18]];
+let [p$, quebec= [q$, romeo= r]]: [p: int, quebec: [q: int, romeo: int]] = [p= 16, quebec= [q= 17, romeo= 18]];
+let [p$: int, quebec= [q$, romeo= r]: [q: int, romeo: int]]              = [p= 16, quebec= [q= 17, romeo= 18]];
+let [p$: int, quebec= [q$: int, romeo= r: int]]                          = [p= 16, quebec= [q= 17, romeo= 18]];
 
-[g, h, i, j,  k,  l,  m,  n,  o,  p,  q,  r ] ==
+[g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r] ==
 [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; %== true
 ```
 Any variable in a nested destructure may be preceded with the modifier `var`.
@@ -156,9 +156,9 @@ let [d, e, f]: int[2] = [42, 420];              %> TypeError (index `2` is missi
 
 Assigning a list gives us the same error.
 ```cp
-let list: int[] = [42, 420, 4200, 42000];
-let [a, b, c]: int[3] = list;             %> TypeError (index `0` could be missing)
-let [d, e, f]: int[] = [42, 420, 4200];   %> TypeError (`int[]` not assignable to `unknown[3]`)
+let list: int[] = List.<int>([42, 420, 4200, 42000]);
+let [a, b, c]: int[3] = list;                       %> TypeError (index `0` could be missing)
+let [d, e, f]: int[] = List.<int>([42, 420, 4200]); %> TypeError (`int[]` not assignable to `unknown[3]`)
 ```
 
 Assigning a record with extra properties is fine, but not missing properties.

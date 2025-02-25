@@ -22,33 +22,34 @@ x == 45;
 y == 450;
 ```
 
-Destructuring for index/key reassignment allows us to reassign items on mutable tuples and properties on mutable records. Note: Punning (`k$`) can only be used for variable reassignment, not for property reassignment.
+Destructuring for index/key reassignment allows us to reassign entries on mutable lists and dicts. Note: Punning (`k$`) can only be used for variable reassignment, not for property reassignment.
 ```cp
-let t: mut [float, float] = [4.2, 0.42];
-let r: mut [x: int, y: int] = [x= 42, y= 420];
+let list: mut float[] = List.<float>([4.2, 0.42]);
+let dict: mut [: int] = Dict.<int>([x= 42, y= 420]);
 
-set [t.0, t.1] = [4.3, 0.43];
-set [r.x, r.y] = [43, 430];
-set [yankee= r.y, xray= r.x] = [xray= 44, yankee= 440];
-set [y$, x$] = [x= 45, y= 450];                         % ReferenceError: `x` and `y` not defined
+set [list.[0], list.[1]] = [4.3, 0.43];
+set [dict.[.x], dict.[.y]] = [43, 430];
+set [yankee= list.[0], xray= list.[1]] = [xray= 4.3, yankee= 0.43];
+set [yankee= dict.[.y], xray= dict.[.x]] = [xray= 44, yankee= 440];
+set [y$, x$] = [x= 45, y= 450]; % ReferenceError: `x` and `y` not defined
 ```
 
 Destructuring for reassignment can be nested as well.
 ```cp
 % nested reassignment, tuple within tuple
-set [object.g, (object.h, object.i)] = [7, [8, 9]];
+set [g, [h, i]] = [7, [8, 9]];
 
 % nested reassignment, record within tuple
-set [object.j, (k$, lima= object.l)] = [10, [k= 11, lima= 12]];
+set [j, [k$, lima= l]] = [10, [k= 11, lima= 12]];
 
 % nested reassignment, tuple within record
-set [m$, november= (object.n, object.o)] = [m= 13, november= [14, 15]];
+set [m$, november= [n, o]] = [m= 13, november= [14, 15]];
 
 % nested reassignment, record within record
-set [papa= object.p, quebec= (q$, romeo= object.r)] = [papa= 16, quebec= [q= 17, romeo= 18]];
+set [p$, quebec= [q$, romeo= r]] = [p= 16, quebec= [q= 17, romeo= 18]];
 
-[object.g, object.h, object.i, object.j, k,  object.l, m,  object.n, object.o, object.p, q,  object.r ] ==
-[7,        8,        9,        10,       11, 12,       13, 14,       15,       16,       17, 18       ];
+[g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r] ==
+[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; %== true
 ```
 
 With destructuring for reassignment, we can use the variables’ previous values.
