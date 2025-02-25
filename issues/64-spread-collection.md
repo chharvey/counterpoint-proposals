@@ -16,7 +16,7 @@ The symbol `#` is called the **single-spread** symbol. It’s technically not an
 Tuples may also be spread into set literals.
 ```cp
 let cde: [str, str, str] = [c, d, e]; % assume these variables are strings
-let def = str{} = [d, e, #cde, f];
+let def = str{} = {d, e, #cde, f};
 def == {d, e, c, f};
 ```
 
@@ -30,37 +30,37 @@ type Car = [
 	year:  int,
 ];
 let my_car: Car = [
-	make=  'Mazda',
-	model= 'Protegé',
-	color= 'black',
+	make=  "Mazda",
+	model= "Protegé",
+	color= "black",
 	year=  2003,
 ];
 let new_car: Car = [
-	color= 'red',
+	color= "red",
 	##my_car,
 	year= 2010,
 ];
 new_car == [
-	make=  'Mazda',
-	model= 'Protegé',
-	color= 'black',
+	make=  "Mazda",
+	model= "Protegé",
+	color= "black",
 	year=  2010,
 ];
 ```
-Notice that `new_car.color == 'black'` but `new_car.year == 2010`. This is because the spread `##my_car` overwrote the `color = 'red'`, but the new year overwrote the year in `my_car`. Properties later in source order have higher precedence. When multiple records are spread, properties cascde over each other in source order.
+Notice that `new_car.color == "black"` but `new_car.year == 2010`. This is because the spread `##my_car` overwrote the `color = "red"`, but the new year overwrote the year in `my_car`. Properties later in source order have higher precedence. When multiple records are spread, properties cascde over each other in source order.
 ```cp
 let newer_car: Car = [
-	make=  'Honda',
-	model= 'Civic',
-	color= 'blue',
+	make=  "Honda",
+	model= "Civic",
+	color= "blue",
 	year=  2008,
-	##[make= 'Mazda', model= 'Protegé'], % overwrite make and model
+	##[make= "Mazda", model= "Protegé"], % overwrite make and model
 	##[year= 2010],                      % overwrite year
 ];
 newer_car == [
-	make=  'Mazda',
-	model= 'Protegé',
-	color= 'blue',
+	make=  "Mazda",
+	model= "Protegé",
+	color= "blue",
 	year=  2010,
 ]
 ```
@@ -80,18 +80,18 @@ let cde: str[] = List.<str>([c, d, e]); % assume these variables are strings
 let abcdefg = str[] = List.<str>([a, b, #cde, f, g]); %> error (see below): cannot spread list into tuple
 ```
 
-### Hash Spread
-Likewise, we cannot yet spread hashes into hashes.
+### Dict Spread
+Likewise, we cannot yet spread dicts into dicts.
 ```cp
-let my_car: [:str | int] = Hash.<str | int>([
-	make=  'Mazda',
-	model= 'Protegé',
-	color= 'black',
+let my_car: [:str | int] = Dict.<str | int>([
+	make=  "Mazda",
+	model= "Protegé",
+	color= "black",
 	year=  2003,
 ]);
-let new_car: [:str | int] = Hash.<str | int>([
-	color= 'red',
-	##Hash.<unknown>(old_car), %> error (see below): cannot spread hash into record
+let new_car: [:str | int] = Dict.<str | int>([
+	color= "red",
+	##Dict.<unknown>(my_car), %> error (see below): cannot spread dict into record
 	year= 2010,
 ]);
 ```
@@ -144,21 +144,21 @@ We get syntax errors by using the wrong arity of spread *inside* the wrong synta
 {1, ###x}; %> ParseError: triple-spread inside set literal
 { ##x, 1}; %> ParseError: double-spread inside set/map literal
 {###x, 1}; %> ParseError: expression inside map literal
-{'a' -> 1,  #z}; %> ParseError: single-spread inside map literal
-{'a' -> 1, ##z}; %> ParseError: double-spread inside map literal
-{ #z, 'a' -> 1}; %> ParseError: case inside set literal
-{##z, 'a' -> 1}; %> ParseError: double-spread inside set/map literal
+{"a" -> 1,  #z}; %> ParseError: single-spread inside map literal
+{"a" -> 1, ##z}; %> ParseError: double-spread inside map literal
+{ #z, "a" -> 1}; %> ParseError: case inside set literal
+{##z, "a" -> 1}; %> ParseError: double-spread inside set/map literal
 ```
 and we get type errors by using the wrong arity of spread *on* the wrong types:
 ```cp
 [1, #[b= 2, c= 3]];         %> TypeError: single-spread on record type
-[1, #{'b' -> 2, 'c' -> 3}]; %> TypeError: single-spread on map type
+[1, #{"b" -> 2, "c" -> 3}]; %> TypeError: single-spread on map type
 [a= 1, ##[2, 3]];               %> TypeError: double-spread on tuple type
 [a= 1, ##{2, 3}];               %> TypeError: double-spread on set type
-[a= 1, ##{'b' -> 2, 'c' -> 3}]; %> TypeError: double-spread on map type
-{'a' -> 1, ###[2, 3]};       %> TypeError: triple-spread on tuple type
-{'a' -> 1, ###{2, 3},};      %> TypeError: triple-spread on set type
-{'a' -> 1, ###[b= 2, c= 3]}; %> TypeError: triple-spread on record type
+[a= 1, ##{"b" -> 2, "c" -> 3}]; %> TypeError: double-spread on map type
+{"a" -> 1, ###[2, 3]};       %> TypeError: triple-spread on tuple type
+{"a" -> 1, ###{2, 3},};      %> TypeError: triple-spread on set type
+{"a" -> 1, ###[b= 2, c= 3]}; %> TypeError: triple-spread on record type
 ```
 
 Since the counts of tuples are static (known at compile-time), we get type errors where counts don’t match up.
@@ -170,8 +170,8 @@ let failure: str[3] = [a, #List.<str>([c, d, e])]; %> TypeError (count unknown i
 ```
 Similarly for records, since record keys are static.
 ```cp
-let failure: [a: int, b: bool, c: str] = [a= 42, ##[b= 'bool', c= true]];   %> TypeError: true not assignable to str
-let failure: [a: int, b: bool, c: str] = [a= 42, ##[b= true, d= 'string']]; %> TypeError: missing property `c`
+let failure: [a: int, b: bool, c: str] = [a= 42, ##[b= "bool", c= true]];   %> TypeError: true not assignable to str
+let failure: [a: int, b: bool, c: str] = [a= 42, ##[b= true, d= "string"]]; %> TypeError: missing property `c`
 ```
 
 # Specification

@@ -5,23 +5,23 @@ Spread for tuple types and record types is parallel to spread for tuples and rec
 ```cp
 type CDE = [str, str, str];
 type ABCDEFG = [str, str, #CDE, str, str];
-let abcdefg: ABCDEFG = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+let abcdefg: ABCDEFG = ["a", "b", "c", "d", "e", "f", "g"];
 ```
 ```cp
 type Font = [
 	family: str,
-	weight: 'bold' | 'normal',
-	style:  'italic' | 'normal',
+	weight: "bold" | "normal",
+	style:  "italic" | "normal",
 ];
 type BetterFont = [
 	weight: int,
 	##Font,
-	style:  'italic' | 'oblique' | 'normal',
+	style:  "italic" | "oblique" | "normal",
 	color:  [float, float, float, float],
 ]; %% [
 	family: str,
-	weight: 'bold' | 'normal',
-	style: 'italic' | 'oblique' | 'normal',
+	weight: "bold" | "normal",
+	style: "italic" | "oblique" | "normal",
 	color: [float, float, float, float],
 ] %%
 ```
@@ -30,16 +30,16 @@ Note that spreading record types is not the same as intersecting them. The forme
 ```cp
 type FontIntersection = [
 	family: str,
-	weight: 'bold' | 'normal',
-	style:  'italic' | 'normal',
+	weight: "bold" | "normal",
+	style:  "italic" | "normal",
 ] & [
 	weight: int,
-	style:  'italic' | 'oblique' | 'normal',
+	style:  "italic" | "oblique" | "normal",
 	color:  [float, float, float, float],
 ]; %% [
 	family: str,
 	weight: never,
-	style:  'italic' | 'normal',
+	style:  "italic" | "normal",
 	color:  [float, float, float, float],
 ] %%
 ```
