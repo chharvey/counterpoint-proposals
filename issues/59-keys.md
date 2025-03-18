@@ -1,52 +1,62 @@
-Keys are global primitive values without intrinsic semantics.
+Symbols are global primitive values with opaque representations and without intrinsic semantics.
 
 # Discussion
-Keys are values whose implementations are hidden.
+Symbols are values whose implementations are hidden. They are only referenced by their name.
 ```cp
-.WATER; % a key
-.FIRE;  % another key
+.WATER; % a symbol
+.FIRE;  % another symbol
 ```
-Key names are programmer-defined identifiers, and always follow a dot. They’re conventionally written in MACRO_CASE, but sometimes also in snake_case.
+Symbol names are programmer-defined identifiers, and always follow a dot. They’re conventionally written in MACRO_CASE, but sometimes also in snake_case and in camelCase.
 
-The values of Keys are the only of their kind, and their implementations are unexposed. Keys can be thought of as integers or strings, but can’t be operated on as such and do not take up as much space. Keys are also not assignable to the `int` or `str` types. Like all values, keys can be assigned to types `Object` and `unknown`.
+The values of symbols are the only of their kind, and their implementations are unexposed. Symbols can be thought of as integers or strings, but can’t be operated on as such and do not take up as much space. For example, one cannot add symbols and cannot convert them to uppercase. Symbols are not assignable to the `int` or `str` types, and vice versa. Symbols are “value types”, that is, compared and copied by value rather than by reference. Like all values, symbols are assignable to type `unknown`.
 ```cp
-let greet: Object = .hello_world;
+let greet: unknown = .hello_world;
+
+.hello + .world;             %> TypeError
+.hello_world.toUppercase.(); %> TypeError
 ```
 
-Key names may be any keyword or identifier, starting with a letter or underscore, and subsequently containing letters, underscores, and/or digits. Key names may also be Unicode names, but this is not recommended as it hinders readability. As with Unicode identifiers, there are no escapes.
+Symbol names may be any keyword or identifier, starting with a letter or underscore, and subsequently containing letters, underscores, and/or digits. Even the single underscore `_` is a valid sybmol name. Symbol names may also be Unicode names, but this is not recommended as it hinders readability. As with Unicode identifiers, there are no escapes. When stringified, the the resulting string is the symbol’s name, unescaped.
 ```cp
 let greet: unknown = .'¡héllö wòrld!';
 
 .'\u{24}3.99' != .'$3.99';
+
+let greeting: str = """{{ greet }}""";
+greeting; %== "¡héllö wòrld!"
+
+let price: str = """{{ .'\u{24}3.99' }}""";
+price; %== """'\u{24}3.99'"""
+% notice the string include the symbol’s single-quotes and backslash character
 ```
 
-Other than `Object` and `unknown`, Keys are assignable to their unit types. (Unit types are types containing only one value — also referred to as “constant types”.)
+Other than `unknown`, symbols are assignable to their unit types. (Unit types are types containing only one value — also referred to as “constant types”.)
 ```cp
 let earth: .EARTH = .EARTH;
 ```
 
-Key unit types can be unioned to form an enumeration of values.
+Symbol unit types can be unioned to form an enumeration of values.
 ```cp
 type Element = .WATER | .EARTH | .FIRE | .AIR;
 let var el: Element = .FIRE;
 set el = .AIR;
 set el = .AETHER; %> TypeError
 ```
-All Key unit types are disjoint, so their intersection is always `never`.
+All symbol unit types are disjoint, so their intersection is always `never`.
 ```cp
 type Impossible = .WATER & .EARTH; % type `never`
 ```
 
-Counterpoint has a designated `key` type, which is conceptually the infinite union of all Key values. Any Key value is assignable to the `key` type, and *only* Key values are assignable to this type.
+Counterpoint has a designated `symbol` type, which is conceptually the infinite union of all potential symbol values. Any symbol value is assignable to the `symbol` type, and *only* symbol values are assignable to this type.
 ```cp
-let var el: key = .FIRE;
+let var el: symbol = .FIRE;
 set el = .AIR;
 set el = .AETHER;
 set el = 42;         %> TypeError
 set el = "a string"; %> TypeError
 ```
 
-Key values are always truthy and always nonempty.
+Symbol values are always truthy and always nonempty.
 ```cp
 !(.WATER) == false; % `!.WATER` is a parse error
 ?(.FIRE)  == false; % `?.FIRE`  is a parse error
@@ -54,20 +64,18 @@ Key values are always truthy and always nonempty.
 .EARTH || .AIR == .EARTH;
 .EARTH && .AIR == .AIR;
 ```
-(Note: The Keys above must be wrapped in parentheses, because the tokens `!.` and `?.` are accessor operators. Or we could use whitespace to separate the operator from the Key.)
+(Note: The symbols above must be wrapped in parentheses, because the tokens `!.` and `?.` are accessor operators. Or we could use whitespace to separate the operator from the symbol.)
 ```cp
 ! .WATER == false; % also acceptable, but maybe less readable
 ? .FIRE  == false; % also acceptable, but maybe less readable
 ```
 
-Keys are equal if and only if their names are exactly the same. Keys are identical if and only if they are equal.
+Symbols are equal if and only if their names are exactly the same. As “value types”, symbols are identical if and only if they are equal.
 ```cp
 .LIGHT   !=  .DARK;
 .NEUTRAL === .NEUTRAL;
 .NEUTRAL !=  .neutral;
 ```
-
-As primitive values, Key values are value objects rather than reference objects.
 
 # Specification
 
@@ -80,7 +88,7 @@ Keyword :::=
 		| "bool"
 		| "false"
 		| "true"
-+		| "key"
++		| "symbol"
 		| "int"
 		| "float"
 		| "str"
@@ -106,7 +114,7 @@ Word ::=
 	| IDENTIFIER
 ;
 
-+Key
++Symbol
 +	::= "." Word;
 
 PrimitiveLiteral ::=
@@ -116,13 +124,13 @@ PrimitiveLiteral ::=
 	| INTEGER
 	| FLOAT
 	| STRING
-+	| Key
++	| Symbol
 ;
 
 TypeKeyword ::=
 	| "void"
 	| "bool"
-+	| "key"
++	| "symbol"
 	| "int"
 	| "float"
 	| "str"
@@ -131,8 +139,8 @@ TypeKeyword ::=
 
 ## Decorate
 ```diff
-+Decorate(Key ::= "." Word) -> SemanticConstant
-+	:= (SemanticConstant[value=new Key(Decorate(Word).id)]);
++Decorate(Symbol ::= "." Word) -> SemanticConstant
++	:= (SemanticConstant[value=new Symbol(Decorate(Word).id)]);
 
 Decorate(PrimitiveLiteral ::= "null") -> SemanticConstant
 	:= (SemanticConstant[value=null]);
@@ -146,15 +154,15 @@ Decorate(PrimitiveLiteral ::= FLOAT) -> SemanticConstant
 	:= (SemanticConstant[value=new Float(TokenWorth(FLOAT))]);
 Decorate(PrimitiveLiteral ::= STRING) -> SemanticConstant
 	:= (SemanticConstant[value=new String(TokenWorth(STRING))]);
-+Decorate(PrimitiveLiteral ::= Key) -> SemanticConstant
-+	:= Decorate(Key);
++Decorate(PrimitiveLiteral ::= Symbol) -> SemanticConstant
++	:= Decorate(Symbol);
 
 Decorate(TypeKeyword ::= "void") -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=Void]);
 Decorate(TypeKeyword ::= "bool") -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=Boolean]);
-+Decorate(TypeKeyword ::= "key") -> SemanticTypeConstant
-+	:= (SemanticTypeConstant[value=Key]);
++Decorate(TypeKeyword ::= "symbol") -> SemanticTypeConstant
++	:= (SemanticTypeConstant[value=Symbol]);
 Decorate(TypeKeyword ::= "int") -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=Integer]);
 Decorate(TypeKeyword ::= "float") -> SemanticTypeConstant
@@ -171,8 +179,8 @@ Decorate(ExpressionUnit ::= PrimitiveLiteral) -> SemanticConstant
 
 ## Semantics
 ```diff
--SemanticConstant[value: Null | Boolean |       Number | String]
-+SemanticConstant[value: Null | Boolean | Key | Number | String]
+-SemanticConstant[value: Null | Boolean          | Number | String]
++SemanticConstant[value: Null | Boolean | Symbol | Number | String]
 	::= ();
 ```
 
@@ -182,31 +190,31 @@ Decorate(ExpressionUnit ::= PrimitiveLiteral) -> SemanticConstant
  - [Void](#void)
  - [Null](#null)
  - [Boolean](#boolean)
-+- [Key](#key)
++- [Symbol](#symbol)
  - [Integer](#integer)
  - [Float](#float)
  - [String](#string)
  - [Object](#object)
  - [Unknown](#unknown)
 
-+#### Key
-+The **Key** type contains programmer-defined values whose implementations are hidden.
++#### Symbol
++The **Symbol** type contains programmer-defined values whose implementations are hidden.
 +They may only be referred to by name.
-+The meaning of each Key value may be specified by the programmer.
++The meaning of each Symbol value may be specified by the programmer.
 ```
 
 ## ValueOf
 ```diff
--Or<Null, Boolean,      Number, String> ValueOf(SemanticConstant const) :=
-+Or<Null, Boolean, Key, Number, String> ValueOf(SemanticConstant const) :=
+-Or<Null, Boolean,         Number, String> ValueOf(SemanticConstant const) :=
++Or<Null, Boolean, Symbol, Number, String> ValueOf(SemanticConstant const) :=
 	1. *Return:* `const.value`.
 ;
 ```
 
 ## Build
-Note: Keys will be implemented as int32 values in the virtual machine.
+Note: Symbols will be implemented as unsigned int16 values in the virtual machine.
 ```diff
-+Sequence<Instruction> Build(Key a) :=
++Sequence<Instruction> Build(Symbol a) :=
 +	1. *Return:* ["Push `a` onto the operand stack."].
 +;
 ```
