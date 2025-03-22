@@ -76,17 +76,21 @@ Symbols are equal if and only if their names are exactly the same. As “value t
 
 ## Lexicon
 ```diff
-Keyword :::=
-	// literal
-		| "void"
-		| "null"
-		| "bool"
-		| "false"
-		| "true"
-+		| "symbol"
-		| "int"
-		| "float"
-		| "str"
+KeywordType :::=
+	| "never"
+	| "void"
+	| "bool"
++	| "symbol"
+	| "int"
+	| "float"
+	| "str"
+	| "unknown"
+;
+```
+
+## Syntax
+```diff
+Word ::=
 	// operator
 		| "mut"
 		| "is"
@@ -95,75 +99,91 @@ Keyword :::=
 		| "then"
 		| "else"
 	// storage
-		| "let"
 		| "type"
+		| "let"
+		| "_"
 	// modifier
 		| "var"
-;
-```
-
-## Syntax
-```diff
-Word ::=
-	| KEYWORD
+	| KEYWORD_TYPE
+	| KEYWORD_VALUE
 	| IDENTIFIER
 ;
 
-+Symbol
-+	::= "@" Word;
-
 PrimitiveLiteral ::=
-	| "null"
-	| "false"
-	| "true"
+	| KEYWORD_VALUE
 	| INTEGER
 	| FLOAT
 	| STRING
-+	| Symbol
++	| "@" Word
 ;
+```
 
-TypeKeyword ::=
-	| "void"
-	| "bool"
-+	| "symbol"
-	| "int"
-	| "float"
-	| "str"
-;
+## TokenWorth
+```diff
+ TokenWorth(KeywordType  :::= "never")   -> RealNumber := \x80;
+ TokenWorth(KeywordType  :::= "void")    -> RealNumber := \x81;
+ TokenWorth(KeywordType  :::= "bool")    -> RealNumber := \x82;
++TokenWorth(KeywordType  :::= "symbol")  -> RealNumber := \x83;
+-TokenWorth(KeywordType  :::= "int")     -> RealNumber := \x83;
+-TokenWorth(KeywordType  :::= "float")   -> RealNumber := \x84;
+-TokenWorth(KeywordType  :::= "str")     -> RealNumber := \x85;
+-TokenWorth(KeywordType  :::= "unknown") -> RealNumber := \x86;
+-TokenWorth(KeywordValue :::= "null")    -> RealNumber := \x87;
+-TokenWorth(KeywordValue :::= "false")   -> RealNumber := \x88;
+-TokenWorth(KeywordValue :::= "true")    -> RealNumber := \x89;
+-TokenWorth(KeywordOther :::= "mut")     -> RealNumber := \x8a;
+-TokenWorth(KeywordOther :::= "is")      -> RealNumber := \x8b;
+-TokenWorth(KeywordOther :::= "isnt")    -> RealNumber := \x8c;
+-TokenWorth(KeywordOther :::= "if")      -> RealNumber := \x8d;
+-TokenWorth(KeywordOther :::= "then")    -> RealNumber := \x8e;
+-TokenWorth(KeywordOther :::= "else")    -> RealNumber := \x8f;
+-TokenWorth(KeywordOther :::= "type")    -> RealNumber := \x90;
+-TokenWorth(KeywordOther :::= "let")     -> RealNumber := \x91;
+-TokenWorth(KeywordOther :::= "_")       -> RealNumber := \x92;
+-TokenWorth(KeywordOther :::= "var")     -> RealNumber := \x93;
++TokenWorth(KeywordType  :::= "int")     -> RealNumber := \x84;
++TokenWorth(KeywordType  :::= "float")   -> RealNumber := \x85;
++TokenWorth(KeywordType  :::= "str")     -> RealNumber := \x86;
++TokenWorth(KeywordType  :::= "unknown") -> RealNumber := \x87;
++TokenWorth(KeywordValue :::= "null")    -> RealNumber := \x88;
++TokenWorth(KeywordValue :::= "false")   -> RealNumber := \x89;
++TokenWorth(KeywordValue :::= "true")    -> RealNumber := \x8a;
++TokenWorth(KeywordOther :::= "mut")     -> RealNumber := \x8b;
++TokenWorth(KeywordOther :::= "is")      -> RealNumber := \x8c;
++TokenWorth(KeywordOther :::= "isnt")    -> RealNumber := \x8d;
++TokenWorth(KeywordOther :::= "if")      -> RealNumber := \x8e;
++TokenWorth(KeywordOther :::= "then")    -> RealNumber := \x8f;
++TokenWorth(KeywordOther :::= "else")    -> RealNumber := \x90;
++TokenWorth(KeywordOther :::= "type")    -> RealNumber := \x91;
++TokenWorth(KeywordOther :::= "let")     -> RealNumber := \x92;
++TokenWorth(KeywordOther :::= "_")       -> RealNumber := \x93;
++TokenWorth(KeywordOther :::= "var")     -> RealNumber := \x94;
+
+ KeywordType(KEYWORD_TYPE :::= "never")   -> Type := Never;
+ KeywordType(KEYWORD_TYPE :::= "void")    -> Type := Void;
+ KeywordType(KEYWORD_TYPE :::= "bool")    -> Type := Boolean;
++KeywordType(KEYWORD_TYPE :::= "symbol")  -> Type := Symbol;
+ KeywordType(KEYWORD_TYPE :::= "int")     -> Type := Integer;
+ KeywordType(KEYWORD_TYPE :::= "float")   -> Type := Float;
+ KeywordType(KEYWORD_TYPE :::= "str")     -> Type := String;
+ KeywordType(KEYWORD_TYPE :::= "unknown") -> Type := Unknown;
 ```
 
 ## Decorate
 ```diff
-+Decorate(Symbol ::= "@" Word) -> SemanticConstant
-+	:= (SemanticConstant[value=new Symbol(Decorate(Word).id)]);
-
-Decorate(PrimitiveLiteral ::= "null") -> SemanticConstant
-	:= (SemanticConstant[value=null]);
-Decorate(PrimitiveLiteral ::= "false") -> SemanticConstant
-	:= (SemanticConstant[value=false]);
-Decorate(PrimitiveLiteral ::= "true") -> SemanticConstant
-	:= (SemanticConstant[value=true]);
+Decorate(PrimitiveLiteral ::= KEYWORD_VALUE) -> SemanticConstant
+	:= (SemanticConstant[value=KeywordValue(KEYWORD_VALUE)]);
 Decorate(PrimitiveLiteral ::= INTEGER) -> SemanticConstant
-	:= (SemanticConstant[value=new Integer(TokenWorth(INTEGER))]);
+	:= (SemanticConstant[value=Integer(TokenWorth(INTEGER))]);
 Decorate(PrimitiveLiteral ::= FLOAT) -> SemanticConstant
-	:= (SemanticConstant[value=new Float(TokenWorth(FLOAT))]);
+	:= (SemanticConstant[value=Float(TokenWorth(FLOAT))]);
 Decorate(PrimitiveLiteral ::= STRING) -> SemanticConstant
-	:= (SemanticConstant[value=new String(TokenWorth(STRING))]);
-+Decorate(PrimitiveLiteral ::= Symbol) -> SemanticConstant
-+	:= Decorate(Symbol);
+	:= (SemanticConstant[value=String(TokenWorth(STRING))]);
++Decorate(PrimitiveLiteral ::= "@" Word) -> SemanticConstant
++	:= (SemanticConstant[value=Symbol(Decorate(Word).id)]);
 
-Decorate(TypeKeyword ::= "void") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=Void]);
-Decorate(TypeKeyword ::= "bool") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=Boolean]);
-+Decorate(TypeKeyword ::= "symbol") -> SemanticTypeConstant
-+	:= (SemanticTypeConstant[value=Symbol]);
-Decorate(TypeKeyword ::= "int") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=Integer]);
-Decorate(TypeKeyword ::= "float") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=Float]);
-Decorate(TypeKeyword ::= "str") -> SemanticTypeConstant
-	:= (SemanticTypeConstant[value=String]);
+Decorate(TypeUnit ::= KEYWORD_TYPE) -> SemanticTypeConstant
+	:= (SemanticTypeConstant[value=KeywordType(KEYWORD_TYPE)]);
 
 Decorate(TypeUnit ::= PrimitiveLiteral) -> SemanticTypeConstant
 	:= (SemanticTypeConstant[value=ToType(Decorate(PrimitiveLiteral).value)]);
