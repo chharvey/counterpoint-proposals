@@ -3,78 +3,73 @@ Symbols are global primitive values with opaque representations and without intr
 # Discussion
 Symbols are values whose implementations are hidden. They are only referenced by their name.
 ```cp
-.WATER; % a symbol
-.FIRE;  % another symbol
+@WATER; % a symbol
+@FIRE;  % another symbol
 ```
-Symbol names are programmer-defined identifiers, and always follow a dot. They’re conventionally written in MACRO_CASE, but sometimes also in snake_case and in camelCase.
+Symbol names are programmer-defined identifiers, and always follow an “at” sign. They’re conventionally written in MACRO_CASE, but sometimes also in snake_case.
 
 The values of symbols are the only of their kind, and their implementations are unexposed. Symbols can be thought of as integers or strings, but can’t be operated on as such and do not take up as much space. For example, one cannot add symbols and cannot convert them to uppercase. Symbols are not assignable to the `int` or `str` types, and vice versa. Symbols are “value types”, that is, compared and copied by value rather than by reference. Like all values, symbols are assignable to type `unknown`.
 ```cp
-let greet: unknown = .hello_world;
+let greet: unknown = @hello_world;
 
-.hello + .world;             %> TypeError
-.hello_world.toUppercase.(); %> TypeError
+@hello + @world;             %> TypeError
+@hello_world.toUppercase.(); %> TypeError
 ```
 
-Symbol names may be any keyword or identifier, starting with a letter or underscore, and subsequently containing letters, underscores, and/or digits. Even the single underscore `_` is a valid sybmol name. Symbol names may also be Unicode names, but this is not recommended as it hinders readability. As with Unicode identifiers, there are no escapes. When stringified, the the resulting string is the symbol’s name, unescaped.
+Symbol names may be any keyword or identifier, starting with a letter or underscore, and subsequently containing letters, underscores, and/or digits. Even the single underscore `_` is a valid sybmol name. Symbol names may also be Unicode names (in single quotes), but this is not recommended as it hinders readability. As with Unicode identifiers, there are no escapes. When stringified, the the resulting string is the symbol’s name, unescaped.
 ```cp
-let greet: unknown = .'¡héllö wòrld!';
+let greet: unknown = @'¡héllö wòrld!';
 
-.'\u{24}3.99' != .'$3.99';
+@'\u{24}3.99' != @'$3.99';
 
 let greeting: str = """{{ greet }}""";
 greeting; %== "¡héllö wòrld!"
 
-let price: str = """{{ .'\u{24}3.99' }}""";
+let price: str = """{{ @'\u{24}3.99' }}""";
 price; %== """'\u{24}3.99'"""
 % notice the string include the symbol’s single-quotes and backslash character
 ```
 
 Other than `unknown`, symbols are assignable to their unit types. (Unit types are types containing only one value — also referred to as “constant types”.)
 ```cp
-let earth: .EARTH = .EARTH;
+let earth: @EARTH = @EARTH;
 ```
 
 Symbol unit types can be unioned to form an enumeration of values.
 ```cp
-type Element = .WATER | .EARTH | .FIRE | .AIR;
-let var el: Element = .FIRE;
-set el = .AIR;
-set el = .AETHER; %> TypeError
+type Element = @WATER | @EARTH | @FIRE | @AIR;
+let var el: Element = @FIRE;
+set el = @AIR;
+set el = @AETHER; %> TypeError
 ```
 All symbol unit types are disjoint, so their intersection is always `never`.
 ```cp
-type Impossible = .WATER & .EARTH; % type `never`
+type Impossible = @WATER & @EARTH; % type `never`
 ```
 
 Counterpoint has a designated `symbol` type, which is conceptually the infinite union of all potential symbol values. Any symbol value is assignable to the `symbol` type, and *only* symbol values are assignable to this type.
 ```cp
-let var el: symbol = .FIRE;
-set el = .AIR;
-set el = .AETHER;
+let var el: symbol = @FIRE;
+set el = @AIR;
+set el = @AETHER;
 set el = 42;         %> TypeError
 set el = "a string"; %> TypeError
 ```
 
 Symbol values are always truthy and always nonempty.
 ```cp
-!(.WATER) == false; % `!.WATER` is a parse error
-?(.FIRE)  == false; % `?.FIRE`  is a parse error
+!@WATER == false;
+?@FIRE  == false;
 
-.EARTH || .AIR == .EARTH;
-.EARTH && .AIR == .AIR;
-```
-(Note: The symbols above must be wrapped in parentheses, because the tokens `!.` and `?.` are accessor operators. Or we could use whitespace to separate the operator from the symbol.)
-```cp
-! .WATER == false; % also acceptable, but maybe less readable
-? .FIRE  == false; % also acceptable, but maybe less readable
+@EARTH || @AIR == @EARTH;
+@EARTH && @AIR == @AIR;
 ```
 
 Symbols are equal if and only if their names are exactly the same. As “value types”, symbols are identical if and only if they are equal.
 ```cp
-.LIGHT   !=  .DARK;
-.NEUTRAL === .NEUTRAL;
-.NEUTRAL !=  .neutral;
+@LIGHT   !=  @DARK;
+@NEUTRAL === @NEUTRAL;
+@NEUTRAL !=  @neutral;
 ```
 
 # Specification
@@ -115,7 +110,7 @@ Word ::=
 ;
 
 +Symbol
-+	::= "." Word;
++	::= "@" Word;
 
 PrimitiveLiteral ::=
 	| "null"
@@ -139,7 +134,7 @@ TypeKeyword ::=
 
 ## Decorate
 ```diff
-+Decorate(Symbol ::= "." Word) -> SemanticConstant
++Decorate(Symbol ::= "@" Word) -> SemanticConstant
 +	:= (SemanticConstant[value=new Symbol(Decorate(Word).id)]);
 
 Decorate(PrimitiveLiteral ::= "null") -> SemanticConstant
