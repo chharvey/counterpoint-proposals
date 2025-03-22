@@ -47,9 +47,9 @@ All symbol unit types are disjoint, so their intersection is always `never`.
 type Impossible = @WATER & @EARTH; % type `never`
 ```
 
-Counterpoint has a designated `symbol` type, which is conceptually the infinite union of all potential symbol values. Any symbol value is assignable to the `symbol` type, and *only* symbol values are assignable to this type.
+Counterpoint has a designated `sym` type, which is conceptually the infinite union of all potential symbol values. Any symbol value is assignable to the `sym` type, and *only* symbol values are assignable to this type.
 ```cp
-let var el: symbol = @FIRE;
+let var el: sym = @FIRE;
 set el = @AIR;
 set el = @AETHER;
 set el = 42;         %> TypeError
@@ -80,7 +80,7 @@ KeywordType :::=
 	| "never"
 	| "void"
 	| "bool"
-+	| "symbol"
++	| "sym"
 	| "int"
 	| "float"
 	| "str"
@@ -123,7 +123,7 @@ PrimitiveLiteral ::=
  TokenWorth(KeywordType  :::= "never")   -> RealNumber := \x80;
  TokenWorth(KeywordType  :::= "void")    -> RealNumber := \x81;
  TokenWorth(KeywordType  :::= "bool")    -> RealNumber := \x82;
-+TokenWorth(KeywordType  :::= "symbol")  -> RealNumber := \x83;
++TokenWorth(KeywordType  :::= "sym")     -> RealNumber := \x83;
 -TokenWorth(KeywordType  :::= "int")     -> RealNumber := \x83;
 -TokenWorth(KeywordType  :::= "float")   -> RealNumber := \x84;
 -TokenWorth(KeywordType  :::= "str")     -> RealNumber := \x85;
@@ -162,7 +162,7 @@ PrimitiveLiteral ::=
  KeywordType(KEYWORD_TYPE :::= "never")   -> Type := Never;
  KeywordType(KEYWORD_TYPE :::= "void")    -> Type := Void;
  KeywordType(KEYWORD_TYPE :::= "bool")    -> Type := Boolean;
-+KeywordType(KEYWORD_TYPE :::= "symbol")  -> Type := Symbol;
++KeywordType(KEYWORD_TYPE :::= "sym")     -> Type := Symbol;
  KeywordType(KEYWORD_TYPE :::= "int")     -> Type := Integer;
  KeywordType(KEYWORD_TYPE :::= "float")   -> Type := Float;
  KeywordType(KEYWORD_TYPE :::= "str")     -> Type := String;
