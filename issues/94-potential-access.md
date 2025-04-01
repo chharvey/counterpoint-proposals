@@ -19,6 +19,7 @@ if result?.value then { %> TypeError: Property `value` does not exist on type `[
 	throw result?.message; %> TypeError
 };
 ```
+This is because a TypeErrorNoEntry is thrown even before checking the kind of access (`.` or `?.` or `!.`) that was used.
 
 ## Possible Workarounds
 No workarounds. There is currently no way to check if a property exists on an object before accessing it.
@@ -49,6 +50,14 @@ claim result: [value: int] | [message: str];
 result.val;  % regular access: still a TypeError
 result?.val; % potential access: still a TypeError
 ```
+A special case of this is if the binding object’s type is `null` or narrower.
+```cp
+claim result: null;
+result.value;  %> TypeError
+result?.value; %> TypeError
+result.val;    %> TypeError
+result?.val;   %> TypeError
+```
 
 If *multiple* components of the union have the same property name, their types are unioned.
 ```cp
@@ -66,16 +75,52 @@ result.val;    %> TypeError
 result?.val;   %> TypeError
 ```
 
-One special note: If the binding object is `null` at runtime and access is attempted by expression (with brackets), the expression is *not evaluated*. This is known as ”short-circuiting”.
+### Short-Circuiting
+This section propose a new feature. If the binding object is `null` at runtime, and potential access is used with bracketed expression syntax, then the bracketed expression is *not evaluated*. This is known as ”short-circuiting”.
 ```cp
 function return_0(): int {
 	print.("I am returning 0.");
 	return 0;
 };
-let result: [int]? = null;
-result?.[return_0.()]; % does not evaluate `return_0.()` (and does not execute the print statement)
+let result: int[]? = null;
+let access_regular:   int  = result.[return_0.()];  %> TypeError
+let access_potential: int? = result?.[return_0.()]; % safe, and does not evaluate `return_0.()` (and does not execute the print statement)
 ```
-This is akin to short-circuiting in logical operators: in `false && return_0.()`, the function `return_0.()` is not called.
+Regular access throws an error, but for potential access, the bracketed expression `return_0.()` is not executed. The resulting value of the whole expression is `null`. This is akin to short-circuiting in logical operators: in `anything && return_0.()`, the call `return_0.()` might not executed based on the runtime value of `anything`.
+
+### Optional Entries
+The behavior of the newly-named potential access operator hasn’t changed when accessing an optional entry of a static type (tuple/record): the type of the entry will still be unioned with `null`.
+
+This section proposes two new features for static types.
+
+First, when accessing an optional entry on a static type, the potential access operator is mandatory. Using regular access will result in a compile-time TypeError. (Previously, the access was allowed and the expression’s type was unioned with `void`.)
+```cp
+let var person: [name: str, nickname?: str] = [name= "Thomas Jefferson", nickname= "Tom"];
+person.nickname;  %> TypeError % an optional property requires the potential access operator
+person?.nickname; % type `str?`, equals `"Tom"`
+
+set person = [name= "John Adams"];
+person?.nickname; % type `str?`, equals `null`
+```
+
+Second, the inverse is true. If using the *potential access* operator on a *required entry*, a TypeError will be thrown. (Previously, the potental access was allowed but it did not change the expression’s type.) Now the use of the regular access operator is strictly enforced.
+```cp
+let person: [name: str, nickname?: str] = [name= "Thomas Jefferson", nickname= "Tom"];
+person?.name; %> TypeError % a required property requires the regular access operator
+person.name;  % ok, type `str`
+```
+
+For unions of static types, if a property is missing or optional on any component, we consider it to be optional and the potential access operator is needed. Only when every component requires the property may the regular access operator be used.
+```cp
+let result: [value: int, isError: bool, since?: float] | [message: str, isError: bool, since: float] = [value= 42, isError= false];
+% notice `since` is optional in the first comonent but required in the second --- this makes it optional overall
+result?.isError; %> TypeError % a required property requires the regular access operator
+result.isError;  % ok
+result?.since;   % ok
+result.since;    %> TypeError % an optional property requires the potential access operator
+```
+
+For dynamic types (e.g. lists/dicts), both the regular and potential access operators are allowed. Regular access returns the invariant type of the data structure, whereas optional access unions it with `null`.
 
 ### Claim Access
 The **claim access** operator may now be used for potential properties. As before, it subtracts `null` from the asserted type of the property.
@@ -91,23 +136,15 @@ result?.val; % potential access: still a TypeError
 result!.val; % claim access: still a TypeError
 
 let result1: [value: int] | [message: str] = [value= 42];
-let i: int = result1!.value;   %== 42
-let s: str = result1!.message; % type `str`, but `null` at runtime
+let i1: int = result1!.value;   %== 42
+let s1: str = result1!.message; % UNSAFE! type `str`, but errors at runtime
 
-let result2: [value: int] | [message: str] = [message= "error!"];
-let i: int = result2!.value;   % type `int`, but `null` at runtime
-let s: str = result2!.message; %== "error!"
+let result2: [value: int] | [message: str] = [message= "hello"];
+let i2: int = result2!.value;   % UNSAFE! type `int`, but errors at runtime
+let s2: str = result2!.message; %== "hello"
 ```
 
-Claim access only makes an assertion to the type-checker; it does not affect the compmiled output. In other words, `a!.b` compiles to the same output as `a.b`. In the example below, the last line evaluates `return_0.()` (and executes the print statement), but ultimately results in a runtime error, since `result` is `null`.
-```cp
-function return_0(): int {
-	print.("I am returning 0.");
-	return 0;
-};
-let result: [int] | void = null;
-result!.[return_0.()]; % NullError at runtime
-```
+Claim access only makes an assertion to the type-checker; it does not affect the compmiled output. In other words, `result2!.value` compiles to the same output that `result2.value` would. Since there’s no value at that address, the runtime throws an error. Therefore, claim access should only be used when the programmer is absolutely certain the value will not be `null` based on circumstances the typer can’t reason about. A good example of this would be claiming that a certain key exists in a dict or map.
 
 ### Compatibility
 Is this feature a “breaking” change? In other words, if this feature is introduced, will users’ existing code break and need to be changed/updated as a result? (Select only one.)
@@ -123,27 +160,63 @@ Possibility of not having a TypeError where needed.
 
 ### Details
 The algorithm for type-checking is roughly as follows.
-1. If `A` is not a union type, then the type of `a?.b` is just the type of `a.b`, that is, (assuming `a` is of type `A`) type `A.b` if it exists, otherwise throw a TypeError. If `a` is just type `null`, then `a?.b` throws a TypeError.
-1. If `A` is a union type `A1 | A2 | A3`, then to get the type of `a?.b`: If at least one component of `A` has a `.b` property, map each component `A‹n›` of `A` to type `A‹n›.b` if it exists, else `null`, and then union those all. (This applies if any component is `null` as well.) Otherwise, throw a TypeError.
+1. If `A` is *not* a union type, assuming `a` is of type `A`,
+	1. If `A` is a static type (tuple/record/primitive type):
+		1. If type `A.b` exists and is not optional: the type of `a.b` is `A.b`. The expression `a?.b` throws a TypeError.
+		1. If type `A.b` exists and is     optional: the type of `a?.b` is `A.b | null`. The expression `a.b` throws a TypeError.
+		1. If type `A.b` does not exist (including the case that `A` is a subtype of `null`), then both `a.b` and `a?.b` throw TypeErrors.
+	1. If `A` is a dynamic type (list/dict/set/map/other object):
+		1. The type of `a.b` is `A.b`.
+		1. The type of `a?.b` is `A.b | null`.
+1. If `A` is a union type `A1 | A2 | A3`, assuming `a` is of type `A`,
+	1. To get the type of `a.b`
+		1. If *every* component `A‹n›` of `A` has a `.b` property and it is required, then return the union of all the types of `A‹n›.b` using the rules above.
+		1. Otherwise, throw a TypeError. (This also applies if any component is `null`, or if any `A‹n›.b` exists but is optional.)
+	1. To get the type of `a?.b`:
+		1. If *some* component of `A` has a `.b` property, required or optional, map each component `A‹n›` of `A` to type `A‹n›.b` if it exists, else `null`, and then return the union of those all. (This applies if any component is `null` as well.)
+		1. Otherwise, throw a TypeError.
 
-The algorithm for evaluation is basically the same as before.
-1. If `a.b` exists, then the value of `a?.b` at runtime is `a.b` (even if `a.b` is `null`);
-1. If `a.b` does not exist, then `a?.b` produces `null`.
-
-The algorithm for expression bracket access adds the following short-circuit:
-1. If `a` is `null`, then `a?.[‹expr›]` *does not evaluate `‹expr›`*, and then produces `null`.
+The algorithm for evaluation is basically the same as before, with the additional short-circuit for null-checking in `?.`.
+1. Evaluating `a.b`:
+	1. Evaluate `a`.
+	1. If `a` has a property `b`, return the value of `a.b` (even if it is `null`).
+	1. If `a` does not have a property `b`, throw a runtime error.
+1. Evaluating `a?.b`:
+	1. Evaluate `a`.
+	1. If `a` is `null`, return `null`.
+	1. Try to evaluate `a.b` and return it.
+	1. If an error was caught, return `null`.
+1. Evaluating `a.[b]`:
+	1. Evaluate `a`.
+	1. Evaluate `b`.
+	1. If `b` is within the bounds/range of `a`, return the value of `a.[b]` (even if it is `null`).
+	1. If `b` is out of ounds/range of `a`, throw a runtime error.
+1. Evaluating `a?.[b]`:
+	1. Evaluate `a`.
+	1. If `a` is `null`, return `null`.
+	1. Evaluate `b`.
+	1. Try to evaluate `a.[b]` and return it.
+	1. If an error was caught, return `null`.
 
 #### Potential Function Calls
 This section will not be developed; it is only a design discussion.
 
 The **potential function call** `fn?.(‹args›)` can be thought of as the potential access of a property of `fn` — think of `fn?.(‹args›)` as something like `fn?.call`.
 1. If `fn` is callable and *only* callable, then the type of `fn?.(‹args›)` is the type of `fn.(‹args›)` (assuming the arguments are type-valid).
-1. If `fn` is not at all callable, including the case that `fn` is equal to `null`, then a TypeError is thrown.
-1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn_c.(‹args›)` (again, assuming valid arguments, and `fn_c` being the “callable part” of `fn`) unioned with `null`.
+1. If `fn` is *not at all* callable, including the case that `fn` is equal to `null`, then a TypeError is thrown.
+1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn_c.(‹args›)` unioned with `null` (assuming valid arguments, and `fn_c` being the “callable part” of `fn`).
 
 Runtime evaluation:
-1. If `fn` is callable, then `fn?.(‹args›)` produces the result of calling `fn` with the evaluated `‹args›`.
-1. If `fn` is not callable, then `fn?.(‹args›)` *does not evaluate `‹args›`* (short-circuiting), and then produces `null`.
+1. Evaluating `fn.(‹args›)`:
+	1. Evaluate `fn`.
+	1. Evaluate `‹args›`.
+	1. Call `fn` with `‹args›` and return the result. (If the call throws, bubble up the error.)
+1. Evaluating `fn?.(‹args›)`:
+	1. Evaluate `fn`.
+	1. If `fn` is `null`, return `null`.
+	1. If `fn` is otherwise not callable, return `null`.
+	1. Evaluate `‹args›`.
+	1. Return the evaluation of `fn.(‹args›)`.
 
 ## Alternatives
 One alternative solution would be to have a new operator that differs from optional access just for the union case, but we already have three types of access operators. Another solution could be to add an operator that tests keys and returns boolean, a la `if .value in result then … else …`, but use cases would be limited; the potential access operator is more versatile, e.g., `print.(result?.value || result?.message)`.
