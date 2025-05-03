@@ -168,11 +168,13 @@ The algorithm for type-checking is roughly as follows.
 	1. If `A` is a dynamic type (list/dict/set/map/other object):
 		1. The type of `a.b` is `A.b`.
 		1. The type of `a?.b` is `A.b | null`.
-1. If `A` is a union type `A1 | A2 | A3`, assuming `a` is of type `A`,
+1. If `A` is a union type `A1 | A2 | A3` (consider type `unknown` to be an infinite union), assuming `a` is of type `A`,
 	1. To get the type of `a.b`
+		1. If `A` is `unknown`, throw a TypeError.
 		1. If *every* component `A‹n›` of `A` has a `.b` property and it is required, then return the union of all the types of `A‹n›.b` using the rules above.
 		1. Otherwise, throw a TypeError. (This also applies if any component is `null`, or if any `A‹n›.b` exists but is optional.)
 	1. To get the type of `a?.b`:
+		1. If `A` is `unknown`, return type `unknown`.
 		1. If *some* component of `A` has a `.b` property, required or optional, map each component `A‹n›` of `A` to type `A‹n›.b` if it exists, else `null`, and then return the union of those all. (This applies if any component is `null` as well.)
 		1. Otherwise, throw a TypeError.
 
@@ -205,6 +207,7 @@ The **potential function call** `fn?.(‹args›)` can be thought of as the pote
 1. If `fn` is callable and *only* callable, then the type of `fn?.(‹args›)` is the type of `fn.(‹args›)` (assuming the arguments are type-valid).
 1. If `fn` is *not at all* callable, including the case that `fn` is equal to `null`, then a TypeError is thrown.
 1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn_c.(‹args›)` unioned with `null` (assuming valid arguments, and `fn_c` being the “callable part” of `fn`).
+1. Type `unknown` can be thought of as an infinite union, so if `fn` is type `unknown`, then `fn?.(‹args›)` is of type `unknown` (while `fn.(‹args›)` would be a TypeError).
 
 Runtime evaluation:
 1. Evaluating `fn.(‹args›)`:
