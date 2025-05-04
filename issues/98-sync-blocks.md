@@ -125,3 +125,28 @@ function f(): int {
 In this code, the block expression returns `2` from the function abruptly. At runtime, `message1` gets set, but then the function returns, and the last two variables are never get initialized. Notice the block expression *didn’t* produce `2` as its determinant and assign it to `message2`, completing execution and moving on to the third variable.
 
 The code passes static analysis because, as above, the block expression has an abrupt completion and has type `never`, which is assignable to `str`. (In fact we didn’t even need the `"two";` statement in it.) However, the return value is still analyzed. If we attempted to return a boolean for example, we would get a TypeError because it’s not assignable to the return signature of `f`.
+
+## Syntax Note
+Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is simliar to the precedence of function expressions.
+```cp
+let greeting: int = { 10; }   + 20 + { 30; };   %> SyntaxError
+let greeting: int = ({ 10; }) + 20 + ({ 30; }); % fixed
+
+let callable: () => int = () => 10   || () => 20;   %> SyntaxError
+let callable: () => int = (() => 10) || (() => 20); % fixed
+```
+This avoids syntax ambiguities with conditional statements.
+```cp
+
+if condition then { consequent; } else { alternative; };     % a conditional statement
+if condition then ({ consequent; }) else ({ alternative; }); % a ternary expression
+
+let result = if a then { b; } else { c; };     %> SyntaxError
+let result = if a then ({ b; }) else ({ c; }); % fixed
+```
+
+Also note that a block expression is syntactically allowed as the condition, but is not required to be parenthesized.
+```cp
+if { condition; } then { consequent; } else { alternative; }; % a conditional statement
+if { condition; } then consequent else alternative;           % a ternary expression
+```
