@@ -3,10 +3,54 @@ A block expression is a block of statements that produces an expression.
 let sum: int = {
 	print.("I will evaluate to 42.");
 	42;
-} + 1;
-sum; %== 43
+};
+sum; %== 42
 ```
-The block expression above contains two statements: a function call and an expression-statement. The last statement in a block expression determines its value, so it has a special name: the **determinant**. In this case the determinant is `42`, making the variable `sum` equal to `43`. (Think of the block as “returning” `42`, but this is not the same as containing an actual `return` statement.)
+The block expression above contains two statements: a function call and an expression-statement. The last statement in a block expression determines its value, so it has a special name: the **determinant**. In this case the determinant is `42`, which is assigned to the variable `sum`. (Think of the block as “returning” `42`, but this is not the same as containing an actual `return` statement.)
+
+## Operator Precedence
+Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is similar to the precedence of function expressions (lambdas).
+```cp
+let greeting: int = { 10; }   + 20 + { 30; };   %> SyntaxError
+let greeting: int = ({ 10; }) + 20 + ({ 30; }); % fixed
+
+let callable: () => int = () => 10   || () => 20;   %> SyntaxError
+let callable: () => int = (() => 10) || (() => 20); % fixed
+```
+This avoids syntax ambiguities with conditional statements.
+```cp
+if condition then { consequent; } else { alternative; };     % a conditional statement
+if condition then ({ consequent; }) else ({ alternative; }); % a ternary expression
+
+let result = if a then { b; } else { c; };     %> SyntaxError
+let result = if a then ({ b; }) else ({ c; }); % fixed
+```
+
+Also note that a block expression is syntactically allowed as the condition, but is not required to be parenthesized.
+```cp
+if { condition; } then { consequent; } else { alternative; }; % a conditional statement
+if { condition; } then consequent else alternative;           % a ternary expression
+```
+
+Block expressions must be parenthesized when implicitly returned from a lambda or method.
+```cp
+my_list.forEach.((item) {
+	print.("about to print item.");
+	return print.(item);
+});
+
+% equivalent to:
+my_list.forEach.((item) => ({
+	print.("about to print item.");
+	print.(item);
+}));
+
+% SyntaxError:
+my_list.forEach.((item) => {
+	print.("about to print item.");
+	print.(item);
+});
+```
 
 ## Block Values and Types
 The determinant of a block is syntactic. Whatever the last statement happens to be, will be the value of the block. Most of the time that last statement will be an expression-statement, producing the value of the block. However, if the last statement is something else, the block has no value!
@@ -64,21 +108,6 @@ my_list.forEach.((item) {
 	};
 });
 ```
-Remember that a lambda with a single explicit return statement may be converted into an implicit return (with a fat arrow) …
-```cp
-my_list.forEach.((item) => {
-	print.("about to print item.");
-	print.(item);
-});
-```
-… and this might look familiar:
-```cp
-my_list.forEach.((item) {
-	print.("about to print item.");
-	return print.(item);
-});
-```
-Theoretically, every function with an explicit block body may be translated into a function with an implicit return of a block expression, and vice versa.
 
 ## Comparison to IIFEs
 Block expressions are more flexible than IIFEs (“immediately-invoked function expressions”) in that they don’t need parameters or captures and may contain **abrupt completions**. Block expressions may contain `return`, `break`, `continue`, and `throw` statements (depending on lexical context); these are all known as “abrupt” completions, because they abruptly transfer control out of the block without finishing the evaluation of it. In block expressions, these statements are scoped to their *containing lexical environment*, rather than their own.
@@ -100,9 +129,9 @@ The `break;` statement is scoped to the `while` block, not the `then` block. Sim
 function f(i: int): void {
 	while true do {
 		set i += 1;
-		let message: bool = mod.(i, 3) == 0 && {
+		let message: bool = mod.(i, 3) == 0 && ({
 			break;
-		};
+		});
 	};
 	print.(i);
 }
@@ -125,28 +154,3 @@ function f(): int {
 In this code, the block expression returns `2` from the function abruptly. At runtime, `message1` gets set, but then the function returns, and the last two variables are never initialized. Notice the block expression *didn’t* produce `2` as its determinant and assign it to `message2`, completing execution and moving on to the third variable.
 
 The code passes static analysis because, as above, the block expression has an abrupt completion and has type `never`, which is assignable to `str`. (In fact we didn’t even need the `"two";` statement in it.) However, the return value is still analyzed. If we attempted to return a boolean for example, we would get a TypeError because it’s not assignable to the return signature of `f`.
-
-## Syntax Note
-Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is similar to the precedence of function expressions.
-```cp
-let greeting: int = { 10; }   + 20 + { 30; };   %> SyntaxError
-let greeting: int = ({ 10; }) + 20 + ({ 30; }); % fixed
-
-let callable: () => int = () => 10   || () => 20;   %> SyntaxError
-let callable: () => int = (() => 10) || (() => 20); % fixed
-```
-This avoids syntax ambiguities with conditional statements.
-```cp
-
-if condition then { consequent; } else { alternative; };     % a conditional statement
-if condition then ({ consequent; }) else ({ alternative; }); % a ternary expression
-
-let result = if a then { b; } else { c; };     %> SyntaxError
-let result = if a then ({ b; }) else ({ c; }); % fixed
-```
-
-Also note that a block expression is syntactically allowed as the condition, but is not required to be parenthesized.
-```cp
-if { condition; } then { consequent; } else { alternative; }; % a conditional statement
-if { condition; } then consequent else alternative;           % a ternary expression
-```
