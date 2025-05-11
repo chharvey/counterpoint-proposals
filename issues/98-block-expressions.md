@@ -9,7 +9,7 @@ sum; %== 43
 The block expression above contains two statements: a function call and an expression-statement. The last statement in a block expression determines its value, so it has a special name: the **determinant**. In this case the determinant is `42`, making the variable `sum` equal to `43`. (Think of the block as “returning” `42`, but this is not the same as containing an actual `return` statement.)
 
 ## Block Values and Types
-The determinant of a block is syntactic. Whatever the last statement happens to be, will be the value of the block. Most of the time that last statment will be an expression-statement, producing the value of the block. However, if the last statement is something else, the block has no value!
+The determinant of a block is syntactic. Whatever the last statement happens to be, will be the value of the block. Most of the time that last statement will be an expression-statement, producing the value of the block. However, if the last statement is something else, the block has no value!
 ```cp
 let blex: int = {
 	for i from 0 to 10 do {
@@ -33,7 +33,7 @@ In both examples, control flow is able to reach the end of the block and type in
 It might be desirable to return early, like we can in functions. In this situation we may assign the value to a variable and then use the variable as the determinant.
 ```cp
 let blex: int = {
-	let ret: int = 0;
+	let var ret: int = 0;
 	% figure out some_condition
 	if some_condition then {
 		% do some logic…
@@ -64,7 +64,7 @@ my_list.forEach.((item) {
 	};
 });
 ```
-Remember that a lambda with a single explicit return statemnt may be converted into an implicit return (with a fat arrow) …
+Remember that a lambda with a single explicit return statement may be converted into an implicit return (with a fat arrow) …
 ```cp
 my_list.forEach.((item) => {
 	print.("about to print item.");
@@ -83,7 +83,7 @@ Theoretically, every function with an explicit block body may be translated into
 ## Comparison to IIFEs
 Block expressions are more flexible than IIFEs (“immediately-invoked function expressions”) in that they don’t need parameters or captures and may contain **abrupt completions**. Block expressions may contain `return`, `break`, `continue`, and `throw` statements (depending on lexical context); these are all known as “abrupt” completions, because they abruptly transfer control out of the block without finishing the evaluation of it. In block expressions, these statements are scoped to their *containing lexical environment*, rather than their own.
 
-For example, much like a regular block, a block expression may contain a `break` statment if inside a loop.
+For example, much like a regular block, a block expression may contain a `break` statement if inside a loop. First consider this `if` statement, which contains a `break;`.
 ```cp
 function f(i: int): void {
 	while true do {
@@ -95,7 +95,7 @@ function f(i: int): void {
 	print.(i);
 }
 ```
-The `break;` statement is scoped to the `while` block, not the `if` block. Similarly, if we have a block expression inside a `while` loop, a `break;` statement applies to the loop.
+The `break;` statement is scoped to the `while` block, not the `then` block. Similarly, if we have a block *expression* inside a `while` loop, a `break;` statement applies to the loop.
 ```cp
 function f(i: int): void {
 	while true do {
@@ -107,7 +107,7 @@ function f(i: int): void {
 	print.(i);
 }
 ```
-The `break;` statment would be invalid if the block expression were not inside a loop. Note that the block expression never finishes evaluating and so has no determinant; thus the variable `message` never gets initialized. However, the loop does break and `i` gets printed.
+The `break;` statement would be invalid if the block expression were not inside a loop. Note that the block expression never finishes evaluating and so has no determinant; thus the variable `message` never gets initialized. However, the loop does break and `i` gets printed.
 
 Because the end of the block expression is unreachable via control flow analysis, the block’s type is `never` and is still assignable to the variable. If the block didn’t complete abruptly and didn’t have the correct type of determinant then the compiler would raise a TypeError, as shown at the beginning of this section.
 
@@ -122,12 +122,12 @@ function f(): int {
 	let message3 = "three";
 }
 ```
-In this code, the block expression returns `2` from the function abruptly. At runtime, `message1` gets set, but then the function returns, and the last two variables are never get initialized. Notice the block expression *didn’t* produce `2` as its determinant and assign it to `message2`, completing execution and moving on to the third variable.
+In this code, the block expression returns `2` from the function abruptly. At runtime, `message1` gets set, but then the function returns, and the last two variables are never initialized. Notice the block expression *didn’t* produce `2` as its determinant and assign it to `message2`, completing execution and moving on to the third variable.
 
 The code passes static analysis because, as above, the block expression has an abrupt completion and has type `never`, which is assignable to `str`. (In fact we didn’t even need the `"two";` statement in it.) However, the return value is still analyzed. If we attempted to return a boolean for example, we would get a TypeError because it’s not assignable to the return signature of `f`.
 
 ## Syntax Note
-Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is simliar to the precedence of function expressions.
+Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is similar to the precedence of function expressions.
 ```cp
 let greeting: int = { 10; }   + 20 + { 30; };   %> SyntaxError
 let greeting: int = ({ 10; }) + 20 + ({ 30; }); % fixed
