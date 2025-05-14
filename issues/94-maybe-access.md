@@ -29,19 +29,19 @@ The restriction that a property exist on *every* component of a union is relaxed
 ```cp
 claim result: [value: int] | [message: str];
 result.value;  % regular access: still a TypeError
-result?.value; % optional access: previously a TypeError, now type `int?`
+result?.value; % optional access: previously a TypeError, now type `int | null`
 ```
 Thus, the name of the “optional access” operator `?.` should be changed to **“maybe access”** — seeing as it may be used to access non-optional properties that potentially exist. In Version 0.5 it will be overloaded to work with the Maybe type.
 
 With the restriction lifted, the produced *value* of the operator is the value on the object if it exists, else `null`.
 ```cp
 let result1: [value: int] | [message: str] = [value= 42];
-let i: int? = result1?.value;   %== 42
-let s: str? = result1?.message; %== null
+let i: int | null = result1?.value;   %== 42
+let s: str | null = result1?.message; %== null
 
 let result2: [value: int] | [message: str] = [message= "error!"];
-let i: int? = result2?.value;   %== null
-let s: str? = result2?.message; %== "error!"
+let i: int | null = result2?.value;   %== null
+let s: str | null = result2?.message; %== "error!"
 ```
 
 Of course, if *none* of the union components have the maybe-accessed property, a TypeError is still thrown.
@@ -62,15 +62,15 @@ result?.val;   %> TypeError
 If *multiple* components of the union have the same property name, their types are unioned.
 ```cp
 claim result: [isInt: true, value: int] | [isFloat: true, value: float] | [message: str];
-result.value;                         %> TypeError
-let v: int? | float? = result?.value; % produces the value at `result.value` if it exists, else `null`
+result.value;                              %> TypeError
+let v: int | float | null = result?.value; % produces the value at `result.value` if it exists, else `null`
 ```
 
 This proposed change is compatible with nullable object access (an object whose type is a union with `null`). Instead of throwing a TypeError, the property’s type is itself unioned with `null`.
 ```cp
 claim result: [value: int]?;
 result.value;  %> TypeError
-result?.value; %: int?
+result?.value; %: int | null
 result.val;    %> TypeError
 result?.val;   %> TypeError
 ```
@@ -83,8 +83,8 @@ function return_0(): int {
 	return 0;
 };
 let result: int[]? = null;
-let access_regular: int  = result.[return_0.()];  %> TypeError
-let access_maybe:   int? = result?.[return_0.()]; % safe, and does not evaluate `return_0.()` (and does not execute the print statement)
+let access_regular: int        = result.[return_0.()];  %> TypeError
+let access_maybe:   int | null = result?.[return_0.()]; % safe, and does not evaluate `return_0.()` (and does not execute the print statement)
 ```
 Regular access throws an error, but for maybe access, the bracketed expression `return_0.()` is not executed. The resulting value of the whole expression is `null`. This is akin to short-circuiting in logical operators: in `anything && return_0.()`, the call `return_0.()` might not executed based on the runtime value of `anything`.
 
@@ -97,10 +97,10 @@ First, when accessing an optional entry on a static type, the maybe access opera
 ```cp
 let var person: [name: str, nickname?: str] = [name= "Thomas Jefferson", nickname= "Tom"];
 person.nickname;  %> TypeError % an optional property requires the maybe access operator
-person?.nickname; % type `str?`, equals `"Tom"`
+person?.nickname; % type `str | null`, equals `"Tom"`
 
 set person = [name= "John Adams"];
-person?.nickname; % type `str?`, equals `null`
+person?.nickname; % type `str | null`, equals `null`
 ```
 
 Second, the inverse is true. If using the *maybe access* operator on a *required entry*, a TypeError will be thrown. (Previously, the potental access was allowed but it did not change the expression’s type.) Now the use of the regular access operator is strictly enforced.

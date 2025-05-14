@@ -24,35 +24,35 @@ Variables may now be declared without an excplicit initial value. Such variables
 ```cp
 let var greeting?: str;
 ```
-This new syntax declares `greeting` as an unitialized variable, with an implicit initial value of `null`. When accessed, its type is `str?`, but it may only be assigned `str` values. (As a reminder, the type operation `str?` represents the union `str | null`.)
+This new syntax declares `greeting` as an unitialized variable, with an implicit initial value of `null`. When accessed, its type is `str | null`, but it may only be assigned `str` values.
 ```cp
 let var greeting?: str;
-let greet_1: str  = greeting; %> TypeError: Expression of type `str | null` is not assignable to type `str`.
-let greet_2: str? = greeting; % ok
+let greet_1: str        = greeting; %> TypeError: Expression of type `str | null` is not assignable to type `str`.
+let greet_2: str | null = greeting; % ok
 
 set greeting = null;    %> TypeError: Expression of type `null` is not assignable to type `str`.
 set greeting = "hello"; % ok
 ```
-The read type of `greeting` is `str?`, but its write type is just `str`.
+The read type of `greeting` is `str | null`, but its write type is just `str`.
 
 It’s a syntax error for an unassigned variable to be declared fixed — it requires the `var` modifier.
 ```cp
 let greeting?: str; %> ParseError
 ```
 
-There’s a subtle difference between the statements `let var greeting: str? = "hello";` and `let var greeting?: str;`, besides the former being initialized. The former says that a value for `greeting` always exists, and whenever accessed or assigned, that value’s type is the union `str | null`. The latter says that a value for `greeting` might or might not exist, but if it does exist, its type is definitely `str` and not `null`. When assigned, it only accepts values of type `str`.
+There’s a subtle difference between the statements `let var greeting: str | null = "hello";` and `let var greeting?: str;`, besides the former being initialized. The former says that a value for `greeting` always exists, and whenever accessed or assigned, that value’s type is the union `str | null`. The latter says that a value for `greeting` might or might not exist, but if it does exist, its type is definitely `str` and not `null`. When assigned, it only accepts values of type `str`.
 
 This patten is similar to optional tuple/record entries. The entry might not exist, so accessing it unions the type with `null`, but when assigned, only values of the declared type are assignable.
 ```cp
 let greetings: [?: str] = [];
-greetings.0;                  %: str?
+greetings.0;                  %: str | null
 set greetings.0 = "a string"; %: str
 ```
 
 Issue #55 is updated to include uninitialized optional parameters.
 ```cp
 function moveForward(var steps?: int): void {
-	steps;            %: int?
+	steps;            %: int | null
 	set steps = 3;    %: int
 }
 ```
@@ -90,23 +90,23 @@ For static types (tuples, records), optional entries now have a default value of
 let tup: [int, float, ?: str] = [0, 1.1]; % contains two values when constructed: `0` and `1.1`
 let list: int[] = List.<int>([2, 3]);     % contains two values when constructed: `2` and `3`
 ```
-If `a` is a static object with an optional property `b`, then regular access (`a.b`) is now typed as `B?` (previously it was `B | void`). Note that `B?` is also the resulting type via maybe access (`a?.b`). At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
+If `a` is a static object with an optional property `b`, then regular access (`a.b`) is now typed as `B | null` (previously it was `B | void`). Note that `B | null` is also the resulting type via maybe access (`a?.b`). At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
 ```cp
-let s: str  = tup.2;   %> TypeError: `str | null` is not assignable to `str`
-let s: str? = tup.2;   % ok, produces `null` at runtime
+let s: str        = tup.2; %> TypeError: `str | null` is not assignable to `str`
+let s: str | null = tup.2; % ok, produces `null` at runtime
 ```
 
 ### Maybe Access
-Maybe access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B?`.
+Maybe access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B | null`.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
 let list: int[] = List.<int>([2, 3]);
 
-let tup1_r: float = tup.1; %== 1.1
-let tup2_r: str?  = tup.2; % produces `null` at runtime
+let tup1_r: float      = tup.1; %== 1.1
+let tup2_r: str | null = tup.2; % produces `null` at runtime
 
-let tup1_o: float = tup?.1; % same as regular access
-let tup2_o: str?  = tup?.2; % same as regular access
+let tup1_o: float      = tup?.1; % same as regular access
+let tup2_o: str | null = tup?.2; % same as regular access
 
 let list1_r: int = list.[1]; %== 3
 let list2_r: int = list.[2]; % throws IndexOutOfBoundsException at runtime
