@@ -76,7 +76,7 @@ result?.val;   %> TypeError
 ```
 
 ### Short-Circuiting
-This section propose a new feature. If the binding object is `null` at runtime, and potential access is used with bracketed expression syntax, then the bracketed expression is *not evaluated*. This is known as ”short-circuiting”.
+This section propose a new feature. If the binding object is `null` at runtime, and potential access is used with bracketed expression syntax, then the bracketed expression is *not evaluated*. This is known as **short-circuiting**.
 ```cp
 function return_0(): int {
 	print.("I am returning 0.");
@@ -123,28 +123,10 @@ result.since;    %> TypeError % an optional property requires the potential acce
 For dynamic types (e.g. lists/dicts), both the regular and potential access operators are allowed. Regular access returns the invariant type of the data structure, whereas optional access unions it with `null`.
 
 ### Claim Access
-The **claim access** operator may now be used for potential properties. As before, it subtracts `null` from the asserted type of the property.
+The **claim access** operator `!.` will be dropped and unsupported until Version 0.5. It will be used for Result types and Exceptions. Though still allowed by syntax, it is now temporarily a semantic error to use them.
 ```cp
-claim result: [value: int] | [message: str];
-
-result.value;  % regular access: still a TypeError
-result?.value; % potential access: now type `int?`
-result!.value; % claim access: previously a TypeError, now type `int` (subtracts `null` from potential access)
-
-result.val;  % regular access: still a TypeError
-result?.val; % potential access: still a TypeError
-result!.val; % claim access: still a TypeError
-
-let result1: [value: int] | [message: str] = [value= 42];
-let i1: int = result1!.value;   %== 42
-let s1: str = result1!.message; % UNSAFE! type `str`, but errors at runtime
-
-let result2: [value: int] | [message: str] = [message= "hello"];
-let i2: int = result2!.value;   % UNSAFE! type `int`, but errors at runtime
-let s2: str = result2!.message; %== "hello"
+result!.value; %> SemanticError
 ```
-
-Claim access only makes an assertion to the type-checker; it does not affect the compmiled output. In other words, `result2!.value` compiles to the same output that `result2.value` would. Since there’s no value at that address, the runtime throws an error. Therefore, claim access should only be used when the programmer is absolutely certain the value will not be `null` based on circumstances the typer can’t reason about. A good example of this would be claiming that a certain key exists in a dict or map.
 
 ### Compatibility
 Is this feature a “breaking” change? In other words, if this feature is introduced, will users’ existing code break and need to be changed/updated as a result? (Select only one.)

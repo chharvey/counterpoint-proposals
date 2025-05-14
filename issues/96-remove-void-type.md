@@ -121,25 +121,9 @@ voidable_rec.prop;  %> TypeError: Property `prop` does not exist on type `[prop:
 voidable_rec?.prop; %== `null`
 ```
 
-### Claim Access
-Claim access (`a!.b`) type remains as `B`, subtracting `null`. Useful for bypassing type errors.
-```cp
-let rec: [a: int, b?: str, c: float] = [a= 0, b= "hello", c= 1.1];
-let y: str = rec.b;  %> TypeError: `str?` not assignable to `str`
-let y: str = rec!.b; % ok
-rec!.b;              %== "hello"
-rec!.b.length;       %== 5
-
-let tup: [int, float, ?: str] = [0, 1.1];
-let y: str = tup.2;  %> TypeError: `str?` not assignable to `str`
-let y: str = tup!.2; % ok, but unsafe
-tup!.2;              %== `null`
-tup!.2.length;       % error at runtime!
-```
-
 ## NullError
 `NullError` is a new class of runtime error that communicates an invalid access to a property on `null`.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
-tup!.2.length; % no error at compile time, but NullError at runtime
+(<[int, float, str]>tup).2.length; % no error at compile time, but NullError at runtime
 ```
