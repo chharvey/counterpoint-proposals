@@ -78,7 +78,7 @@ let yy: int = dict.[c]; % no compiler error (key   is not foldable), but unsafe:
 ```
 (As an aside, it is not usually safe to access dynamic collections with static indices. The recommended technique is to loop over the collection dynamically.)
 
-As decribed in #94, the potential access operator “catches” the runtime error and returns `null` instead.
+As decribed in #94, the maybe access operator “catches” the runtime error and returns `null` instead.
 ```cp
 let xx: int = list.[i]; % no compiler error (index is not foldable), but unsafe: throws IndexOutOfBoundsException at runtime
 let yy: int = dict.[c]; % no compiler error (key   is not foldable), but unsafe: throws KeyOutOfRangeException at runtime
@@ -90,14 +90,14 @@ For static types (tuples, records), optional entries now have a default value of
 let tup: [int, float, ?: str] = [0, 1.1]; % contains two values when constructed: `0` and `1.1`
 let list: int[] = List.<int>([2, 3]);     % contains two values when constructed: `2` and `3`
 ```
-If `a` is a static object with an optional property `b`, then regular access (`a.b`) is now typed as `B?` (previously it was `B | void`). Note that `B?` is also the resulting type via potential access (`a?.b`). At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
+If `a` is a static object with an optional property `b`, then regular access (`a.b`) is now typed as `B?` (previously it was `B | void`). Note that `B?` is also the resulting type via maybe access (`a?.b`). At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
 ```cp
 let s: str  = tup.2;   %> TypeError: `str | null` is not assignable to `str`
 let s: str? = tup.2;   % ok, produces `null` at runtime
 ```
 
-### Potential Access
-Potential access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B?`.
+### Maybe Access
+Maybe access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B?`.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
 let list: int[] = List.<int>([2, 3]);
@@ -114,7 +114,7 @@ let list2_r: int = list.[2]; % throws IndexOutOfBoundsException at runtime
 let list1_o: int = list?.[1]; % same as regular access
 let list2_o: int = list?.[2]; % same as regular access
 ```
-As shown above, potential access is not very useful for objects of a single type, but we can still use it if the binding object could be `null` or, as introduced in #94, a union of collection types.
+As shown above, maybe access is not very useful for objects of a single type, but we can still use it if the binding object could be `null` or, as introduced in #94, a union of collection types.
 ```cp
 let voidable_rec?: [prop: str];
 voidable_rec.prop;  %> TypeError: Property `prop` does not exist on type `[prop: str] | null`.

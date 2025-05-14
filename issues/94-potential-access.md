@@ -31,7 +31,7 @@ claim result: [value: int] | [message: str];
 result.value;  % regular access: still a TypeError
 result?.value; % optional access: previously a TypeError, now type `int?`
 ```
-Thus, the name of the “optional access” operator `?.` should be changed to **“potential access”** — seeing as it may be used to access non-optional properties that potentially exist.
+Thus, the name of the “optional access” operator `?.` should be changed to **“maybe access”** — seeing as it may be used to access non-optional properties that potentially exist. In Version 0.5 it will be overloaded to work with the Maybe type.
 
 With the restriction lifted, the produced *value* of the operator is the value on the object if it exists, else `null`.
 ```cp
@@ -44,11 +44,11 @@ let i: int? = result2?.value;   %== null
 let s: str? = result2?.message; %== "error!"
 ```
 
-Of course, if *none* of the union components have the potentially-accessed property, a TypeError is still thrown.
+Of course, if *none* of the union components have the maybe-accessed property, a TypeError is still thrown.
 ```cp
 claim result: [value: int] | [message: str];
 result.val;  % regular access: still a TypeError
-result?.val; % potential access: still a TypeError
+result?.val; % maybe access: still a TypeError
 ```
 A special case of this is if the binding object’s type is `null` or narrower.
 ```cp
@@ -76,51 +76,51 @@ result?.val;   %> TypeError
 ```
 
 ### Short-Circuiting
-This section propose a new feature. If the binding object is `null` at runtime, and potential access is used with bracketed expression syntax, then the bracketed expression is *not evaluated*. This is known as **short-circuiting**.
+This section propose a new feature. If the binding object is `null` at runtime, and maybe access is used with bracketed expression syntax, then the bracketed expression is *not evaluated*. This is known as **short-circuiting**.
 ```cp
 function return_0(): int {
 	print.("I am returning 0.");
 	return 0;
 };
 let result: int[]? = null;
-let access_regular:   int  = result.[return_0.()];  %> TypeError
-let access_potential: int? = result?.[return_0.()]; % safe, and does not evaluate `return_0.()` (and does not execute the print statement)
+let access_regular: int  = result.[return_0.()];  %> TypeError
+let access_maybe:   int? = result?.[return_0.()]; % safe, and does not evaluate `return_0.()` (and does not execute the print statement)
 ```
-Regular access throws an error, but for potential access, the bracketed expression `return_0.()` is not executed. The resulting value of the whole expression is `null`. This is akin to short-circuiting in logical operators: in `anything && return_0.()`, the call `return_0.()` might not executed based on the runtime value of `anything`.
+Regular access throws an error, but for maybe access, the bracketed expression `return_0.()` is not executed. The resulting value of the whole expression is `null`. This is akin to short-circuiting in logical operators: in `anything && return_0.()`, the call `return_0.()` might not executed based on the runtime value of `anything`.
 
 ### Optional Entries
-The behavior of the newly-named potential access operator hasn’t changed when accessing an optional entry of a static type (tuple/record): the type of the entry will still be unioned with `null`.
+The behavior of the newly-named maybe access operator hasn’t changed when accessing an optional entry of a static type (tuple/record): the type of the entry will still be unioned with `null`.
 
 This section proposes two new features for static types.
 
-First, when accessing an optional entry on a static type, the potential access operator is mandatory. Using regular access will result in a compile-time TypeError. (Previously, the access was allowed and the expression’s type was unioned with `void`.)
+First, when accessing an optional entry on a static type, the maybe access operator is mandatory. Using regular access will result in a compile-time TypeError. (Previously, the access was allowed and the expression’s type was unioned with `void`.)
 ```cp
 let var person: [name: str, nickname?: str] = [name= "Thomas Jefferson", nickname= "Tom"];
-person.nickname;  %> TypeError % an optional property requires the potential access operator
+person.nickname;  %> TypeError % an optional property requires the maybe access operator
 person?.nickname; % type `str?`, equals `"Tom"`
 
 set person = [name= "John Adams"];
 person?.nickname; % type `str?`, equals `null`
 ```
 
-Second, the inverse is true. If using the *potential access* operator on a *required entry*, a TypeError will be thrown. (Previously, the potental access was allowed but it did not change the expression’s type.) Now the use of the regular access operator is strictly enforced.
+Second, the inverse is true. If using the *maybe access* operator on a *required entry*, a TypeError will be thrown. (Previously, the potental access was allowed but it did not change the expression’s type.) Now the use of the regular access operator is strictly enforced.
 ```cp
 let person: [name: str, nickname?: str] = [name= "Thomas Jefferson", nickname= "Tom"];
 person?.name; %> TypeError % a required property requires the regular access operator
 person.name;  % ok, type `str`
 ```
 
-For unions of static types, if a property is missing or optional on any component, we consider it to be optional and the potential access operator is needed. Only when every component requires the property may the regular access operator be used.
+For unions of static types, if a property is missing or optional on any component, we consider it to be optional and the maybe access operator is needed. Only when every component requires the property may the regular access operator be used.
 ```cp
 let result: [value: int, isError: bool, since?: float] | [message: str, isError: bool, since: float] = [value= 42, isError= false];
 % notice `since` is optional in the first comonent but required in the second --- this makes it optional overall
 result?.isError; %> TypeError % a required property requires the regular access operator
 result.isError;  % ok
 result?.since;   % ok
-result.since;    %> TypeError % an optional property requires the potential access operator
+result.since;    %> TypeError % an optional property requires the maybe access operator
 ```
 
-For dynamic types (e.g. lists/dicts), both the regular and potential access operators are allowed. Regular access returns the invariant type of the data structure, whereas optional access unions it with `null`.
+For dynamic types (e.g. lists/dicts), both the regular and maybe access operators are allowed. Regular access returns the invariant type of the data structure, whereas optional access unions it with `null`.
 
 ### Claim Access
 The **claim access** operator `!.` will be dropped and unsupported until Version 0.5. It will be used for Result types and Exceptions. Though still allowed by syntax, it is now temporarily a semantic error to use them.
@@ -185,7 +185,7 @@ The algorithm for evaluation is basically the same as before, with the additiona
 #### Potential Function Calls
 This section will not be developed; it is only a design discussion.
 
-The **potential function call** `fn?.(‹args›)` can be thought of as the potential access of a property of `fn` — think of `fn?.(‹args›)` as something like `fn?.call`.
+The **potential function call** `fn?.(‹args›)` can be thought of as the maybe access of a property of `fn` — think of `fn?.(‹args›)` as something like `fn?.call`.
 1. If `fn` is callable and *only* callable, then the type of `fn?.(‹args›)` is the type of `fn.(‹args›)` (assuming the arguments are type-valid).
 1. If `fn` is *not at all* callable, including the case that `fn` is equal to `null`, then a TypeError is thrown.
 1. If `fn` is the union of a callable type and a non-callable type (including `null`), then the type of `fn?.(‹args›)` is the type of `fn_c.(‹args›)` unioned with `null` (assuming valid arguments, and `fn_c` being the “callable part” of `fn`).
@@ -204,4 +204,4 @@ Runtime evaluation:
 	1. Return the evaluation of `fn.(‹args›)`.
 
 ## Alternatives
-One alternative solution would be to have a new operator that differs from optional access just for the union case, but we already have three types of access operators. Another solution could be to add an operator that tests keys and returns boolean, a la `if .value in result then … else …`, but use cases would be limited; the potential access operator is more versatile, e.g., `print.(result?.value || result?.message)`.
+One alternative solution would be to have a new operator that differs from optional access just for the union case, but we already have three types of access operators. Another solution could be to add an operator that tests keys and returns boolean, a la `if @value in result then … else …`, but use cases would be limited; the maybe access operator is more versatile, e.g., `print.(result?.value || result?.message)`.
