@@ -31,7 +31,7 @@ claim result: [value: int] | [message: str];
 result.value;  % regular access: still a TypeError
 result?.value; % optional access: previously a TypeError, now type `int | null`
 ```
-Thus, the name of the “optional access” operator `?.` should be changed to **“maybe access”** — seeing as it may be used to access non-optional properties that potentially exist. In Version 0.5 it will be overloaded to work with the Maybe type.
+Thus, the name of the “optional access” operator `?.` should be changed to **“maybe access”** — seeing as it may be used to access non-optional properties that potentially exist. In Version 0.5 it will be overloaded to work with the Maybe type (#100).
 
 With the restriction lifted, the produced *value* of the operator is the value on the object if it exists, else `null`.
 ```cp
@@ -123,7 +123,7 @@ result.since;    %> TypeError % an optional property requires the maybe access o
 For dynamic types (e.g. lists/dicts), both the regular and maybe access operators are allowed. Regular access returns the invariant type of the data structure, whereas optional access unions it with `null`.
 
 ### Claim Access
-The **claim access** operator `!.` will be dropped and unsupported until Version 0.5. It will be used for Result types and Exceptions. Though still allowed by syntax, it is now temporarily a semantic error to use them.
+The **claim access** operator `!.` will be dropped and unsupported until Version 0.5. It will be used for Result types and Exceptions (#100). Though still allowed by syntax, it is now temporarily a semantic error to use them.
 ```cp
 result!.value; %> SemanticError
 ```

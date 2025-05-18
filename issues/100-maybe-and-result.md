@@ -145,14 +145,14 @@ if maybe is Some then {
 ## Result
 The built-in type `Result<T, E>` declares a value that may be any value or may be an Exception. It is similar to `T | Exception` except that `Result` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Result` type is split into two subtypes, `Ok` and `Ex`. Both subtypes have internal values, with the value of `Ex` being an instance of the `Exception` class.
 ```cp
-interface Result<T, E ?= Exception> {
+interface Result<T, E narrows Exception ?= Exception> {
 	then<U ?= T, V ?= E>(on_ok: (T) => U, on_ex: (E) => V): Result.<U, V>;
 }
-interface Ok<T, E ?= Exception> inherits Result.<T, E> {
+interface Ok<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (value: T);
 	% private readonly value: T;
 }
-interface Ex<T, E ?= Exception> inherits Result.<T, E> {
+interface Ex<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (reason?: E | str);
 	% private readonly reason: E;
 }
