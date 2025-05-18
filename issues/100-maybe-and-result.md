@@ -56,7 +56,7 @@ set maybe += 1; %> TypeErrorInvalidOperation
 if maybe is Some then {
 	set maybe += 1;                                %> TypeErrorInvalidOperation
 	set maybe  = maybe.map.((value) => value + 1); % ok
-	set maybe  = Some.(maybe~? + 1);               % better
+	set maybe  = Some.<int>(maybe~? + 1);          % better
 };
 % pattern-matching/unwrapping
 if maybe is Some.<int>(let x) then {
@@ -162,7 +162,7 @@ interface Ex<T, E ?= Exception> inherits Result.<T, E> {
 ```cp
 let var x: Result.<int> = Ok.<int>(42);
 let y: Result.<int> = x.then.((value) => value + 1);
-assert y == Some.<int>(43);
+assert y == Ok.<int>(43);
 
 set x = Ex.<int>();
 let z: Result.<int> = x.then.((value) => value + 1);
@@ -199,7 +199,7 @@ set result += 1; %> TypeErrorInvalidOperation
 if result is Ok then {
 	set result += 1;                                 %> TypeErrorInvalidOperation
 	set result  = result.map.((value) => value + 1); % ok
-	set result  = Some.(result~! + 1);               % better
+	set result  = Ok.<int>(result~! + 1);            % better
 };
 % pattern-matching/unwrapping
 if result is Ok.<int>(let x) then {
