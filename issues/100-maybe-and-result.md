@@ -143,7 +143,7 @@ if maybe is Some then {
 ```
 
 ## Result
-The built-in type `Result<T, E>` declares a value that may be any value or may be an Exception. It is similar to `T | Exception` except that `Result` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Result` type is split into two subtypes, `Ok` and `Ex`. Both subtypes have internal values, with the value of `Ex` being an instance of the `Exception` class.
+The built-in type `Result<T, E>` declares a value that may be any value or may be an Exception. It is similar to `T | Exception` except that `Result` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Result` type is split into two subtypes, `Ok` and `Fail`. Both subtypes have internal values, with the value of `Fail` being an instance of the `Exception` class.
 ```cp
 interface Result<T, E narrows Exception ?= Exception> {
 	then<U ?= T, V ?= E>(on_ok: (T) => U, on_ex: (E) => V): Result.<U, V>;
@@ -152,7 +152,7 @@ interface Ok<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (value: T);
 	% private readonly value: T;
 }
-interface Ex<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
+interface Fail<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (reason?: E | str);
 	% private readonly reason: E;
 }
@@ -164,19 +164,19 @@ let var x: Result.<int> = Ok.<int>(42);
 let y: Result.<int> = x.then.((value) => value + 1);
 assert y == Ok.<int>(43);
 
-set x = Ex.<int>();
+set x = Fail.<int>();
 let z: Result.<int> = x.then.((value) => value + 1);
-assert z == Ex.<int>();
+assert z == Fail.<int>();
 assert z !== x; % `.then.()` always returns a new Result reference type object
 ```
 
-The `Result` type is *not* the same as an untagged union `T | Excetion`. Neither `T` nor `Exception` are directly assignable to it. Instead, we construct an `Ok` or `Ex`.
+The `Result` type is *not* the same as an untagged union `T | Excetion`. Neither `T` nor `Exception` are directly assignable to it. Instead, we construct an `Ok` or `Fail`.
 ```cp
 let x: Result.<int> = 42;                  %> TypeErrorNotAssignable
 let y: Result.<int> = Exception.("oops!"); %> TypeErrorNotAssignable
 
-let x: Result.<int> = Ok.<int>(42);      % ok
-let y: Result.<int> = Ex.<int>("oops!"); % ok
+let x: Result.<int> = Ok.<int>(42);        % ok
+let y: Result.<int> = Fail.<int>("oops!"); % ok
 
 if x is Integer then {};   % will always be false
 if y is Exception then {}; % will always be false
@@ -207,7 +207,7 @@ if result is Ok.<int>(let x) then {
 	set result  = Ok.<int>(x + 1); % best
 };
 match result {
-	Ex.<int>()      -> print.("err"),
+	Fail.<int>()    -> print.("err"),
 	Ok.<int>(let x) -> print.(x),
 };
 ```
@@ -219,18 +219,18 @@ let rec_result: [item: int]! = Ok.<[item: int]>([item= 42]);
 %               ^ shorthand for `Result.<[value: int]>`
 ```
 
-The **result access operator** `!.` is overloaded to work with the `Result` type. It returns a new `Result` that wraps the value if it is not an `Ex`, else it returns the same `Ex`.
+The **result access operator** `!.` is overloaded to work with the `Result` type. It returns a new `Result` that wraps the value if it is not a `Fail`, else it returns the same `Fail`.
 ```cp
 rec_result.item;  %> TypeErrorNoEntry
 rec_result!.item; % equivalent to `rec_result.then.((val) => val.item)`
 assert rec_result!.item == Ok.<int>(42);
 
-let tup_result: [int]! = Ex.<[int]>();
-assert tup_result!.0 == Ex.<int>();
+let tup_result: [int]! = Fail.<[int]>();
+assert tup_result!.0 == Fail.<int>();
 assert tup_result!.0 === tup_result; % returns the same Result reference type object
 ```
 
-Short-circuiting: When the operand of `!.` is an `Exception` or `Ex`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0.()` is never evaluated, and nothing is printed.
+Short-circuiting: When the operand of `!.` is an `Exception` or a `Fail`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0.()` is never evaluated, and nothing is printed.
 ```cp
 function return_0(): int {
 	print.("I am returning 0.");
@@ -239,12 +239,12 @@ function return_0(): int {
 let value_u: [int] | Exception = Exception.("oops!");
 value_u!.[return_0.()]; % returns `value_u`, does not execute function
 
-let value_r: [int]! = Ex.<[int]>("oops!");
+let value_r: [int]! = Fail.<[int]>("oops!");
 value_r!.[return_0.()]; % returns `value_r`, does not execute function
 ```
 
 ### Non-Exception Claim
-The **non-exception claim** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | Exception`. However, if the operand is a `Result<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or `Ex` at runtime, the `~!` operator throws the exception.
+The **non-exception claim** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | Exception`. However, if the operand is a `Result<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
 ```cp
 claim rec_union: [item: int] | Exception;
 
@@ -270,11 +270,11 @@ if rec_result is Ok then {
 rec_result.item;                %> TypeErrorNoEntry
 rec_result!.item;               % result access: returns type `Result.<int>`
 (<[item: int]>rec_result).item; %> TypeError: `Result.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
-rec_result~!.item;              % claims `rec_result` is `[item: int]`; returns type `int`; but throws at runtime if `rec_result` is an `Ex`
+rec_result~!.item;              % claims `rec_result` is `[item: int]`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
 ```
 
 ### Guidance
-For accessors, `result!.accessor` and `result~!.accessor` have different use cases. Use `result!.accessor` when `result` could be a value or an `Exception`, or it’s a `Result` object and you don’t know what the branch will be at runtime. Use `result~!.accessor` when you know for sure that `result` is not an `Exception` and it is not an `Ex` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
+For accessors, `result!.accessor` and `result~!.accessor` have different use cases. Use `result!.accessor` when `result` could be a value or an `Exception`, or it’s a `Result` object and you don’t know what the branch will be at runtime. Use `result~!.accessor` when you know for sure that `result` is not an `Exception` and it is not a `Fail` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
 
 For operating on `Result` objects in general, using `!.` is not possible, so use conditionals in conjunction with `~!`.
 ```cp
