@@ -100,8 +100,8 @@ let value_m: [int]? = None.<[int]>();
 value_m?.[return_0.()]; % returns `value_m`, does not execute function
 ```
 
-### Non-Null Claim
-The **non-null claim** operator `~?` has two functions. For most values, it subtracts `null` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | null`. However, if the operand is a `Maybe<T>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually `null` or a `None` at runtime, the `~?` operator throws an error.
+### Non-Null Assertion
+The **non-null assertion** operator `~?` has two functions. For most values, it subtracts `null` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | null`. However, if the operand is a `Maybe<T>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually `null` or a `None` at runtime, the `~?` operator throws an error.
 ```cp
 claim rec_union: [item: int] | null;
 
@@ -111,10 +111,10 @@ if !!rec_union then {
 	let rec: [item: int] = rec_union~?; % no TypeError, and safe
 };
 
-rec_union.item;                %> TypeErrorNoEntry
-rec_union?.item;               % maybe access: returns type `int | null`
-(<[item: int]>rec_union).item; % claims `rec_union` is type `[item: int]`; returns type `int`
-rec_union~?.item;              % shorthand for the expression claim above, but throws at runtime if `rec_union` is `null`
+rec_union.item;                    %> TypeErrorNoEntry
+rec_union?.item;                   % maybe access: returns type `int | null`
+(rec_union as <[item: int]>).item; % claims `rec_union` is type `[item: int]`; returns type `int`
+rec_union~?.item;                  % shorthand for the expression claim above, but throws at runtime if `rec_union` is `null`
 
 claim rec_maybe: Maybe.<[item: int]>;
 
@@ -124,10 +124,10 @@ if rec_maybe is Some then {
 	let rec: [item: int] = rec_maybe~?; % no TypeError, and safe
 };
 
-rec_maybe.item;                %> TypeErrorNoEntry
-rec_maybe?.item;               % maybe access: returns type `Maybe.<int>`
-(<[item: int]>rec_maybe).item; %> TypeError: `Maybe.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
-rec_maybe~?.item;              % claims `rec_maybe` is `[item: int]`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
+rec_maybe.item;                    %> TypeErrorNoEntry
+rec_maybe?.item;                   % maybe access: returns type `Maybe.<int>`
+(rec_maybe as <[item: int]>).item; %> TypeError: `Maybe.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
+rec_maybe~?.item;                  % asserts `rec_maybe` is `[item: int]`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
 ```
 
 ### Guidance
@@ -243,8 +243,8 @@ let value_r: [int]! = Fail.<[int]>("oops!");
 value_r!.[return_0.()]; % returns `value_r`, does not execute function
 ```
 
-### Non-Exception Claim
-The **non-exception claim** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | Exception`. However, if the operand is a `Result<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
+### Non-Exception Assertion
+The **non-exception assertion** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | Exception`. However, if the operand is a `Result<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
 ```cp
 claim rec_union: [item: int] | Exception;
 
@@ -254,10 +254,10 @@ if !!rec_union then { % (remember, Exceptions are falsy)
 	let rec: [item: int] = rec_union~!; % no TypeError, and safe
 };
 
-rec_union.item;                %> TypeErrorNoEntry
-rec_union!.item;               % result access: returns type `int | Exception`
-(<[item: int]>rec_union).item; % claims `rec_union` is type `[item: int]`; returns type `int`
-rec_union~!.item;              % shorthand for the expression claim above, but throws at runtime if `rec_union` is an `Exception`
+rec_union.item;                    %> TypeErrorNoEntry
+rec_union!.item;                   % result access: returns type `int | Exception`
+(rec_union as <[item: int]>).item; % claims `rec_union` is type `[item: int]`; returns type `int`
+rec_union~!.item;                  % shorthand for the expression claim above, but throws at runtime if `rec_union` is an `Exception`
 
 claim rec_result: Result.<[item: int]>;
 
@@ -267,10 +267,10 @@ if rec_result is Ok then {
 	let rec: [item: int] = rec_result~!; % no TypeError, and safe
 };
 
-rec_result.item;                %> TypeErrorNoEntry
-rec_result!.item;               % result access: returns type `Result.<int>`
-(<[item: int]>rec_result).item; %> TypeError: `Result.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
-rec_result~!.item;              % claims `rec_result` is `[item: int]`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
+rec_result.item;                    %> TypeErrorNoEntry
+rec_result!.item;                   % result access: returns type `Result.<int>`
+(rec_result as <[item: int]>).item; %> TypeError: `Result.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
+rec_result~!.item;                  % asserts `rec_result` is `[item: int]`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
 ```
 
 ### Guidance
