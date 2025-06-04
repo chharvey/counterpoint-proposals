@@ -20,7 +20,7 @@ let void: float = 4.2;   %> SyntaxError % still an error
 ```
 
 ## Variable Declaration
-Variables may now be declared without an excplicit initial value. Such variables are initialized to `null` (and thus are unioned with `null`).
+Variables may now be declared without an excplicit initial value. Such variables are initialized to `null` (and thus are unioned with `null` when accessed).
 ```cp
 let var greeting?: str;
 ```
@@ -90,7 +90,7 @@ For static types (tuples, records), optional entries now have a default value of
 let tup: [int, float, ?: str] = [0, 1.1]; % contains two values when constructed: `0` and `1.1`
 let list: int[] = List.<int>([2, 3]);     % contains two values when constructed: `2` and `3`
 ```
-If `a` is a static object with an optional property `b`, then regular access (`a.b`) is no longer allowed (by #94). Maybe access (`a?.b`) must e used, and it is typed as `B | null`. At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
+If `a` is a static object with an optional property `b`, then regular access (`a.b`) is no longer allowed (by #94). Maybe access (`a?.b`) must be used, and it is typed as `B | null`. At runtime this always produces the value of `a.b`, even if it’s `null`. (Previously accessing `a.b` would result in a VoidError.)
 ```cp
 let s: str        = tup.2;  %> TypeError: `str | null` is not assignable to `str`
 let s: str | null = tup.2;  %> TypeErrorInvalidOperation
@@ -98,7 +98,7 @@ let s: str | null = tup?.2; % ok, produces `null` at runtime
 ```
 
 ### Maybe Access
-Maybe access (`a?.b`) remains basically the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B | null`. For non-optional entries, `a?.b` may not be used; only `a.b` is allowed.
+Maybe access (`a?.b`) remains the same. The value of `a?.b` at runtime is `a.b` if it exists, else `null`. For optional entries of static collections, the type of `a?.b` is still `B | null`. For non-optional entries, `a?.b` may not be used; only `a.b` is allowed.
 ```cp
 let tup: [int, float, ?: str] = [0, 1.1];
 let list: int[] = List.<int>([2, 3]);
@@ -110,14 +110,14 @@ let tup1_o: float      = tup?.1; %> TypeErrorInvalidOperation
 let tup2_o: str | null = tup?.2; % produces `tup.2` or `null`
 
 let list1_r: int = list.[1]; %== 3
-let list2_r: int = list.[2]; % throws IndexOutOfBoundsException at runtime
+let list2_r: int = list.[2]; % throws ExceptionIndexOutOfBounds at runtime
 
 let list1_o: int = list?.[1]; % same as regular access
 let list2_o: int = list?.[2]; % same as regular access
 ```
 If the binding object could be `null` or, as introduced in #94, a union of collection types, maybe access can be used for properties that potentially exist.
 ```cp
-let voidable_rec?: [prop: str];
-voidable_rec.prop;  %> TypeError: Property `prop` does not exist on type `[prop: str] | null`.
-voidable_rec?.prop; %== `null`
+let nullable_rec?: [prop: str];
+nullable_rec.prop;  %> TypeError: Property `prop` does not exist on type `[prop: str] | null`.
+nullable_rec?.prop; %== `null`
 ```
