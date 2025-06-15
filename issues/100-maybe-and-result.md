@@ -3,14 +3,14 @@ The built-in types `Maybe<T>` and `Result<T, E>` declare values that may be one 
 ## Maybe
 The built-in type `Maybe<T>` declares a value that may or may not exist. It is similar to `T | null` except that `Maybe` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Maybe` type is split into two subtypes, `Some` and `None`. The `Some` type has an internal value whereas `None` does not.
 ```cp
-interface Maybe<T> {
+interface Maybe<out T> {
 	then<U ?= T>(callback: (T) => U): Maybe.<U>;
 }
-interface Some<T> inherits Maybe.<T> {
+interface Some<out T> inherits Maybe.<T> {
 	new (value: T);
 	% private readonly value: T;
 }
-interface None<T> inherits Maybe.<T> {
+interface None<out T> inherits Maybe.<T> {
 	new ();
 }
 ```
@@ -101,7 +101,7 @@ value_m?.[return_0.()]; % returns `value_m`, does not execute function
 ```
 
 ### Non-Null Assertion
-The **non-null assertion** operator `~?` has two functions. For most values, it subtracts `null` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | null`. However, if the operand is a `Maybe<T>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually `null` or a `None` at runtime, the `~?` operator throws an error.
+The **non-null assertion** operator `~?` has two functions. For most values, it subtracts `null` from the type of its operand: It’s equivalent to `expr as <T>`, where `expr` is of type `T | null`. However, if the operand is a `Maybe.<T>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually `null` or a `None` at runtime, the `~?` operator throws an error.
 ```cp
 claim rec_union: [item: int] | null;
 
@@ -145,14 +145,14 @@ if maybe is Some then {
 ## Result
 The built-in type `Result<T, E>` declares a value that may be any value or may be an Exception. It is similar to `T | Exception` except that `Result` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Result` type is split into two subtypes, `Ok` and `Fail`. Both subtypes have internal values, with the value of `Fail` being an instance of the `Exception` class.
 ```cp
-interface Result<T, E narrows Exception ?= Exception> {
+interface Result<out T, out E narrows Exception ?= Exception> {
 	then<U ?= T, V ?= E>(on_ok: (T) => U, on_ex: (E) => V): Result.<U, V>;
 }
-interface Ok<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
+interface Ok<out T, out E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (value: T);
 	% private readonly value: T;
 }
-interface Fail<T, E narrows Exception ?= Exception> inherits Result.<T, E> {
+interface Fail<out T, out E narrows Exception ?= Exception> inherits Result.<T, E> {
 	new (reason?: E | str);
 	% private readonly reason: E;
 }
@@ -244,7 +244,7 @@ value_r!.[return_0.()]; % returns `value_r`, does not execute function
 ```
 
 ### Non-Exception Assertion
-The **non-exception assertion** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `<T>expr`, where `expr` is of type `T | Exception`. However, if the operand is a `Result<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
+The **non-exception assertion** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `expr as <T>`, where `expr` is of type `T | Exception`. However, if the operand is a `Result.<T, E>` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
 ```cp
 claim rec_union: [item: int] | Exception;
 
