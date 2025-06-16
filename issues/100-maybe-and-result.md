@@ -130,6 +130,32 @@ rec_maybe?.item;                   % maybe access: returns type `Maybe.<int>`
 rec_maybe~?.item;                  % asserts `rec_maybe` is `[item: int]`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
 ```
 
+Nested `Maybe`s *do not* automatically flatten. That is, a `Maybe.<Maybe.<T>>` is not the same as a `Maybe.<T>`. Accordingly, the non-null assertion operator `~?` only unwraps a singular `Maybe`. (Keep in mind, these are rare cases; `Maybe`s should not typically be nested.)
+```cp
+let var nested: int?? = None.<Maybe.<int>>();
+%               ^ shorthand for `Maybe.<Maybe.<int>>`
+let var value: unknown = 0;
+if nested is Some then {
+	set value = nested~?;
+};
+assert value == 0; % `nested` is not a `Some`, so nothing changes here
+
+set nested = Some.<Maybe.<int>>(None.<int>());
+if nested is Some then {
+	set value = nested~?;
+};
+assert value == None.<int>(); % `nested` is a `Some` whose wrapped value is a `None`
+
+set nested = Some.<Maybe.<int>>(Some.<int>(1));
+if nested is Some then {
+	set value = nested~?;
+};
+assert value == Some.<int>(1); % `nested` is a `Some` whose wrapped value is also a `Some`
+
+set value = value~?; % unsafe, but we are sure `value` is not a `None`
+assert value == 1;
+```
+
 ### Guidance
 For accessors, `maybe?.accessor` and `maybe~?.accessor` have different use cases. Use `maybe?.accessor` when `maybe` could be a value or `null`, or it’s a `Maybe` object and you don’t know what the branch will be at runtime. Use `maybe~?.accessor` when you know for sure that `maybe` is not `null` and it is not a `None` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
 
@@ -271,6 +297,32 @@ rec_result.item;                    %> TypeErrorNoEntry
 rec_result!.item;                   % result access: returns type `Result.<int>`
 (rec_result as <[item: int]>).item; %> TypeError: `Result.<[item: int]>` cannot be narrowed to `[item: int]` since they have no overlap
 rec_result~!.item;                  % asserts `rec_result` is `[item: int]`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
+```
+
+Nested `Result`s *do not* automatically flatten. That is, a `Result.<Result.<T>>` is not the same as a `Result.<T>`. Accordingly, the non-exception assertion operator `~!` only unwraps a singular `Result`. (Keep in mind, these are rare cases; `Result`s should not typically be nested.)
+```cp
+let var nested: int!! = Fail.<Result.<int>>("reason 0");
+%               ^ shorthand for `Result.<Result.<int>>`
+let var value: unknown = 0;
+if nested is Ok then {
+	set value = nested~!;
+};
+assert value == 0; % `nested` is not an `Ok`, so nothing changes here
+
+set nested = Ok.<Result.<int>>(Fail.<int>("reason 1"));
+if nested is Ok then {
+	set value = nested~!;
+};
+assert value == Fail.<int>("reason 1"); % `nested` is an `Ok` whose wrapped value is a `Fail`
+
+set nested = Ok.<Result.<int>>(Ok.<int>(1));
+if nested is Ok then {
+	set value = nested~!;
+};
+assert value == Ok.<int>(1); % `nested` is an `Ok` whose wrapped value is also an `Ok`
+
+set value = value~!; % unsafe, but we are sure `value` is not a `Fail`
+assert value == 1;
 ```
 
 ### Guidance
