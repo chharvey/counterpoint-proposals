@@ -336,3 +336,91 @@ if result is Ok then {
 	return result~! == "foo"; % fixed
 };
 ```
+
+## Logical Operator Overloads
+### Logical Negation and Is-Empty
+The logical negation `!` and “is-empty” `?` unary operators are overloaded to work well with the Maybe and Result types. If `x` is a None variant of Maybe, then it is falsy (and thus “empty”), thus `!x` and `?x` are both `true`. If `y` is a Fail variant of Result, then it is falsy (and thus “empty”), thus `!y` and `?y` are both `true`. This aligns with the current behavior of Exception objects.
+```cp
+let ex: Exception = Exception.("message");
+!ex; %== true
+?ex; %== true
+
+let var x: str? = Some.<str>("value");
+!x; %== false
+?x; %== false
+
+set x = None.<str>();
+!x; %== true
+?x; %== true
+
+let var y: str! = Ok.<str>("value");
+!y; %== false
+?y; %== false
+
+set y = Fail.<str>("reason");
+!y; %== true
+?y; %== true
+```
+
+### Logical Conjunction and Disjunction
+The logical conjunction `&&` and logical disjunction `||` binary operators are overloaded to work well with the Maybe and Result types.
+
+As a review: logical conjunction (`&&`) returns the operand on the left-hand side (LHS) if it is falsy and skips evaluation of the operand on the right-hand side (RHS); otherwise, it evaluates the RHS and returns it. Logical disjunction (`||`) returns the LHS if it is truthy and skips evaluation of the RHS; otherwise it evaluates and returns the RHS.
+
+Besides Exception objects, None objects, and Fail objects, all other objects are always truthy. Exception, None, and Fail objects are treated as falsy by design (even though they are objects).
+```cp
+claim rhs: unknown;
+
+% the null value
+null && rhs; %== null
+null || rhs; %== rhs
+
+% falsy values
+false && rhs; %== false
+false || rhs; %== rhs
+% Exceptions
+Exception.("demo") && rhs; %== Exception.("demo")
+Exception.("demo") || rhs; %== rhs
+% None objects
+None.<unknown>() && rhs; %== None.()
+None.<unknown>() || rhs; %== rhs
+% Fail objects
+Fail.<unknown>("demo") && rhs; %== Fail.("demo")
+Fail.<unknown>("demo") || rhs; %== rhs
+
+% empty values (if not falsy) are truthy
+"" && rhs; %== rhs
+"" || rhs; %== ""
+[] && rhs; %== rhs
+[] || rhs; %== []
+
+% non-empty values are always truthy
+"hello" && rhs; %== rhs
+"hello" || rhs; %== "hello"
+
+
+% Maybe objects
+let var x: str? = Some.<str>("value");
+x && rhs; %== rhs
+x || rhs; %== x
+
+set x = None.<str>();
+x && rhs; %== x
+x || rhs; %== rhs
+
+% Result objects
+let var y: str! = Ok.<str>("value");
+y && rhs; %== rhs
+y || rhs; %== y
+
+set y = Fail.<str>("reason");
+y && rhs; %== y
+y || rhs; %== rhs
+```
+
+## Maybe and Result are Abstractions
+The `Maybe.<T>` and `Result.<T, Exception>` types are *abstractions* of the type unions `T | null` and `T | Exception` respectively. It is still possible to have a `Some.<null>` and an `Ok.<Exception>`, and they are treated as truthy just like all other `Some`s and `Ok`s. What matters isn’t the internal value, but the variant of the class.
+```cp
+!Some.<null>(null);                     %== false
+!Ok.<Exception>(Exception.("message")); %== false
+```
