@@ -10,10 +10,10 @@ type Person = [name: Name, age: Age];
 we can only assign its `name` and `age` properties values of type `Name` and `Age` respectively.
 ```cp
 let p: Person = [
-	name= "Alice", %> TypeError: `str` not assinable to `Name`
-	age=  <Age>42, % no error
+	name= "Alice",     %> TypeError: `str` not assinable to `Name`
+	age=  42 as <Age>, % no error
 ];
-let n: Name = <Name>"Alice"; % no error
+let n: Name = "Alice" as <Name>; % no error
 ```
 Think of type `Name` as a narrowing of type `str` and type `Age` as a narrowing of type `int`. Since `Person#age` is of type `Age`, we cannot assign an `int` without a type claim (#82).
 
@@ -34,8 +34,8 @@ The motivation behind nominal types are that they’re useful for distinguishing
 When compound types are declared `nominal`, we can also assign values with type claims.
 ```cp
 type nominal Person = [name: str, age: int];
-let p1: Person = [name= "Bob", age= 42];         %> TypeError: `[name: "Bob", age: 42]` not assignable to `Person`
-let p2: Person = <Person>[name= "Bob", age= 42]; % ok
+let p1: Person = [name= "Bob", age= 42];             %> TypeError: `[name: "Bob", age: 42]` not assignable to `Person`
+let p2: Person = [name= "Bob", age= 42] as <Person>; % ok
 ```
 
 When a `nominal` type alias is assigned a function type, only named functions that `impl` it (#84) may be assigned to it.
@@ -43,11 +43,17 @@ When a `nominal` type alias is assigned a function type, only named functions th
 type nominal Operation = (float, float) => float;
 function applyOperation(op: Operation): float => op.(3.0, 4.0);
 
-applyOperation.(op= (a: float, b: float): float => a + b);              %> TypeError
-applyOperation.(op= <Operation>((a: float, b: float): float => a + b)); % ok, using type claim
+applyOperation.(op= (a: float, b: float): float => a + b);                  %> TypeError
+applyOperation.(op= ((a: float, b: float): float => a + b) as <Operation>); % ok, using type claim
+applyOperation.(op= ((a, b) => a + b) as <Operation>);                      % more terse
 
 function add(a: float, b: float): float => a + b;
 function subtract(a, b) impl Operation => a - b;
 applyOperation.(add);      %> TypeError
 applyOperation.(subtract); % ok
+
+let multiply: (a: float, b: float) => float = (a, b) => a * b;
+let divide:   Operation                     = (a, b) => a / b;
+applyOperation.(multiply); %> TypeError
+applyOperation.(divide);   % ok
 ```

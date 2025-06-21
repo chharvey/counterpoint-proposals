@@ -2,7 +2,7 @@ Function annotations specify a contract for functions’ type signatures.
 
 # Discussion
 
-A declared function may be specified to implement a type signature using the `implements` keyword. This provides a contract for a function to adhere to, for more robustness.
+A declared function may be specified to implement a type signature using the `impl` keyword. This provides a contract for a function to adhere to, for more robustness.
 
 ## Motivation
 A function’s type signature is basically its *type*, with additional information such as parameter names and optionality. Since function declarations have types in their syntax, their function signatures are built in.
@@ -15,7 +15,7 @@ add; %: (x: float, y: float) => float
 
 Type signatures are useful in higher-order functions. For example, the type signature of a typical list folding (or “reducing”) function would include a function type as a parameter. We can use our `add` function above as a reducer of a list of floats.
 ```cp
-foldList; %: <T>(list: List.<T>, reducer: (T, T) => T) => T
+claim foldList: <T>(list: List.<T>, reducer: (T, T) => T) => T;
 let sum: float = foldList.<float>([4.2, 40.2], add); %== 44.4
 ```
 In fact, `add` could be used many times in dozens of higher-order functions like `foldList`. But what if the type signature of `add` changes? This could break our function call.
