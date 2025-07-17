@@ -65,8 +65,11 @@ Keyword :::=
 +	| (ParameterGeneric<-Optional># ",")? ParameterGeneric<+Optional># ","?
 +;
 
--DeclarationType ::= "type" IDENTIFIER                                   "=" Type ";";
-+DeclarationType ::= "type" IDENTIFIER ("<" ","? ParametersGeneric ">")? "=" Type ";";
++GenericSpecifier
++	::= "<" ","? ParametersGeneric ">";
+
+-DeclarationType ::= "type" IDENTIFIER                   "=" Type ";";
++DeclarationType ::= "type" IDENTIFIER GenericSpecifier? "=" Type ";";
 ```
 
 ## Semantics
