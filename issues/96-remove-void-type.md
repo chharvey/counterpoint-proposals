@@ -20,11 +20,11 @@ let void: float = 4.2;   %> SyntaxError % still an error
 ```
 
 ## Variable Declaration
-Variables may now be declared without an excplicit initial value. Such variables are initialized to `null` (and thus are unioned with `null` when accessed).
+Variables may now be declared without an explicit initial value. Such variables are initialized to `null` (and thus are unioned with `null` when accessed).
 ```cp
 let var greeting?: str;
 ```
-This new syntax declares `greeting` as an unitialized variable, with an implicit initial value of `null`. When accessed, its type is `str | null`, but it may only be assigned `str` values.
+This new syntax declares `greeting` as an uninitialized variable, with an implicit initial value of `null`. When accessed, its type is `str | null`, but it may only be assigned `str` values.
 ```cp
 let var greeting?: str;
 let greet_1: str        = greeting; %> TypeError: Expression of type `str | null` is not assignable to type `str`.
@@ -60,9 +60,9 @@ function moveForward(var steps?: int): void {
 ## Out-Of-Bounds and Out-Of-Range Access
 As before, when using regular access on static types like tuples/records, the typer will report a TypeError if the accessor does not exist on the binding object. If that type-checking is bypassed (e.g. via a type claim), then some other sort of error may result.
 
-If both the binding object and accessor are foldable, then the compiler wil report an VoidErrorOutOfBounds for regular access.
+If both the binding object and accessor are foldable, then the compiler will report a VoidErrorOutOfBounds for regular access.
 
-If however the binding object or accessor are *not* foldable, the compiler won’t report any errors; instead, the runtime will throw an ExceptionIndexOutOfBounds or ExceptionKeyOutOfRange respectively. This was previosly not implmented.
+If however the binding object or accessor are *not* foldable, the compiler won’t report any errors; instead, the runtime will throw an ExceptionIndexOutOfBounds or ExceptionKeyOutOfRange respectively. This was previously not implemented.
 
 ```cp
 let list: int[]   = List.<int>([2, 3]);
