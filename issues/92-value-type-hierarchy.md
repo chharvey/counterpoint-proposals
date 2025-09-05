@@ -28,7 +28,7 @@ It’s not possible to store a value object where a reference is expected in the
 
 In Java, the autoboxing mechanism used allows assigning a value object to a reference type, for example `Integer my_int_obj = 42;`. Java autoboxing is where the compiler internally creates an `Integer` object with a property of the value `42`, stores it in the heap, and assigns `my_int_obj` a reference to it, rather than the value itself. So, though it appears `my_int_obj` holds the value, it actually holds the reference to an ad hoc wrapper object.
 
-Counterpoint takes a simpler approach, but dropping the ad hoc wrapper object serving as the middle-man. When assigning a value object to a reference type or type `unknown`, the value *itself*, unwrapped, is stored directly on the heap, and a reference is returned in its place. When referencing the `unknown`-type variable, we have direct access to its value rather than needing to “unwrap” it first.
+Counterpoint takes a simpler approach, dropping the ad hoc wrapper object serving as the middle-man. When assigning a value object to a reference type or type `unknown`, the value *itself* (unwrapped) is stored directly on the heap, and a reference is returned in its place. When referencing the `unknown`-type variable, we have direct access to its value rather than needing to “unwrap” it first.
 ```cp
 % internally, these are all replaced with references
 let unn1: unknown = null;
@@ -77,8 +77,13 @@ Autoboxing can be perfomed at the parameter level and at the expression level as
 function take_unknown(u: unknown): void {;}
 
 take_unknown.(FullNameVal.("Isaac", "Newton")); % autoboxing: assigning a value object to a reference-type parameter
+```
 
-<unknown>FullNameVal.("Isaac", "Newton"); % autoboxing: type-claim to `unknown`
+Since type claims are just “compiler assertions”, there is no autoboxing.
+However, as soon as the expression is assigned, autoboxing is performed.
+```cp
+FullNameVal.("Isaac", "Newton") as <unknown>;                              % no effect, just widens the type for the compiler
+let full_name_ref: unknown = FullNameVal.("Isaac", "Newton") as <unknown>; % autoboxed here
 ```
 
 Autoboxing is less performant than working directly on the operand stack, but it allows dynamic typing for variables and parameters. Of course, now that the value is stored on the heap instead of the stack, some memory cleanup will have to take place once the value is no longer used.
@@ -89,20 +94,21 @@ By default, it is still a type error to assign a reference object to a value typ
 let ref0: unknown = 42;   % autoboxed
 let val0: int     = ref0; %> TypeError
 
-let full_name_val: FullNameVal = full_name_ref; %> TypeError
+let full_name_ref: unknown = FullNameVal.("Isaac", "Newton"); % autoboxed
+let full_name_val: FullNameVal = full_name_ref;               %> TypeError
 ```
-This error was introduced in #90 because we didn’t want a reference object mutating, which would then be observed in the value object. However, we are introducing a new mechanism called **unboxing**, which adds some leniency. When an autoboxed value is assigned back to a value type and *explicitly unboxed*, the value is *copied* directly into the variable. The reference to the original object is still kept, but any changes to it aren’t observed in the new variable.
+This error was introduced in #90 because we didn’t want a reference object mutating, which would then be observed in the value object. However, we are now introducing a new mechanism called **unboxing**, which adds some leniency. When an autoboxed value is assigned back to a value type and *explicitly unboxed*, the value is *copied* directly into the variable. The reference to the original object is still kept, but any changes to it aren’t observed in the new variable.
 
 To explicilty unbox an autoboxed variable, simply use the **type-claim** operator.
 ```cp
-let ref0: unknown = 42;        % autoboxed
-let val0: int     = <int>ref0; % unboxing is performed: a copy of ref0’s value is assigned to val0
+let ref0: unknown = 42;            % autoboxed
+let val0: int     = ref0 as <int>; % unboxing is performed: a copy of ref0’s value is assigned to val0
 
 val0 === 42;   % still value-identical
 val0 === ref0; % still value-identical
 
 let full_name_ref: unknown     = FullNameVal.("Isaac", "Newton"); % autoboxed
-let full_name_val: FullNameVal = <FullNameVal>full_name_ref;      % unboxed and copied
+let full_name_val: FullNameVal = full_name_ref as <FullNameVal>;  % unboxed and copied
 
 full_name_ref === FullNameVal.("Isaac", "Newton"); % still value-identical
 full_name_val === full_name_ref;                   % still value-identical
@@ -121,13 +127,13 @@ interface data PointLike {
 	readonly x: str;
 	readonly y: str;
 }
-let point:     unknown   = Point.(3, 5);     % not autoboxed; the new object is already in the heap
-let pointlike: PointLike = point;            %> TypeError
-let pointlike: PointLike = <PointLike>point; %> TypeError
+let point:     unknown   = Point.(3, 5);         % not autoboxed; the new object is already in the heap
+let pointlike: PointLike = point;                %> TypeError
+let pointlike: PointLike = point as <PointLike>; %> TypeError % even type-claimed, reference objects (not boxed) cannot be unboxed
 
 let full_name_val:  FullNameVal = FullNameVal.("Isaac", "Newton"); % original value object
 let full_name_ref:  unknown     = full_name_val;                   % autoboxed
-let full_name_val2: FullNameVal = <FullNameVal>full_name_ref;      % unboxed and copied
+let full_name_val2: FullNameVal = full_name_ref as <FullNameVal>;  % unboxed and copied
 
 set full_name_val.first = "Albert"; %> MutabilityError
 set full_name_ref.first = "Albert"; %> TypeError
