@@ -17,14 +17,12 @@ let n: Name = "Alice" as <Name>; % no error
 ```
 Think of type `Name` as a narrowing of type `str` and type `Age` as a narrowing of type `int`. Since `Person#age` is of type `Age`, we cannot assign an `int` without a type claim (#82).
 
-We can always widen types. Both `Name` and `Age` are subtypes of `Object`, and of course, since `unknown` is the Top Type, we can always assign any type (even if nominal) to it.
+We can always widen types. `Name` and `Age` are subtypes of `str` and `int` respectively, and of course, since `unknown` is the Top Type, we can always assign any type (even if nominal) to it.
 ```cp
-let n1: Name    = p.name; % ok
-let a1: Age     = p.age;  % ok
-let n2: str     = p.name; % ok
-let a2: int     = p.age;  % ok
-let var o: Object  = p.name; % ok
-set o              = p.age;  % ok
+let n1: Name       = p.name; % ok
+let a1: Age        = p.age;  % ok
+let n2: str        = p.name; % ok
+let a2: int        = p.age;  % ok
 let var u: unknown = p.name; % ok
 set u              = p.age;  % ok
 ```
@@ -53,7 +51,7 @@ applyOperation.(add);      %> TypeError
 applyOperation.(subtract); % ok
 
 let multiply: (a: float, b: float) => float = (a, b) => a * b;
-let divide:   Operation                     = (a, b) => a / b;
+let divide:   Operation                     = ((a, b) => a / b) as <Operation>;
 applyOperation.(multiply); %> TypeError
 applyOperation.(divide);   % ok
 ```
