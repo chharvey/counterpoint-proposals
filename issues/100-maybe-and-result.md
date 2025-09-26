@@ -76,7 +76,7 @@ let rec_maybe: [item: int]? = Some.<[item: int]>([item= 42]);
 %              ^ shorthand for `Maybe.<[value: int]>`
 ```
 
-The **maybe access operator** `?.` is overloaded to work with the `Maybe` type. It returns a new `Maybe` that wraps the value if it is not a `None`, else it returns the same `None`.
+The **maybe access operator** `?.` is overloaded to work with the `Maybe` type. It returns a new `Maybe` that either wraps the value if it is not a `None`, else it returns a new `None`.
 ```cp
 rec_maybe.item;  %> TypeErrorNoEntry
 rec_maybe?.item; % equivalent to `rec_maybe.then.((val) => val.item)`
@@ -84,7 +84,7 @@ assert rec_maybe?.item == Some.<int>(42);
 
 let tup_maybe: [int]? = None.<[int]>();
 assert tup_maybe?.0 == None.<int>();
-assert tup_maybe?.0 === tup_maybe; % returns the same Maybe reference type object
+assert tup_maybe?.0 !== tup_maybe; % returns a new Maybe reference type object
 ```
 
 Short-circuiting: When the operand of `?.` is `null` or a `None`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0.()` is never evaluated, and nothing is printed.
@@ -97,7 +97,7 @@ let value_u: [int] | null = null;
 value_u?.[return_0.()]; % returns `value_u`, does not execute function
 
 let value_m: [int]? = None.<[int]>();
-value_m?.[return_0.()]; % returns `value_m`, does not execute function
+value_m?.[return_0.()]; % returns a new `None.<int>`, does not execute function
 ```
 
 ### Non-Null Assertion
@@ -219,7 +219,7 @@ let rec_result: [item: int]! = Ok.<[item: int]>([item= 42]);
 %               ^ shorthand for `Result.<[value: int]>`
 ```
 
-The **result access operator** `!.` is overloaded to work with the `Result` type. It returns a new `Result` that wraps the value if it is not a `Fail`, else it returns the same `Fail`.
+The **result access operator** `!.` is overloaded to work with the `Result` type. It returns a new `Result` that either wraps the value if it is not a `Fail`, else it returns a new `Fail`.
 ```cp
 rec_result.item;  %> TypeErrorNoEntry
 rec_result!.item; % equivalent to `rec_result.then.((val) => val.item)`
@@ -227,7 +227,7 @@ assert rec_result!.item == Ok.<int>(42);
 
 let tup_result: [int]! = Fail.<[int]>();
 assert tup_result!.0 == Fail.<int>();
-assert tup_result!.0 === tup_result; % returns the same Result reference type object
+assert tup_result!.0 !== tup_result; % returns a new Result reference type object
 ```
 
 Short-circuiting: When the operand of `!.` is an `Exception` or a `Fail`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0.()` is never evaluated, and nothing is printed.
@@ -240,7 +240,7 @@ let value_u: [int] | Exception = Exception.("oops!");
 value_u!.[return_0.()]; % returns `value_u`, does not execute function
 
 let value_r: [int]! = Fail.<[int]>("oops!");
-value_r!.[return_0.()]; % returns `value_r`, does not execute function
+value_r!.[return_0.()]; % returns a new `Fail.<int>`, does not execute function
 ```
 
 ### Non-Exception Assertion
