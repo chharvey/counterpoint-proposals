@@ -284,3 +284,6 @@ if result is Ok then {
 	return result~! == "foo"; % fixed
 };
 ```
+
+## Counterpoint Specification Type «None»
+The Counterpoint Specification Type *None* must be reamed to *Nil* to avoid conflict with the `None` variant of `Maybe`. Its singleton value must also be renamed from *none* to *nil*.
