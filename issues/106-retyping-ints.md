@@ -66,6 +66,34 @@ Type! TypeOfUnfolded(SemanticOperation[operator: LT | GT | LE | GE] expr) :=
 ;
 ```
 
+### ValueOf
+```diff
+Number! ValueOf(SemanticOperation[operator: EXP | MUL | DIV | ADD] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `v0` be *Unwrap:* `ValueOf(expr.children.0)`.
+	3. *Let* `v1` be *Unwrap:* `ValueOf(expr.children.1)`.
+	4. *Assert:* `v0` is an instance of `Number` *and* `v1` is an instance of `Number`.
+-	5. *If* `v0` is an instance of `Integer` *and* `v1` is an instance of `Integer`:
+-		1. *Let* `number` be *UnwrapAffirm:* `PerformBinaryArithmetic(expr.operator, v0, v1)`.
+-		2. *Return:* `Integer(number)`.
+-	6. *Else:*
+-		1. *Let* `number` be *UnwrapAffirm:* `PerformBinaryArithmetic(expr.operator, Float(v0), Float(v1))`.
+-		2. *Return:* `Float(number)`.
++	5. *Return:* `PerformBinaryArithmetic(expr.operator, v0, v1)`.
+;
+
+Boolean! ValueOf(SemanticOperation[operator: LT | GT | LE | GE] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `v0` be *Unwrap:* `ValueOf(expr.children.0)`.
+	3. *Let* `v1` be *Unwrap:* `ValueOf(expr.children.1)`.
+	4. *Assert:* `v0` is an instance of `Number` *and* `v1` is an instance of `Number`.
+-	5. *If* `v0` is an instance of `Integer` *and* `v1` is an instance of `Integer`:
+-		1. *Return:* `PerformBinaryCompare(expr.operator, v0, v1)`.
+-	6. *Return:* `PerformBinaryCompare(expr.operator, Float(v0), Float(v1))`.
++	5. *Return:* `PerformBinaryCompare(expr.operator, v0, v1)`.
+;
+```
+
 ## New `int` and `float` Keyword Operators
 The keywords `int` and `float`, when present in an expression (not a type), are now unary prefix operators. They convert their numeric operand into their respective type. If the operand is not numeric, a type error is raised.
 ```cp
@@ -102,29 +130,26 @@ claim maybe_float: float | null;
 int maybe_float; %> TypeError
 ```
 
-### Lexicon
-```diff
-+KeywordOp :::=
-+	| "int"
-+	| "float"
-+;
-```
-
 ### Syntax
 ```diff
-+// KEYWORD_OP ::= [./lexicon.ebnf#KeywordOp];
-
 ExpressionUnarySymbol
 	::= ExpressionCompound | ("!" | "?" | "+" | "-") ExpressionUnarySymbol;
 
 +ExpressionUnaryKeyword
-+	::= ExpressionUnarySymbol | KEYWORD_OP ExpressionUnaryKeyword;
++	::= ExpressionUnarySymbol | ("int" | "float") ExpressionUnaryKeyword;
 
 ExpressionCast ::=
 -	| (ExpressionCast ("as" | "as?" | "as!"))? ExpressionUnarySymbol
 +	| (ExpressionCast ("as" | "as?" | "as!"))? ExpressionUnaryKeyword
 	|  ExpressionCast  "as"                    "<" Type ">"
 ;
+```
+
+### Semantics
+```diff
+-SemanticOperation[operator: NEG]
++SemanticOperation[operator: NEG | INT | FLOAT]
+	::= SemanticExpression[type: Number];
 ```
 
 ### Decorate
@@ -139,38 +164,93 @@ ExpressionCast ::=
 +	:= (SemanticOperation[operator=FLOAT]
 +		Decorate(ExpressionUnaryKeyword)
 +	);
+
+-Decorate(ExpressionCast ::= ExpressionUnarySymbol) -> SemanticExpression
+-	:= Decorate(ExpressionUnarySymbol);
++Decorate(ExpressionCast ::= ExpressionUnaryKeyword) -> SemanticExpression
++	:= Decorate(ExpressionUnaryKeyword);
+-Decorate(ExpressionCast ::= ExpressionCast "as" ExpressionUnarySymbol) -> SemanticOperation
++Decorate(ExpressionCast ::= ExpressionCast "as" ExpressionUnaryKeyword) -> SemanticOperation
+	:= (SemanticOperation[operator=CAST]
+		Decorate(ExpressionCast)
+-		Decorate(ExpressionUnarySymbol)
++		Decorate(ExpressionUnaryKeyword)
+	);
+-Decorate(ExpressionCast ::= ExpressionCast "as?" ExpressionUnarySymbol) -> SemanticOperation
++Decorate(ExpressionCast ::= ExpressionCast "as?" ExpressionUnaryKeyword) -> SemanticOperation
+	:= (SemanticOperation[operator=MAYBE]
+		Decorate(ExpressionCast)
+-		Decorate(ExpressionUnarySymbol)
++		Decorate(ExpressionUnaryKeyword)
+	);
+-Decorate(ExpressionCast ::= ExpressionCast "as!" ExpressionUnarySymbol) -> SemanticOperation
++Decorate(ExpressionCast ::= ExpressionCast "as!" ExpressionUnaryKeyword) -> SemanticOperation
+	:= (SemanticOperation[operator=RESULT]
+		Decorate(ExpressionCast)
+-		Decorate(ExpressionUnarySymbol)
++		Decorate(ExpressionUnaryKeyword)
+	);
+Decorate(ExpressionCast ::= ExpressionCast "as" "<" Type ">") -> SemanticClaim
+	:= (SemanticClaim
+		Decorate(ExpressionCast)
+		Decorate(Type)
+	);
 ```
 
-#### TypeOf
+### TypeOf
 ```diff
-+Type! TypeOfUnfolded(SemanticOperation[operator: INT | FLOAT] expr) :=
-+	1. *Assert:* `expr.children.count` is 1.
-+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
-+	3. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true`:
-+		1. *Return:* `Never`.
-+	4. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true`:
-+		1. *If* `operator` is `INT`:
+-Type! TypeOfUnfolded(SemanticOperation[operator: NEG]               expr) :=
++Type! TypeOfUnfolded(SemanticOperation[operator: NEG | INT | FLOAT] expr) :=
+	1. *Assert:* `expr.children.count` is 1.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true`:
+		1. *Return:* `Never`.
+	4. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true`:
+-		1. *Return:* `t0`.
++		1. *If* `operator` is `NEG`:
++			1. *Return:* `t0`.
++		2. *Else If* `operator` is `INT`:
 +			1. *Return:* `Integer`.
-+		2. *Else:*
-+			1. *Assert:* `operator` is `FLOAT`.
-+			2. *Return:* `Float`.
-+	5. *Throw:* a new TypeErrorInvalidOperation.
++		3. *Else If* `operator` is `FLOAT`:
++			1. *Return:* `Float`.
+	5. *Throw:* a new TypeErrorInvalidOperation.
+;
+```
+
+### ValueOf
+```diff
++Number! ValueOf(SemanticOperation[operator: INT] expr) :=
++	1. *Assert:* `expr.children.count` is 1.
++	2. *Let* `v0` be *Unwrap:* `ValueOf(expr.children.0)`.
++	3. *Assert:* `v0` is an instance of `Number`.
++	4. *If* `v0` is an instance of `Float`:
++		1. *Let* `as_int` be the conversion of `v0` to a 64-bit signed integer value.
++		2. *Return:* `as_int`.
++	5. *Assert:* `v0` is an instance of `Integer`.
++	6. *Return:* `v0`.
++;
+
++Number! ValueOf(SemanticOperation[operator: FLOAT] expr) :=
++	1. *Assert:* `expr.children.count` is 1.
++	2. *Let* `v0` be *Unwrap:* `ValueOf(expr.children.0)`.
++	3. *Assert:* `v0` is an instance of `Number`.
++	4. *If* `v0` is an instance of `Integer`:
++		1. *Let* `as_float` be the conversion of `v0` to a 64-bit binary floating-point value.
++		2. *Return:* `as_float`.
++	5. *Assert:* `v0` is an instance of `Float`.
++	6. *Return:* `v0`.
 +;
 ```
 
-#### ValueOf
+### Build
 ```diff
-Number! ValueOf(SemanticOperation[operator: EXP | MUL | DIV | ADD] expr) :=
-	1. *Assert:* `expr.children.count` is 2.
-	2. *Let* `v0` be *Unwrap:* `ValueOf(expr.children.0)`.
-	3. *Let* `v1` be *Unwrap:* `ValueOf(expr.children.1)`.
-	4. *Assert:* `v0` is an instance of `Number` *and* `v1` is an instance of `Number`.
--	5. *If* `v0` is an instance of `Integer` *and* `v1` is an instance of `Integer`:
--		1. *Let* `number` be *UnwrapAffirm:* `PerformBinaryArithmetic(expr.operator, v0, v1)`.
--		2. *Return:* `Integer(number)`.
--	6. *Else:*
--		1. *Let* `number` be *UnwrapAffirm:* `PerformBinaryArithmetic(expr.operator, Float(v0), Float(v1))`.
--		2. *Return:* `Float(number)`.
-+	5. *Return:* `PerformBinaryArithmetic(expr.operator, v0, v1)`.
+-Sequence<Instruction> BuildExpression(SemanticOperation[operator: NOT | EMP | NEG]               expr) :=
++Sequence<Instruction> BuildExpression(SemanticOperation[operator: NOT | EMP | NEG | INT | FLOAT] expr) :=
+	1. *Assert:* `expr.children.count` is 1.
+	2. *Let* `instrs` be *UnwrapAffirm:* `Build(expr.children.0)`.
+	3. *Return:* [
+		...instrs,
+		"`expr.operator`",
+	].
 ;
 ```
