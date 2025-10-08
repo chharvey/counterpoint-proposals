@@ -3,33 +3,34 @@ A type alias can be declared with `nominal` to create a **nominal type alias**:
 type nominal Name = str;
 type nominal Age  = int;
 ```
-Nominal type aliases are expected to be assigned types of the *same name*, regardless of their definition. Thus, given the type
+Nominal type aliases are expected to be assigned types of the *same name*, regardless of their definition.
+To allow the assignment, we have to use a type claim (#82) to tell the type-checker that it’s intended.
 ```cp
-type Person = [name: Name, age: Age];
+let n: Name = "Alice";           %> TypeError: `str` not assinable to `Name`
+let n: Name = "Alice" as <Name>; % no error
 ```
-we can only assign its `name` and `age` properties values of type `Name` and `Age` respectively.
+For example, given the type `type Person = [name: Name, age: Age];`, only values of type `Name` and `Age` can be assigned to its properties.
 ```cp
 let p: Person = [
 	name= "Alice",     %> TypeError: `str` not assinable to `Name`
 	age=  42 as <Age>, % no error
 ];
-let n: Name = "Alice" as <Name>; % no error
 ```
-Think of type `Name` as a narrowing of type `str` and type `Age` as a narrowing of type `int`. Since `Person#age` is of type `Age`, we cannot assign an `int` without a type claim (#82).
+Think of type `Name` as a narrowing of type `str` and type `Age` as a narrowing of type `int`. Since `Person#age` is of type `Age`, we need a type claim to sufficiently *narrow* the type.
 
-We can always widen types. `Name` and `Age` are subtypes of `str` and `int` respectively, and of course, since `unknown` is the Top Type, we can always assign any type (even if nominal) to it.
+We can always widen types. `Name` and `Age` are subtypes of `str` and `int` respectively, and of course, since `anything` is the Top Type, we can always assign any type (even if nominal) to it.
 ```cp
-let n1: Name       = p.name; % ok
-let a1: Age        = p.age;  % ok
-let n2: str        = p.name; % ok
-let a2: int        = p.age;  % ok
-let var u: unknown = p.name; % ok
-set u              = p.age;  % ok
+let n1: Name        = p.name; % ok
+let a1: Age         = p.age;  % ok
+let n2: str         = p.name; % ok (widening)
+let a2: int         = p.age;  % ok (widening)
+let var u: anything = p.name; % ok (widening)
+set u               = p.age;  % allowed reassignment
 ```
 
-The motivation behind nominal types are that they’re useful for distinguishing different formats of data. For example, even though “string” (`str`) is one type, there can be different string formats: timestamps, UUIDs, numeric strings in different formats, and even source code such as JSON. The same goes for numbers: when dealing with currency or units (dimensional analysis) for example. Nominal typing requires us to be explicit when assigning primitive values and provides a double-check that, “yes, this is really what I meant to do”.
+The motivation behind nominal types is that they’re useful for distinguishing different formats of data. For example, even though “string” (`str`) is one type, there can be different string formats: timestamps, UUIDs, numeric strings in different formats, and even source code such as JSON. The same goes for numbers, when dealing with currency or units (dimensional analysis) for example. Nominal typing requires us to be explicit when assigning primitive values and provides a double-check that, “yes, this is really what I meant to do”.
 
-When compound types are declared `nominal`, we can also assign values with type claims.
+When *compound types* are declared `nominal`, we can also assign values with type claims.
 ```cp
 type nominal Person = [name: str, age: int];
 let p1: Person = [name= "Bob", age= 42];             %> TypeError: `[name: "Bob", age: 42]` not assignable to `Person`
