@@ -28,6 +28,26 @@ let var u: anything = p.name; % ok (widening)
 set u               = p.age;  % allowed reassignment
 ```
 
+Nominal typing rules supercede standard type theory rules. For example, even though `anything` is the Top Type and any type should be assignable to it, a nominal type defined as `anything` requires assigned expressions to have its type by name. This applies similarly to type unions. Even type `nothing`, the Bottom Type, is not assignable to a nominal type.
+```cp
+type nominal Top = anything;
+claim unreachable: nothing;
+let u: Top = unreachable;           %> TypeError: `nothing` not assignable to `Top`
+let u: Top = "Alice";               %> TypeError: `str` not assignable to `Top`
+let u: Top = "Alice" as <anything>; %> TypeError: `anything` not assignable to `Top`
+let u: Top = unreachable as <Top>;  % ok
+let u: Top = "Alice" as <Top>;      % ok
+
+type nominal Primitive = null | bool | int | float | str;
+let number: int | float = 42;
+let p: Primitive = unreachable;                %> TypeError: `nothing` not assignable to `Primitive`
+let p: Primitive = number;                     %> TypeError: `int | float` not assignable to `Primitive`
+let p: Primitive = number as <int>;            %> TypeError: `int` not assignable to `Primitive`
+let p: Primitive = number as <42>;             %> TypeError: `42` not assignable to `Primitive`
+let p: Primitive = unreachable as <Primitive>; % ok
+let p: Primitive = number      as <Primitive>; % ok
+```
+
 The motivation behind nominal types is that they’re useful for distinguishing different formats of data. For example, even though “string” (`str`) is one type, there can be different string formats: timestamps, UUIDs, numeric strings in different formats, and even source code such as JSON. The same goes for numbers, when dealing with currency or units (dimensional analysis) for example. Nominal typing requires us to be explicit when assigning primitive values and provides a double-check that, “yes, this is really what I meant to do”.
 
 When *compound types* are declared `nominal`, we can also assign values with type claims.
