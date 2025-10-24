@@ -9,47 +9,56 @@ sum; %== 42
 The block expression above contains two statements: a function call and an expression-statement. The last statement in a block expression determines its value, so it has a special name: the **determinant**. In this case the determinant is `42`, which is assigned to the variable `sum`. (Think of the block as “returning” `42`, but this is not the same as containing an actual `return` statement.)
 
 ## Operator Precedence
-Block expressions are weaker than all other operators. It’s a syntax error to use a block expression as an operand without wrapping it in parentheses. This is similar to the precedence of function expressions (lambdas).
+Block expressions have the same precedence as parenthesized expressions. However, their use is restricted in some contexts. Below, the `value` variable is defined via block expressions.
 ```cp
-let greeting: int = { 10; }   + 20 + { 30; };   %> SyntaxError
-let greeting: int = ({ 10; }) + 20 + ({ 30; }); % fixed
-
-let callable: () => int = () => 10   || () => 20;   %> SyntaxError
-let callable: () => int = (() => 10) || (() => 20); % fixed
+let value: int = { 10; } + 20 + { 30; }; %== 60
 ```
-This avoids syntax ambiguities with conditional statements.
+To avoid syntax ambiguities with conditional *statements*, block expressions are not allowed in the branches (consequent and alternative) of conditional *expressions*. To use them, they must be wrapped in parentheses.
 ```cp
-if condition then { consequent; } else { alternative; };     % a conditional statement
-if condition then ({ consequent; }) else ({ alternative; }); % a ternary expression
+if condition then { consequent; } else { alternative; };     % a well-formed conditional statement
+if condition then ({ consequent; }) else ({ alternative; }); % a well-formed ternary expression
 
-let result = if a then { b; } else { c; };     %> SyntaxError
-let result = if a then ({ b; }) else ({ c; }); % fixed
+let result: int = if a then { b; } else { c; };     %> SyntaxError
+let result: int = if a then ({ b; }) else ({ c; }); % fixed
 ```
-
-Also note that a block expression is syntactically allowed as the condition, but is not required to be parenthesized.
+A block expression is syntactically allowed as the condition (in both statements and expressions), but is not required to be parenthesized.
 ```cp
-if { condition; } then { consequent; } else { alternative; }; % a conditional statement
-if { condition; } then consequent else alternative;           % a ternary expression
+if { condition; } then { consequent; } else { alternative; }; % a well-formed conditional statement
+if { condition; } then consequent else alternative;           % a well-formed ternary expression
 ```
 
-Block expressions must be parenthesized when implicitly returned from a lambda or method.
+Block expressions also must be parenthesized when implicitly returned from a lambda or method.
 ```cp
 my_list.forEach.((item) {
-	print.("about to print item.");
+	print.("about to print the item.");
 	return print.(item);
 });
 
 % equivalent to:
 my_list.forEach.((item) => ({
-	print.("about to print item.");
+	print.("about to print the item.");
 	print.(item);
 }));
 
 % SyntaxError:
 my_list.forEach.((item) => {
-	print.("about to print item.");
+	print.("about to print the item.");
 	print.(item);
 });
+```
+This eliminates the confusion with a function that implicitly returns a set literal.
+```cp
+my_list.map.((item) {
+	print.("about to return a set containing the item.");
+	return {item};
+});
+
+% basically equivalent to:
+my_list.map.((item) => {item});
+%                      ^ this is a set, not a block expression
+
+% also equivalent, but with unnecessary parentheses
+my_list.map.((item) => ({item}));
 ```
 
 ## Block Values and Types
@@ -72,7 +81,7 @@ let blex: int = {
 	42;
 };
 ```
-In both examples, control flow is able to reach the end of the block and type information may be gathered. The difference is that in the latter example, a type is able to be determined, and thus the assignment is allowed at compile-time. Static analysis considers the type of the block `int` because its determinant is `42;` and the compiler might be unaware that the loop is infinite. Block expressions that contain infinite loops or that throw errors or otherwise end abruptly are akin to functions whose return type is `never`.
+In both examples, control flow is able to reach the end of the block and type information may be gathered. The difference is that in the latter example, a type is able to be determined, and thus the assignment is allowed at compile-time. Static analysis considers the type of the block `int` because its determinant is `42;` and the compiler might be unaware that the loop is infinite. Block expressions that contain infinite loops or that throw errors or otherwise end abruptly are akin to functions whose return type is `nothing`.
 
 It might be desirable to return early, like we can in functions. In this situation we may assign the value to a variable and then use the variable as the determinant.
 ```cp
@@ -89,7 +98,7 @@ let blex: int = {
 
 A block *must not* contain a void function call as its determinant — `void` is not a valid expression type. There is one exception: when the block is returned directly from another void function. See #46 for details.
 ```cp
-let n: unknown = {
+let n: anything = {
 	print.("void"); %> Error
 };
 
@@ -121,7 +130,7 @@ function f(i: int): void {
 			break;
 		};
 	};
-	print.(i);
+	return print.(i);
 }
 ```
 The `break;` statement is scoped to the `while` block, not the `then` block. Similarly, if we have a block *expression* inside a `while` loop, a `break;` statement applies to the loop.
@@ -133,12 +142,12 @@ function f(i: int): void {
 			break;
 		});
 	};
-	print.(i);
+	return print.(i);
 }
 ```
 The `break;` statement would be invalid if the block expression were not inside a loop. Note that the block expression never finishes evaluating and so has no determinant; thus the variable `message` never gets initialized. However, the loop does break and `i` gets printed.
 
-Because the end of the block expression is unreachable via control flow analysis, the block’s type is `never` and is still assignable to the variable. If the block didn’t complete abruptly and didn’t have the correct type of determinant then the compiler would raise a TypeError, as shown at the beginning of this section.
+Because the end of the block expression is unreachable via control flow analysis, the block’s type is `nothing` and is still assignable to the variable. If the block didn’t complete abruptly and didn’t have the correct type of determinant then the compiler would raise a TypeError, as shown at the beginning of this section.
 
 Abrupt completions also apply to `continue` and `return` statements. When a block expression contains a `return` statement, it tells its containing function to return.
 ```cp
@@ -153,4 +162,4 @@ function f(): int {
 ```
 In this code, the block expression returns `2` from the function abruptly. At runtime, `message1` gets set, but then the function returns, and the last two variables are never initialized. Notice the block expression *didn’t* produce `2` as its determinant and assign it to `message2`, completing execution and moving on to the third variable.
 
-The code passes static analysis because, as above, the block expression has an abrupt completion and has type `never`, which is assignable to `str`. (In fact we didn’t even need the `"two";` statement in it.) However, the return value is still analyzed. If we attempted to return a boolean for example, we would get a TypeError because it’s not assignable to the return signature of `f`.
+The code passes static analysis because, as above, the block expression has an abrupt completion and has type `nothing`, which is assignable to `str`. (In fact we didn’t even need the `"two";` statement in it.) However, the return value is still analyzed. If we attempted to return a boolean for example, we would get a TypeError because it’s not assignable to the return signature of `f`.
