@@ -2,69 +2,62 @@ The `if` statement is a control flow statement that executes based on a conditio
 
 Syntax:
 ```diff
-+StatementConditional<If> ::=
-+	. <If->"unless" . <If+>"if" Expression
++StatementConditional<Unless> ::=
++	. <Unless->"if" <Unless+>"unless" Expression
 +	. "then" Block
-+	. (
-+		| <If+>("else" Block)? ";"
-+		| <If+>("else" StatementConditional<?If>)
++	. <Unless->(
++		| ("else" Block)? ";"
++		| "else" StatementConditional<?Unless>
 +	)
++	. <Unless+>";"
 +;
 
 Statement ::=
 	| StatementExpression
-+	| StatementConditional<±If>
++	| StatementConditional<±Unless>
 	| Declaration
 ;
 ```
 
 Semantics:
 ```diff
-+SemanticCondition
-+	::= SemanticExpression;
-
-+SemanticConsequent  ::= SemanticBlock;
-+SemanticAlternative ::= SemanticBlock | SemanticConditional;
-
-+SemanticConditional
-+	::= SemanticCondition SemanticConsequent SemanticAlternative?;
-
 SemanticStatement =:=
 	| SemanticStatementExpression
-+	| SemanticConditional
++	| SemanticStatementConditional
 	| SemanticDeclaration
 ;
+
++SemanticStatementConditional
++	::= SemanticExpression SemanticBlock (SemanticBlock | SemanticStatementConditional)?;
 ```
 
 Decorate:
 ```diff
-+Decorate(StatementConditional<+If> ::= "if" Expression "then" Block ";") -> SemanticConditional
-+	:= (SemanticConditional
-+		(SemanticCondition  Decorate(Expression))
-+		(SemanticConsequent Decorate(Block))
++Decorate(StatementConditional<-Unless> ::= "if" Expression "then" Block ";") -> SemanticStatementConditional
++	:= (SemanticStatementConditional[unlesss=false]
++		Decorate(Expression)
++		Decorate(Block)
 +	);
-+Decorate(StatementConditional<+If> ::= "if" Expression "then" Block__0 "else" Block__1 ";") -> SemanticConditional
-+	:= (SemanticConditional
-+		(SemanticCondition   Decorate(Expression))
-+		(SemanticConsequent  Decorate(Block__0))
-+		(SemanticAlternative Decorate(Block__1))
++Decorate(StatementConditional<-Unless> ::= "if" Expression "then" Block__0 "else" Block__1 ";") -> SemanticStatementConditional
++	:= (SemanticStatementConditional[unlesss=false]
++		Decorate(Expression)
++		Decorate(Block__0)
++		Decorate(Block__1)
 +	);
-+Decorate(StatementConditional<+If> ::= "if" Expression "then" Block "else" StatementConditional<+If>) -> SemanticConditional
-+	:= (SemanticConditional
-+		(SemanticCondition   Decorate(Expression))
-+		(SemanticConsequent  Decorate(Block))
-+		(SemanticAlternative Decorate(StatementConditional))
++Decorate(StatementConditional<-Unless> ::= "if" Expression "then" Block "else" StatementConditional<-Unless>) -> SemanticStatementConditional
++	:= (SemanticStatementConditional[unlesss=false]
++		Decorate(Expression)
++		Decorate(Block)
++		Decorate(StatementConditional<-Unless>)
 +	);
-+Decorate(StatementConditional<-If> ::= "unless" Expression "then" Block ";") -> SemanticConditional
-+	:= (SemanticConditional
-+		(SemanticCondition
-+			(SemanticOperation[operator=NOT] Decorate(Expression))
-+		)
-+		(SemanticConsequent Decorate(Block))
++Decorate(StatementConditional<+Unless> ::= "unless" Expression "then" Block ";") -> SemanticStatementConditional
++	:= (SemanticStatementConditional[unlesss=true]
++		Decorate(Expression)
++		Decorate(Block)
 +	);
 
-+Decorate(Statement ::= StatementConditional<±If>) -> SemanticConditional
-+	:= Decorate(StatementConditional<±If>);
++Decorate(Statement ::= StatementConditional<±Unless>) -> SemanticStatementConditional
++	:= Decorate(StatementConditional<±Unless>);
 ```
 
 Sugar:
