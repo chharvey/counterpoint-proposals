@@ -27,40 +27,6 @@ if { condition; } then { consequent; } else { alternative; }; % a well-formed co
 if { condition; } then consequent else alternative;           % a well-formed ternary expression
 ```
 
-Block expressions also must be parenthesized when implicitly returned from a lambda or method.
-```cp
-my_list.forEach.((item) {
-	print.("about to print the item.");
-	return print.(item);
-});
-
-% equivalent to:
-my_list.forEach.((item) => ({
-	print.("about to print the item.");
-	print.(item);
-}));
-
-% SyntaxError:
-my_list.forEach.((item) => {
-	print.("about to print the item.");
-	print.(item);
-});
-```
-This eliminates the confusion with a function that implicitly returns a set literal.
-```cp
-my_list.map.((item) {
-	print.("about to return a set containing the item.");
-	return {item};
-});
-
-% basically equivalent to:
-my_list.map.((item) => {item});
-%                      ^ this is a set, not a block expression
-
-% also equivalent, but with unnecessary parentheses
-my_list.map.((item) => ({item}));
-```
-
 ## Block Values and Types
 The determinant of a block is syntactic. Whatever the last statement happens to be, will be the value of the block. Most of the time that last statement will be an expression-statement, producing the value of the block. However, if the last statement is something else, the block has no value!
 ```cp
