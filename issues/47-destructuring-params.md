@@ -184,8 +184,8 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Optional> ::=
-		| (IDENTIFIER "=")? "var"? IDENTIFIER            ":" Type  . <Optional+>("?=" Expression)
-+		|  IDENTIFIER "="   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
-+		|  IDENTIFIER "="   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
+		| (Word "=")? "var"? IDENTIFIER            ":" Type  . <Optional+>("?=" Expression)
++		|  Word "="   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
++		|  Word "="   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
 ;
 ```

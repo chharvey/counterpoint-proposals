@@ -25,6 +25,6 @@ The same rules of named arguments (#57) apply:
 ## Syntax
 ```diff
 ParameterGeneric<Optional>
--	::=                   IDENTIFIER (("narrows" | "widens") Type)? <Optional+>("?=" Type);
-+	::= (IDENTIFIER "=")? IDENTIFIER (("narrows" | "widens") Type)? <Optional+>("?=" Type);
+-	::=             IDENTIFIER (("narrows" | "widens") Type)? <Optional+>("?=" Type);
++	::= (Word "=")? IDENTIFIER (("narrows" | "widens") Type)? <Optional+>("?=" Type);
 ```
