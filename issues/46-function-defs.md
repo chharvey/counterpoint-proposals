@@ -6,7 +6,7 @@ Define synchronous function declarations and function expressions.
 This issue covers defining void synchronous functions only, which do return but do not return a value (#70). This issue does not cover non-void functions, asynchronous functions, or error throwing.
 
 This is a function declaration:
-```cp
+```point
 function add(a: int, b: int): void {
 	"""
 		The first argument is {{ a }}.
@@ -19,8 +19,8 @@ function add(a: int, b: int): void {
 The **name** of this function is `add`. It has two input **parameters** `a` and `b`, each of type `int`. When a function is called (see v0.7.0), the values sent into the function are **arguments**. This function’s **return type** is `void`, because it has no output value. Its **body** is the set of statements within the curly braces. The body of a void function *must* include a `return;` statement in every code path.
 
 This is a function expression (lambda):
-```cp
-(a: int, b: int): void {
+```point
+\(a: int, b: int): void {
 	"""
 		The first argument is {{ a }}.
 		The second argument is {{ b }}.
@@ -30,53 +30,53 @@ This is a function expression (lambda):
 };
 ```
 Lambdas are normal expressions that can be operated on and passed around like any other value. For instance, lambdas can be assigned to variables. Lambdas are always “truthy”.
-```cp
-let my_fn: (a: int, b: int) => void =
-	(a: int, b: int): void { a + b; return; };
+```point
+let my_fn: \(a: int, b: int) => void =
+	\(a: int, b: int): void { a + b; return; };
 !!my_fn; %== true
 ```
 
 Some parameters may be declared with `var`, which means they can be reassigned within the function body.
-```cp
+```point
 function add(var a: int, b: int): void {
-	a = a + 1; % ok
-	b = b - 1; %> AssignmentError
+	set a = a + 1; % ok
+	set b = b - 1; %> AssignmentError
 	return;
 }
 ```
 
 ## Type Signatures
-A function’s **type signature** is its type, written in the form of `(‹params›) => ‹return›`. It indicates what types of arguments are accepted and what type the function returns. This issue only covers functions that return `void`.
-```cp
-let my_fn: (a: int, b: int) => void =
-	(a: int, b: int): void { a + b; return; };
+A function’s **type signature** is its type, written in the form of `\(‹params›) => ‹return›`. It indicates what types of arguments are accepted and what type the function returns. This issue only covers functions that return `void`.
+```point
+let my_fn: \(a: int, b: int) => void =
+	\(a: int, b: int): void { a + b; return; };
 
-% typeof my_fn: (a: int, b: int) => void
+% typeof my_fn: \(a: int, b: int) => void
 ```
 
 
 ## Function Assignment
 When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned parameter order must match up with the assignee parameters.
-```cp
-type BinaryOperatorType = (first: int, second: float) => void;
-let add: BinaryOperatorType = (second: float, first: int): void { first + second; return; }; %> TypeError
+```point
+type BinaryOperatorType = \(first: int, second: float) => void;
+let add: BinaryOperatorType = \(second: float, first: int): void { first + second; return; }; %> TypeError
 ```
-> TypeError: Type `(second: float, first: int) => void` is not assignable to type `(first: int, second: float) => void`.
+> TypeError: Type `\(second: float, first: int) => void` is not assignable to type `\(first: int, second: float) => void`.
 
 The reason for this error is that one should expect to be able to call any `BinaryOperatorType` with the positional arguments of an `int` followed by a `float`. Calling it with e.g. `4.0` and `2`, in that order, should fail. From this perspective, function assignment is a bit like tuple assignment.
 
 From another perspective, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
-```cp
-type BinaryOperatorType = (first: float, second: float) => void;
-let subtract: BinaryOperatorType = (x: float, y: float): void { x - y; return; }; %> TypeError
+```point
+type BinaryOperatorType = \(first: float, second: float) => void;
+let subtract: BinaryOperatorType = \(x: float, y: float): void { x - y; return; }; %> TypeError
 ```
-> TypeError: Type `(x: float, y: float) => void` is not assignable to type `(first: float, second: float) => void`.
+> TypeError: Type `\(x: float, y: float) => void` is not assignable to type `\(first: float, second: float) => void`.
 
 This errors because a caller must be able to call `subtract` with the named arguments `first` and `second`.
 
 Luckily, function parameter syntax has a built-in mechanism for handling function assignment/implementation with named parameters. In the parameter name, use `first= x` to alias the real parameter `x` to the assignee parameter `first`.
-```cp
-let subtract: BinaryOperatorType = (first= x: float, second= y: float): void {
+```point
+let subtract: BinaryOperatorType = \(first= x: float, second= y: float): void {
 	first;  %> ReferenceError
 	second; %> ReferenceError
 	x - y;
@@ -88,18 +88,18 @@ This lets the function author internally use the parameter names `x` and `y` whi
 
 ## Variance
 Function parameter types are **contravariant**. This means that when assigning a function `g` to a function type `F`, the type of each parameter of `F` must be assignable to the corresponding parameter’s type of `g`.
-```cp
-type UnaryOperator = (float | str) => void;
-let g: UnaryOperator = (x: float): void { %> TypeError
+```point
+type UnaryOperator = \(float | str) => void;
+let g: UnaryOperator = \(x: float): void { %> TypeError
 	x; %: float
 	return;
 };
 ```
-A type error is raised because we cannot assign a `(float) => void` type to a `(float | str) => void` type. Even though the parameter’s type is narrower, a caller should expect to be able to call any `UnaryOperator` implementation with a `str` argument, and our implementation doesn’t allow that.
+A type error is raised because we cannot assign a `\(float) => void` type to a `\(float | str) => void` type. Even though the parameter’s type is narrower, a caller should expect to be able to call any `UnaryOperator` implementation with a `str` argument, and our implementation doesn’t allow that.
 
 However, we can *widen* the parameter types:
-```cp
-let h: UnaryOperator = (x: int | float | str): void {
+```point
+let h: UnaryOperator = \(x: int | float | str): void {
 	x; %: int | float | str
 	return;
 };
@@ -112,6 +112,7 @@ This meets the requirements of `UnaryOperator` but still has a wider type for it
 ```diff
 Punctuator :::=
 	// storage
++		| "\"
 +		| "=>"
 ;
 
@@ -126,15 +127,15 @@ Keyword :::=
 ## Syntax
 ```diff
 +TypeFunction<Named>
-+	::= "(" ","? ParameterType<?Named># ","? ")" "=>" "void";
++	::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" "void";
 
 Type ::=
 	| TypeUnion
 +	| TypeFunction<-Named, +Named>
 ;
 
-+ExpressionFunction
-+	::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
++DeclaredFunction   ::=     "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
++ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
 
 Expression ::=
 	| ExpressionDisjunctive
@@ -167,7 +168,7 @@ Expression ::=
 +	::= (IDENTIFIER "=")? "var"? IDENTIFIER ":" Type;
 
 +DeclarationFunction
-+	::= "function" IDENTIFIER ExpressionFunction;
++	::= "function" IDENTIFIER DeclaredFunction;
 
 Declaration ::=
 	| DeclarationVariable
@@ -227,19 +228,25 @@ SemanticBlock
 
 ## Decorate
 ```diff
-+Decorate(TypeFunction ::= "(" ","? ParameterType# ","? ")" "=>" "void") -> SemanticTypeFunction
++Decorate(TypeFunction ::= "\" "(" ","? ParameterType# ","? ")" "=>" "void") -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...ParseList(ParameterType, SemanticParameterType));
 
 +Decorate(Type ::= TypeFunction) -> SemanticTypeFunction
 +	:= Decorate(TypeFunction);
 
-+Decorate(ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" StatementBlock<-Break>) -> SemanticFunction
++Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticFunction
 +	:= (SemanticFunction
 +		...ParseList(ParameterFunction, SemanticParameter)
-+		Decorate(StatementBlock<-Break>)
++		Decorate(Block<-Break>)
 +	);
 
-+Decorate(Expression_Dynamic ::= ExpressionFunction) -> SemanticFunction
++Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticFunction
++	:= (SemanticFunction
++		...ParseList(ParameterFunction, SemanticParameter)
++		Decorate(Block<-Break>)
++	);
+
++Decorate(Expression ::= ExpressionFunction) -> SemanticFunction
 +	:= Decorate(ExpressionFunction);
 
 +Decorate(ParameterType ::= Type) -> SemanticParameterType
@@ -273,11 +280,11 @@ SemanticBlock
 +		Decorate(Type)
 +	);
 
-+Decorate(DeclarationFunction ::= "func" IDENTIFIER ExpressionFunction) -> SemanticDeclarationFunction
++Decorate(DeclarationFunction ::= "func" IDENTIFIER DeclaredFunction) -> SemanticDeclarationFunction
 +	:= (SemanticDeclarationFunction
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-+		FunctionTypeOf(ExpressionFunction)
-+		Decorate(ExpressionFunction)
++		FunctionTypeOf(DeclaredFunction)
++		Decorate(DeclaredFunction)
 +	);
 
 +Decorate(Declaration ::= DeclarationFunction) -> SemanticDeclarationFunction
@@ -286,7 +293,10 @@ SemanticBlock
 
 ## FunctionTypeOf
 ```diff
-+FunctionTypeOf(ExpressionFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" StatementBlock<-Break>) -> SemanticTypeFunction
++FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
++	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
+
++FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
 
 +	FunctionTypeOf(ParameterFunction# ::= ParameterFunction) -> Tuple<SemanticParameterType>
