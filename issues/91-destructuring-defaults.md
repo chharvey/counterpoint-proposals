@@ -138,20 +138,20 @@ The program first prints `3` and `2` in that order, then assigns variables `a`, 
 ## Syntax
 ```diff
 -DestructureVariableItem<Typed> ::=
--	| "var"? IDENTIFIER . <Typed+>(":" Type)
+-	| "var"? ("_" | IDENTIFIER) . <Typed+>(":" Type)
 -	| DestructureVariables<?Typed>
 -	| <Typed+>(DestructureVariables<-Typed> ":" Type)
 +DestructureVariableItem<Typed, Optional> ::=
-+	| "var"? IDENTIFIER . <Typed+>(":" Type)         . <Optional+>("?=" Expression)
++	| "var"? ("_" | IDENTIFIER) . <Typed+>(":" Type) . <Optional+>("?=" Expression)
 +	| DestructureVariables<?Typed>                   . <Optional+>("?=" Expression)
 +	| <Typed+>(DestructureVariables<-Typed> ":" Type . <Optional+>("?=" Expression))
 ;
 
 -DestructureVariableKey<Typed> ::=
--	| IDENTIFIER "$" <Typed+>(":" Type)
+-	| ("_" | IDENTIFIER) "$" <Typed+>(":" Type)
 -	| Word "=" DestructureVariableItem<?Typed>
 +DestructureVariableKey<Typed, Optional> ::=
-+	| IDENTIFIER "$" <Typed+>(":" Type) <Optional+>("?=" Expression)
++	| ("_" | IDENTIFIER) "$" <Typed+>(":" Type) <Optional+>("?=" Expression)
 +	| Word "=" DestructureVariableItem<?Typed><?Optional>
 ;
 
@@ -165,13 +165,13 @@ DestructureVariables<Typed> ::=
 ;
 
 DeclarationVariable ::=
-	| "let" "var"? IDENTIFIER            ":" Type "=" Expression ";"
+	| "let" "var"? ("_" | IDENTIFIER)    ":" Type "=" Expression ";"
 	| "let" DestructureVariables<-Typed> ":" Type "=" Expression ";"
 	| "let" DestructureVariables<+Typed>          "=" Expression ";"
 ;
 
 ParameterFunction<Optional> ::=
-	| (Word "=")? "var"? IDENTIFIER            ":" Type  . <Optional+>("?=" Expression)
+	| (Word "=")? "var"? ("_" | IDENTIFIER)    ":" Type  . <Optional+>("?=" Expression)
 	|  Word "="   DestructureVariables<-Typed> ":" Type  . <Optional+>("?=" Expression)
 	|  Word "="   DestructureVariables<+Typed>           . <Optional+>("?=" Expression)
 ;
