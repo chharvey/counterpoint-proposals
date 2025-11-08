@@ -155,14 +155,14 @@ DeclaredFunction<Heritage, Instance, Method> ::= GenericSpecifier<?Instance>? Ca
 ExpressionFunction<Typed, Instance, Method>  ::= GenericSpecifier<?Instance>? CaptureSpecifier<-Ref>? ExpressionFnParams<?Typed><?Instance><?Method>  ...;
 
 Class<Abstract, Final, Data, Declared, Instance> ::=
-	. "class"
+	& "class"
 	...
-	. <Declared->CaptureSpecifier<-Ref>?
-	. <Declared+>CaptureSpecifier<+Ref>?
+	& <Declared->CaptureSpecifier<-Ref>?
+	& <Declared+>CaptureSpecifier<+Ref>?
 	...
-	. "{"
+	& "{"
 	...
-	. "}"
+	& "}"
 ;
 ```
 

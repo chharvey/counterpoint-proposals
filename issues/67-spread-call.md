@@ -64,11 +64,11 @@ SemanticSpread[arity: 1 | 2 | 3]
 	::= Expression;
 
 SemanticCall ::=
-	. SemanticExpression
--	. SemanticExpression*
--	. SemanticProperty*
-+	. (SemanticExpression | SemanticSpread[arity: 1])*
-+	. (SemanticProperty   | SemanticSpread[arity: 2])*
+	& SemanticExpression
+-	& SemanticExpression*
+-	& SemanticProperty*
++	& (SemanticExpression | SemanticSpread[arity: 1])*
++	& (SemanticProperty   | SemanticSpread[arity: 2])*
 ;
 ```
 
