@@ -178,13 +178,13 @@ let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 ## Syntax Grammar
 ```diff
 +DestructureVariableItem<Typed> ::=
-+	| "var"? IDENTIFIER . <Typed+>(":" Type)
++	| "var"? ("_" | IDENTIFIER) . <Typed+>(":" Type)
 +	| DestructureVariables<?Typed>
 +	| <Typed+>(DestructureVariables<-Typed> ":" Type)
 +;
 
 +DestructureVariableKey<Typed> ::=
-+	| IDENTIFIER "$" <Typed+>(":" Type)
++	| ("_" | IDENTIFIER) "$" <Typed+>(":" Type)
 +	| Word "=" DestructureVariableItem<?Typed>
 +;
 
@@ -194,7 +194,7 @@ let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 +;
 
 DeclarationVariable ::=
-	| "let" "var"? IDENTIFIER            ":" Type "=" Expression ";"
+	| "let" "var"? ("_" | IDENTIFIER)    ":" Type "=" Expression ";"
 +	| "let" DestructureVariables<-Typed> ":" Type "=" Expression ";"
 +	| "let" DestructureVariables<+Typed>          "=" Expression ";"
 ;

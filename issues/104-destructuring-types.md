@@ -181,8 +181,8 @@ type B = Or.<[T, U]= [int, float]>; % destructured
 ## Syntax Grammar
 ```diff
 ParameterGeneric<Optional>
--	::= (IDENTIFIER "=")?  IDENTIFIER                           (("narrows" | "widens") Type)? <Optional+>("?=" Type);
-+	::= (IDENTIFIER "=")? (IDENTIFIER | DestructureTypeAliases) (("narrows" | "widens") Type)? <Optional+>("?=" Type);
+-	::= (Word "=")?  IDENTIFIER                           (("narrows" | "widens") Type)? <Optional+>("?=" Type);
++	::= (Word "=")? (IDENTIFIER | DestructureTypeAliases) (("narrows" | "widens") Type)? <Optional+>("?=" Type);
 
 ParametersGeneric ::=
 	|  ParameterGeneric<-Optional># ","?

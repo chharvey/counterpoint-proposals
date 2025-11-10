@@ -58,7 +58,7 @@ Keyword :::=
 ## Syntax
 ```diff
 +ParameterGeneric<Optional>
-+	::= IDENTIFIER ("narrows" Type)? <Optional+>("?=" Type);
++	::= ("_" | IDENTIFIER) ("narrows" Type)? <Optional+>("?=" Type);
 
 +ParametersGeneric ::=
 +	|  ParameterGeneric<-Optional># ","?
@@ -68,8 +68,8 @@ Keyword :::=
 +GenericSpecifier
 +	::= "<" ","? ParametersGeneric ">";
 
--DeclarationType ::= "type" IDENTIFIER                   "=" Type ";";
-+DeclarationType ::= "type" IDENTIFIER GenericSpecifier? "=" Type ";";
+-DeclarationType ::= "type" ("_" | IDENTIFIER)                   "=" Type ";";
++DeclarationType ::= "type" ("_" | IDENTIFIER) GenericSpecifier? "=" Type ";";
 ```
 
 ## Semantics
@@ -78,14 +78,14 @@ Keyword :::=
 +SemanticDefaultType ::= SemanticType;
 
 +SemanticTypeParam
-+	::= SemanticTypeAlias SemanticHeritage? SemanticDefaultType?;
++	::= SemanticTypeAlias? SemanticHeritage? SemanticDefaultType?;
 
 -SemanticDeclarationType
 +SemanticDeclarationTypeAlias
-	::= SemanticTypeAlias SemanticType;
+	::= SemanticTypeAlias? SemanticType;
 
 +SemanticDeclarationTypeGeneric
-+	::= SemanticTypeAlias SemanticTypeParam+ SemanticType;
++	::= SemanticTypeAlias? SemanticTypeParam+ SemanticType;
 
 SemanticDeclaration =:=
 	| SemanticDeclarationVariable
@@ -97,19 +97,34 @@ SemanticDeclaration =:=
 
 ## Decorate
 ```diff
++Decorate(ParameterGeneric<-Optional> ::= "_") -> SemanticTypeParam
++	:= (SemanticTypeParam);
 +Decorate(ParameterGeneric<-Optional> ::= IDENTIFIER) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
++	);
++Decorate(ParameterGeneric<-Optional> ::= "_" "narrows" Type) -> SemanticTypeParam
++	:= (SemanticTypeParam
++		(SemanticHeritage Decorate(Type))
 +	);
 +Decorate(ParameterGeneric<-Optional> ::= IDENTIFIER "narrows" Type) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage Decorate(Type))
 +	);
++Decorate(ParameterGeneric<+Optional> ::= "_" "?=" Type) -> SemanticTypeParam
++	:= (SemanticTypeParam
++		(SemanticDefaultType Decorate(Type))
++	);
 +Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?=" Type) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticDefaultType Decorate(Type))
++	);
++Decorate(ParameterGeneric<+Optional> ::= "_" "narrows" Type__0 "?=" Type__1) -> SemanticTypeParam
++	:= (SemanticTypeParam
++		(SemanticHeritage Decorate(Type__0))
++		(SemanticDefaultType Decorate(Type__1))
 +	);
 +Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "narrows" Type__0 "?=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
@@ -126,6 +141,12 @@ SemanticDeclaration =:=
 +		...ParseList(ParameterGeneric<+Optional>),
 +	];
 
+-Decorate(DeclarationType ::= "type" "_" "=" Type ";") -> SemanticDeclarationType
++Decorate(DeclarationType ::= "type" "_" "=" Type ";") -> SemanticDeclarationTypeAlias
+-	:= (SemanticDeclarationType
++	:= (SemanticDeclarationTypeAlias
+		Decorate(Type)
+	);
 -Decorate(DeclarationType ::= "type" IDENTIFIER "=" Type ";") -> SemanticDeclarationType
 +Decorate(DeclarationType ::= "type" IDENTIFIER "=" Type ";") -> SemanticDeclarationTypeAlias
 -	:= (SemanticDeclarationType
@@ -133,6 +154,11 @@ SemanticDeclaration =:=
 		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
++Decorate(DeclarationType ::= "type" "_" "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
++	:= (SemanticDeclarationTypeGeneric
++		...Decorate(ParametersGeneric)
++		Decorate(Type)
++	);
 +Decorate(DeclarationType ::= "type" IDENTIFIER "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
 +	:= (SemanticDeclarationTypeGeneric
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
