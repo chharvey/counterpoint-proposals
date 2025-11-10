@@ -38,6 +38,21 @@ DigitSequenceHex<Separator> :::= ( DigitSequenceHex<?Separator> . <Separator+>"_
 DigitSequenceNif<Separator> :::= ( DigitSequenceNif<?Separator> . <Separator+>"_"? )? [0-9a-z];
 ```
 
+### Syntax
+```diff
++// NATURAL ::= [./lexicon.ebnf#Natural];
+ // INTEGER ::= [./lexicon.ebnf#Integer];
+
+PrimitiveLiteral ::=
++	| NATURAL
+	| INTEGER
+	| FLOAT
+	| STRING
+	| KeywordValue
+	| "@" Word
+;
+```
+
 ## Operators
 The unary prefix negation operator, `-`, is invalid for natural number types. Using it on them raises a type error.
 
