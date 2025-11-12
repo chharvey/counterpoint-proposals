@@ -2,6 +2,8 @@
 
 ## Syntax
 ```diff
+#... StringTemplate thru MapLiteral
+
 -ExpressionUnit<Block> ::=
 +ExpressionUnit<Block, Break> ::=
 	| IDENTIFIER
@@ -15,18 +17,18 @@
 -	| SetLiteral
 -	| MapLiteral
 -	| <Block+>Block
-+	| StringTemplate<?Break>
-+	| ExpressionGrouped<?Break>
-+	| TupleLiteral<?Break>
-+	| RecordLiteral<?Break>
-+	| ListLiteral<?Break>
-+	| DictLiteral<?Break>
-+	| SetLiteral<?Break>
-+	| MapLiteral<?Break>
-+	| <Block+>Block<?Break>
++	| StringTemplate    <?Break>
++	| ExpressionGrouped <?Break>
++	| TupleLiteral      <?Break>
++	| RecordLiteral     <?Break>
++	| ListLiteral       <?Break>
++	| DictLiteral       <?Break>
++	| SetLiteral        <?Break>
++	| MapLiteral        <?Break>
++	| <Block+>Block     <?Break>
 ;
 
-...
+#... ExpressionCompound thru ExpressionConditional
 
 -Expression<Block> ::=
 -	| ExpressionDisjunctive<?Block>

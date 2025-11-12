@@ -131,32 +131,93 @@ Keyword :::=
 
 Type ::=
 	| TypeUnion
-+	| TypeFunction<-Named, +Named>
++	| TypeFunction<∓Named>
+;
+
+#... StringTemplate thru MapLiteral
+
+-ExpressionUnit<Block, Break> ::=
++ExpressionUnit<Block, Break, Return> ::=
+	| IDENTIFIER
+	| PrimitiveLiteral
+-	| StringTemplate    <?Break>
+-	| ExpressionGrouped <?Break>
+-	| TupleLiteral      <?Break>
+-	| RecordLiteral     <?Break>
+-	| ListLiteral       <?Break>
+-	| DictLiteral       <?Break>
+-	| SetLiteral        <?Break>
+-	| MapLiteral        <?Break>
+-	| <Block+>Block     <?Break>
++	| StringTemplate    <?Break><?Return>
++	| ExpressionGrouped <?Break><?Return>
++	| TupleLiteral      <?Break><?Return>
++	| RecordLiteral     <?Break><?Return>
++	| ListLiteral       <?Break><?Return>
++	| DictLiteral       <?Break><?Return>
++	| SetLiteral        <?Break><?Return>
++	| MapLiteral        <?Break><?Return>
++	| <Block+>Block     <?Break><?Return>
+;
+
+#... ExpressionCompound thru ExpressionConditional
+
+-Expression<Block, Break> ::=
+-	| ExpressionDisjunctive<?Block><?Break>
+-	| ExpressionConditional<?Break>
++Expression<Block, Break, Return> ::=
++	| ExpressionDisjunctive<?Block><?Break><?Return>
++	| ExpressionConditional<?Break><?Return>
++	| ExpressionFunction
+;
+
+
+-StatementExpression<Break>         ::= Expression<+Block><?Break>?          ";";
++StatementExpression<Break, Return> ::= Expression<+Block><?Break><?Return>? ";";
+
+-StatementConditional<Unless, Break> ::=
++StatementConditional<Unless, Break, Return> ::=
+-	& <Unless->"if" <Unless+>"unless" Expression<+Block><?Break>
+-	& "then" Block<?Break>
++	& <Unless->"if" <Unless+>"unless" Expression<+Block><?Break><?Return>
++	& "then" Block<?Break><?Return>
+	& <Unless->(
+-		| ("else" Block<?Break>)? ";"
+-		| "else" StatementConditional<?Unless><?Break>
++		| ("else" Block<?Break><?Return>)? ";"
++		| "else" StatementConditional<?Unless><?Break><?Return>
+	)
+	& <Unless+>";"
+;
+
+-StatementLoop
++StatementLoop<Return>
+-	::= (("while" | "until") Expression<+Block><-Break>          && "do" Block<+Break>) ";";
++	::= (("while" | "until") Expression<+Block><-Break><?Return> && "do" Block<+Break><?Return>) ";";
+
+-StatementIteration
++StatementIteration<Return>
+-	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break>          "do" Block<+Break> ";";
++	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break><?Return> "do" Block<+Break><?Return> ";";
+
+-Statement<Break> ::=
+-	| StatementExpression<?Break>
+-	| StatementConditional<∓Unless><?Break>
+-	| StatementLoop
+-	| StatementIteration
++Statement<Break, Return> ::=
++	| StatementExpression<?Break><?Return>
++	| StatementConditional<∓Unless><?Break><?Return>
++	| StatementLoop<Return>
++	| StatementIteration<Return>
+	| <Break+> ("break"    INTEGER? ";")
+	| <Break+> ("continue" INTEGER? ";")
++	| <Return+>("return"            ";");
+	| Declaration
 ;
 
 +DeclaredFunction   ::=     "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
 +ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
-
-Expression ::=
-	| ExpressionDisjunctive
-	| ExpressionConditional
-+	| ExpressionFunction
-;
-
--Statement<Break> ::=
-+Statement<Break, Return> ::=
-	| Expression? ";"
-	| StatementAssignment
-	| StatementIf    <?Break>
-	| StatementUnless<?Break>
-	| StatementWhile
-	| StatementUntil
-	| StatementFor
-	| <Break+>StatementBreak
-	| <Break+>StatementContinue
-+	| <Return+>("return" ";");
-	| Declaration
-;
 
 -Block<Break>         ::= "{" Statement<?Break>*          "}";
 +Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
@@ -204,6 +265,20 @@ SemanticExpression =:=
 +	| SemanticFunction
 ;
 
+SemanticStatement =:=
+	| SemanticStatementExpression
+	| SemanticStatementConditional
+	| SemanticLoop
+	| SemanticIteration
+	| SemanticBreak
+	| SemanticContinue
++	| SemanticReturn
+	| SemanticDeclaration
+;
+
++SemanticReturn
++	::= ();
+
 +SemanticFunction
 +	::= SemanticParameter* SemanticBlock;
 
@@ -228,22 +303,25 @@ SemanticBlock
 
 ## Decorate
 ```diff
-+Decorate(TypeFunction ::= "\" "(" ","? ParameterType# ","? ")" "=>" "void") -> SemanticTypeFunction
-+	:= (SemanticTypeFunction ...ParseList(ParameterType, SemanticParameterType));
++Decorate(TypeFunction<Named> ::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" "void") -> SemanticTypeFunction
++	:= (SemanticTypeFunction ...ParseList(ParameterType<?Named>, SemanticParameterType));
 
-+Decorate(Type ::= TypeFunction) -> SemanticTypeFunction
-+	:= Decorate(TypeFunction);
++Decorate(Type ::= TypeFunction<∓Named>) -> SemanticTypeFunction
++	:= Decorate(TypeFunction<∓Named>);
 
-+Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticFunction
++Decorate(Statement<Break, Return> ::= <Return+>("return" ";")) -> SemanticReturn
++	:= (SemanticReturn);
+
++Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +	:= (SemanticFunction
 +		...ParseList(ParameterFunction, SemanticParameter)
-+		Decorate(Block<-Break>)
++		Decorate(Block<-Break><+Return>)
 +	);
 
-+Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticFunction
++Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +	:= (SemanticFunction
 +		...ParseList(ParameterFunction, SemanticParameter)
-+		Decorate(Block<-Break>)
++		Decorate(Block<-Break><+Return>)
 +	);
 
 +Decorate(Expression ::= ExpressionFunction) -> SemanticFunction

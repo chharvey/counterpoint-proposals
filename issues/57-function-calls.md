@@ -45,13 +45,13 @@ At runtime, arguments are always evaluated first, in left-to-right order, before
 
 ## Syntax
 ```diff
-Property ::= Word       "="  Expression;
-Case     ::= Expression "->" Expression;
+Property <Break, Return> ::= Word                                "="  Expression<+Block><?Break><?Return>;
+Case     <Break, Return> ::= Expression<+Block><?Break><?Return> "->" Expression<+Block><?Break><?Return>;
 
-FunctionArguments ::=
-	| "("                                        ")"
-	| "(" ","?  Expression#                 ","? ")"
-+	| "(" ","? (Expression# ",")? Property# ","? ")"
+FunctionArguments<Break, Return> ::=
+	| "("                                                                                  ")"
+	| "(" ","?  Expression<+Block><?Break><?Return>#                                  ","? ")"
++	| "(" ","? (Expression<+Block><?Break><?Return># ",")? Property<?Break><?Return># ","? ")"
 ;
 ```
 
@@ -67,55 +67,44 @@ SemanticCall
 
 ## Decorate
 ```diff
--Decorate(FunctionArguments ::= "(" ( ","? Expression# ","? )? ")") -> Sequence<SemanticExpression>
--	:= ParseList(Expression, SemanticExpression);
+-Decorate(FunctionArguments ::= "(" ( ","? Expression<+Block><?Break><?Return># ","? )? ")") -> Sequence<SemanticExpression>
+-	:= ParseList(Expression<+Block><?Break><?Return>, SemanticExpression);
 +Decorate(FunctionArguments ::= "(" ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
 +	:= [
 +		[],
 +		[],
 +	];
-+Decorate(FunctionArguments ::= "(" ","? Expression# ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
++Decorate(FunctionArguments ::= "(" ","? Expression<+Block><?Break><?Return># ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
 +	:= [
-+		ParseList(Expression, SemanticExpression),
++		ParseList(Expression<+Block><?Break><?Return>, SemanticExpression),
 +		[],
 +	];
-+Decorate(FunctionArguments ::= "(" ","? Property# ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
++Decorate(FunctionArguments ::= "(" ","? Property<?Break><?Return># ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
 +	:= [
 +		[],
-+		ParseList(Property, SemanticProperty),
++		ParseList(Property<?Break><?Return>, SemanticProperty),
 +	];
-+Decorate(FunctionArguments ::= "(" ","? Expression# "," Property# ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
++Decorate(FunctionArguments ::= "(" ","? Expression<+Block><?Break><?Return># "," Property<?Break><?Return># ","? ")") -> Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>
 +	:= [
-+		ParseList(Expression, SemanticExpression),
-+		ParseList(Property, SemanticProperty),
++		ParseList(Expression<+Block><?Break><?Return>, SemanticExpression),
++		ParseList(Property<?Break><?Return>,           SemanticProperty),
 +	];
 
--Decorate(FunctionCall ::= "." FunctionArguments) -> Vector<Sequence<SemanticType>, Sequence<SemanticExpression>>
-+Decorate(FunctionCall ::= "." FunctionArguments) -> Vector<Sequence<SemanticType>, Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>>
-	:= [
-		[],
-		Decorate(FunctionArguments),
-	];
--Decorate(FunctionCall ::= "." GenericArguments FunctionArguments) -> Vector<Sequence<SemanticType>, Sequence<SemanticExpression>>
-+Decorate(FunctionCall ::= "." GenericArguments FunctionArguments) -> Vector<Sequence<SemanticType>, Vector<Sequence<SemanticExpression>, Sequence<SemanticProperty>>>
-	:= [
-		Decorate(GenericArguments),
-		Decorate(FunctionArguments),
-	];
 
-Decorate(ExpressionCompound ::= ExpressionUnit) -> SemanticExpression
-	:= Decorate(ExpressionUnit);
-Decorate(ExpressionCompound ::= ExpressionCompound PropertyAccess) -> SemanticAccess
-	:= (SemanticAccess[kind=AccessKind(PropertyAccess)]
-		Decorate(ExpressionCompound)
-		Decorate(PropertyAccess)
-	);
-Decorate(ExpressionCompound ::= ExpressionCompound FunctionCall) -> SemanticCall
+
+Decorate(ExpressionCompound<Block, Break, Return> ::= ExpressionCompound<?Block><?Break><?Return> "." FunctionArguments<?Break><?Return>) -> SemanticCall
 	:= (SemanticCall
-		Decorate(ExpressionCompound)
--		...(...Decorate(FunctionCall))
-+		...Decorate(FunctionCall).0
-+		...Decorate(FunctionCall).1.0
-+		...Decorate(FunctionCall).1.1
+		Decorate(ExpressionCompound<?Block><?Break><?Return>)
+-		...Decorate(FunctionArguments<?Break><?Return>)
++		...Decorate(FunctionArguments<?Break><?Return>).0
++		...Decorate(FunctionArguments<?Break><?Return>).1
+	);
+Decorate(ExpressionCompound<Block, Break, Return> ::= ExpressionCompound<?Block><?Break><?Return> "." GenericArguments FunctionArguments<?Break><?Return>) -> SemanticCall
+	:= (SemanticCall
+		Decorate(ExpressionCompound<?Block><?Break><?Return>)
+		...Decorate(GenericArguments)
+-		...Decorate(FunctionArguments<?Break><?Return>)
++		...Decorate(FunctionArguments<?Break><?Return>).0
++		...Decorate(FunctionArguments<?Break><?Return>).1
 	);
 ```
