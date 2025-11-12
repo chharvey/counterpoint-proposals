@@ -116,12 +116,12 @@ ExpressionFunction
 -ParameterType<Named>
 -	::= <Named+>(Word ":") Type;
 +ParameterType<Named, Optional>
-+	::= <Named+>(Word . <Optional->":") <Optional+>"?:" Type;
++	::= <Named+>(Word & <Optional->":") <Optional+>"?:" Type;
 
 -ParameterFunction
 -	::= (Word "=")? "var"? ("_" | IDENTIFIER) ":" Type;
 +ParameterFunction<Optional>
-+	::= (Word "=")? "var"? ("_" | IDENTIFIER) ":" Type . <Optional+>("?=" Expression);
++	::= (Word "=")? "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression);
 
 +ParametersType<Named> ::=
 +	|  ParameterType<?Named><-Optional># ","?
@@ -332,13 +332,13 @@ Decorate(ParameterType_Named ::= Word ":" Type) -> SemanticParameterType
 		];
 
 -FunctionTypeOf(ParameterFunction            ::= "var"? ("_" | IDENTIFIER) ":" Type)                                -> SemanticParameterType
-+FunctionTypeOf(ParameterFunction<±Optional> ::= "var"? ("_" | IDENTIFIER) ":" Type . <Optional+>("?=" Expression)) -> SemanticParameterType
++FunctionTypeOf(ParameterFunction<±Optional> ::= "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression)) -> SemanticParameterType
 	:= (SemanticParameterType
 		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 		Decorate(Type)
 	);
 -FunctionTypeOf(ParameterFunction            ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type)                                -> SemanticParameterType
-+FunctionTypeOf(ParameterFunction<±Optional> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type . <Optional+>("?=" Expression)) -> SemanticParameterType
++FunctionTypeOf(ParameterFunction<±Optional> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression)) -> SemanticParameterType
 	:= (SemanticParameterType
 		Decorate(Word)
 		Decorate(Type)

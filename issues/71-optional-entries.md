@@ -84,7 +84,7 @@ Punctuator :::=
 -	::= Word ":" Type;
 
 +EntryType<Named, Optional>
-+	::= <Named+>(Word . <Optional->":") <Optional+>"?:" Type;
++	::= <Named+>(Word & <Optional->":") <Optional+>"?:" Type;
 
 +ItemsType ::=
 +	|  EntryType<-Named><-Optional># ","?
