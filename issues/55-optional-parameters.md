@@ -100,8 +100,8 @@ Punctuator :::=
 ```diff
 -TypeFunction<Named>
 +TypeFunction
--	::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" ("void" | Type);
-+	::= "\" "(" ","? ParametersType<∓Named>      ")" "=>" ("void" | Type);
+-	::= "\" "(" (","? ParameterType<?Named># ","?)? ")" "=>" ("void" | Type);
++	::= "\" "(" (","? ParametersType<∓Named>     )? ")" "=>" ("void" | Type);
 
 Type ::=
 	| TypeUnion
@@ -109,10 +109,10 @@ Type ::=
 +	| TypeFunction
 ;
 
--DeclaredFunction   ::=     "(" ","? ParameterFunction# ","? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
--ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
-+DeclaredFunction   ::=     "(" ","? ParametersFunction      ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
-+ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
+-DeclaredFunction   ::=     "(" (","? ParameterFunction# ","?)? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
+-ExpressionFunction ::= "\" "(" (","? ParameterFunction# ","?)? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
++DeclaredFunction   ::=     "(" (","? ParametersFunction)?      ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
++ExpressionFunction ::= "\" "(" (","? ParametersFunction)?      ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
 
 -ParameterType<Named>
 +ParameterType<Named, Optional>
@@ -148,10 +148,16 @@ SemanticParameter[unfixed: Boolean]
 
 ## Decorate
 ```diff
+-Decorate(TypeFunction<Named> ::= "\" "(" ")" "=>" "void") -> SemanticTypeFunction
++Decorate(TypeFunction        ::= "\" "(" ")" "=>" "void") -> SemanticTypeFunction
+	:= (SemanticTypeFunction);
 -Decorate(TypeFunction<Named> ::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" "void") -> SemanticTypeFunction
 +Decorate(TypeFunction        ::= "\" "(" ","? ParametersType<∓Named>      ")" "=>" "void") -> SemanticTypeFunction
 -	:= (SemanticTypeFunction ...ParseList(ParameterType<?Named>, SemanticParameterType));
 +	:= (SemanticTypeFunction ...Decorate(ParametersType<∓Named>));
+-Decorate(TypeFunction<Named> ::= "\" "(" ")" "=>" Type) -> SemanticTypeFunction
++Decorate(TypeFunction        ::= "\" "(" ")" "=>" Type) -> SemanticTypeFunction
+	:= (SemanticTypeFunction Decorate(Type));
 -Decorate(TypeFunction<Named> ::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" Type) -> SemanticTypeFunction
 +Decorate(TypeFunction        ::= "\" "(" ","? ParametersType<∓Named>#     ")" "=>" Type) -> SemanticTypeFunction
 	:= (SemanticTypeFunction
@@ -165,6 +171,8 @@ SemanticParameter[unfixed: Boolean]
 -	:= Decorate(TypeFunction<∓Named>);
 +	:= Decorate(TypeFunction);
 
+Decorate(DeclaredFunction ::= "(" ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction Decorate(Block<-Break><+Return>));
 -Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +Decorate(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 	:= (SemanticFunction
@@ -172,12 +180,19 @@ SemanticParameter[unfixed: Boolean]
 +		...Decorate(ParametersFunction)
 		Decorate(Block<-Break><+Return>)
 	);
+Decorate(DeclaredFunction ::= "(" ")" ":" "void" "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
+	:= (SemanticFunction Decorate(Expression<+Block><-Break><+Return>));
 -Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
 +Decorate(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" "void" "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
 	:= (SemanticFunction
 -		...ParseList(ParameterFunction, SemanticParameter)
 +		...Decorate(ParametersFunction)
 		Decorate(Expression<+Block><-Break><+Return>)
+	);
+Decorate(DeclaredFunction ::= "(" ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction
+		Decorate(Type)
+		Decorate(Block<-Break><+Return>)
 	);
 -Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
 +Decorate(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
@@ -186,6 +201,11 @@ SemanticParameter[unfixed: Boolean]
 +		...Decorate(ParametersFunction)
 		Decorate(Type)
 		Decorate(Block<-Break><+Return>)
+	);
+Decorate(DeclaredFunction ::= "(" ")" ":" Type "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
+	:= (SemanticFunction
+		Decorate(Type)
+		Decorate(Expression<+Block><-Break><+Return>)
 	);
 -Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" Type "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
 +Decorate(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" Type "=>" Expression<+Block><-Break><+Return> ";") -> SemanticFunction
@@ -198,6 +218,8 @@ SemanticParameter[unfixed: Boolean]
 
 
 
+Decorate(ExpressionFunction ::= "\" "(" ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction Decorate(Block<-Break><+Return>));
 -Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +Decorate(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 	:= (SemanticFunction
@@ -205,12 +227,19 @@ SemanticParameter[unfixed: Boolean]
 +		...Decorate(ParametersFunction)
 		Decorate(Block<-Break><+Return>)
 	);
+Decorate(ExpressionFunction ::= "\" "(" ")" ":" "void" "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction Decorate(Expression<+Block><-Break><+Return>));
 -Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
 +Decorate(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" "void" "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
 	:= (SemanticFunction
 -		...ParseList(ParameterFunction, SemanticParameter)
 +		...Decorate(ParametersFunction)
 		Decorate(Expression<+Block><-Break><+Return>)
+	);
+Decorate(ExpressionFunction ::= "\" "(" ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction
+		Decorate(Type)
+		Decorate(Block<-Break><+Return>)
 	);
 -Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
 +Decorate(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" Type Block<-Break><+Return>) -> SemanticFunction
@@ -219,6 +248,11 @@ SemanticParameter[unfixed: Boolean]
 +		...Decorate(ParametersFunction)
 		Decorate(Type)
 		Decorate(Block<-Break><+Return>)
+	);
+Decorate(ExpressionFunction ::= "\" "(" ")" ":" Type "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
+	:= (SemanticFunction
+		Decorate(Type)
+		Decorate(Expression<+Block><-Break><+Return>)
 	);
 -Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" Type "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
 +Decorate(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" Type "=>" Expression<+Block><-Break><+Return>) -> SemanticFunction
@@ -366,10 +400,38 @@ Decorate(ParameterType_Named ::= Word ":" Type) -> SemanticParameterType
 
 ## FunctionTypeOf
 ```diff
--FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
+FunctionTypeOf(DeclaredFunction ::= "(" ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction);
+-FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
++FunctionTypeOf(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
 -	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
-+FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
+FunctionTypeOf(DeclaredFunction ::= "(" ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction Decorate(Type));
+-FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
++FunctionTypeOf(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction
+-		...FunctionTypeOf(ParameterFunction#)
++		...FunctionTypeOf(ParametersFunction)
+		Decorate(Type)
+	);
+
+
+FunctionTypeOf(ExpressionFunction ::= "\" "(" ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction);
+-FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
++FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+-	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
++	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
+FunctionTypeOf(ExpressionFunction ::= "\" "(" ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction Decorate(Type));
+-FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
++FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
+	:= (SemanticTypeFunction
+-		...FunctionTypeOf(ParameterFunction#)
++		...FunctionTypeOf(ParametersFunction)
+		Decorate(Type)
+	);
 
 +	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Optional># ","?) -> Sequence<SemanticParameter>
 +		:= FunctionTypeOf(ParameterFunction<-Optional>#);

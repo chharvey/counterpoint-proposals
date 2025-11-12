@@ -127,7 +127,7 @@ Keyword :::=
 ## Syntax
 ```diff
 +TypeFunction<Named>
-+	::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" "void";
++	::= "\" "(" (","? ParameterType<?Named># ","?)? ")" "=>" "void";
 
 Type ::=
 	| TypeUnion
@@ -220,8 +220,8 @@ StatementContinue ::= "continue" INTEGER? ";";
 	| Declaration
 ;
 
-+DeclaredFunction   ::=     "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
-+ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>;
++DeclaredFunction   ::=     "(" (","? ParameterFunction# ","?)? ")" ":" "void" Block<-Break><+Return>;
++ExpressionFunction ::= "\" "(" (","? ParameterFunction# ","?)? ")" ":" "void" Block<-Break><+Return>;
 
 -Block<Break>         ::= "{" Statement<?Break>*          "}";
 +Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
@@ -307,6 +307,8 @@ SemanticBlock
 
 ## Decorate
 ```diff
++Decorate(TypeFunction<Named> ::= "\" "(" ")" "=>" "void") -> SemanticTypeFunction
++	:= (SemanticTypeFunction);
 +Decorate(TypeFunction<Named> ::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" "void") -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...ParseList(ParameterType<?Named>, SemanticParameterType));
 
@@ -342,12 +344,16 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +Decorate(Statement<Break, Return> ::= <Return+>StatementReturn) -> SemanticReturn
 +	:= Decorate(StatementReturn);
 
++Decorate(DeclaredFunction ::= "(" ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
++	:= (SemanticFunction Decorate(Block<-Break><+Return>));
 +Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +	:= (SemanticFunction
 +		...ParseList(ParameterFunction, SemanticParameter)
 +		Decorate(Block<-Break><+Return>)
 +	);
 
++Decorate(ExpressionFunction ::= "\" "(" ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
++	:= (SemanticFunction Decorate(Block<-Break><+Return>));
 +Decorate(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +	:= (SemanticFunction
 +		...ParseList(ParameterFunction, SemanticParameter)
@@ -419,9 +425,13 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 
 ## FunctionTypeOf
 ```diff
++FunctionTypeOf(DeclaredFunction ::= "(" ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
++	:= (SemanticTypeFunction);
 +FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
 
++FunctionTypeOf(ExpressionFunction ::= "\" "(" ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
++	:= (SemanticTypeFunction);
 +FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
 
