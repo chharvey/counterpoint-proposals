@@ -200,6 +200,10 @@ Type ::=
 -	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break>          "do" Block<+Break> ";";
 +	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break><?Return> "do" Block<+Break><?Return> ";";
 
+StatementBreak    ::= "break"    INTEGER? ";";
+StatementContinue ::= "continue" INTEGER? ";";
++StatementReturn  ::= "return"            ";";
+
 -Statement<Break> ::=
 -	| StatementExpression<?Break>
 -	| StatementConditional<∓Unless><?Break>
@@ -210,9 +214,9 @@ Type ::=
 +	| StatementConditional<∓Unless><?Break><?Return>
 +	| StatementLoop<Return>
 +	| StatementIteration<Return>
-	| <Break+> ("break"    INTEGER? ";")
-	| <Break+> ("continue" INTEGER? ";")
-+	| <Return+>("return"            ";");
+	| <Break+> StatementBreak
+	| <Break+> StatementContinue
++	| <Return+>StatementReturn
 	| Declaration
 ;
 
@@ -309,8 +313,34 @@ SemanticBlock
 +Decorate(Type ::= TypeFunction<∓Named>) -> SemanticTypeFunction
 +	:= Decorate(TypeFunction<∓Named>);
 
-+Decorate(Statement<Break, Return> ::= <Return+>("return" ";")) -> SemanticReturn
-+	:= (SemanticReturn);
+Decorate(StatementBreak ::= "break"         ";") -> SemanticBreak := (SemanticBreak[times=1]);
+Decorate(StatementBreak ::= "break" INTEGER ";") -> SemanticBreak := (SemanticBreak[times=TokenWorth(INTEGER)]);
+
+Decorate(StatementContinue ::= "continue"         ";") -> SemanticContinue := (SemanticContinue[times=1]);
+Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (SemanticContinue[times=TokenWorth(INTEGER)]);
+
++Decorate(StatementReturn ::= "return" ";") -> SemanticReturn := (SemanticReturn);
+
+-Decorate(Statement<Break>         ::= StatementExpression<?Break>) -> SemanticStatementExpression
++Decorate(Statement<Break, Return> ::= StatementExpression<?Break>) -> SemanticStatementExpression
+	:= Decorate(StatementExpression<?Break>);
+-Decorate(Statement<Break>         ::= StatementConditional<∓Unless><?Break>) -> SemanticConditional
++Decorate(Statement<Break, Return> ::= StatementConditional<∓Unless><?Break>) -> SemanticConditional
+	:= Decorate(StatementConditional<∓Unless><?Break>);
+-Decorate(Statement<Break>         ::= StatementLoop) -> SemanticLoop
++Decorate(Statement<Break, Return> ::= StatementLoop) -> SemanticLoop
+	:= Decorate(StatementLoop);
+-Decorate(Statement<Break>         ::= StatementIteration) -> SemanticIteration
++Decorate(Statement<Break, Return> ::= StatementIteration) -> SemanticIteration
+	:= Decorate(StatementIteration);
+-Decorate(Statement<Break>         ::= <Break+>StatementBreak) -> SemanticBreak
++Decorate(Statement<Break, Return> ::= <Break+>StatementBreak) -> SemanticBreak
+	:= Decorate(StatementBreak);
+-Decorate(Statement<Break>         ::= <Break+>StatementContinue) -> SemanticContinue
++Decorate(Statement<Break, Return> ::= <Break+>StatementContinue) -> SemanticContinue
+	:= Decorate(StatementContinue);
++Decorate(Statement<Break, Return> ::= <Return+>StatementReturn) -> SemanticReturn
++	:= Decorate(StatementReturn);
 
 +Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 +	:= (SemanticFunction

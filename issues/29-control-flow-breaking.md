@@ -64,6 +64,8 @@ StatementIteration
 -	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block>         "do" Block         ";";
 +	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break> "do" Block<+Break> ";";
 
++StatementBreak    ::= "break"    INTEGER? ";";
++StatementContinue ::= "continue" INTEGER? ";";
 
 -Statement ::=
 +Statement<Break> ::=
@@ -73,8 +75,8 @@ StatementIteration
 +	| StatementConditional<∓Unless><?Break>
 	| StatementLoop
 	| StatementIteration
-+	| <Break+>("break"    INTEGER? ";")
-+	| <Break+>("continue" INTEGER? ";")
++	| <Break+>StatementBreak
++	| <Break+>StatementContinue
 	| Declaration
 ;
 
@@ -121,19 +123,21 @@ It is a semantic error if `[times]` is negative.
 
 Note: Given an unsigned int type (#107), this semantic error may not be needed. In that case, the following syntax would be changed:
 ```diff
-Statement<Break> ::=
-# ...
--	| <Break+>("break"    INTEGER? ";")
--	| <Break+>("continue" INTEGER? ";")
-+	| <Break+>("break"    NATURAL? ";")
-+	| <Break+>("continue" NATURAL? ";")
-# ...
-;
+-StatementBreak    ::= "break"    INTEGER? ";";
+-StatementContinue ::= "continue" INTEGER? ";";
++StatementBreak    ::= "break"    NATURAL? ";";
++StatementContinue ::= "continue" NATURAL? ";";
 ```
 
 ## Decorate
 Update all `Expression*`, `Statement*`, and `Declaration*` productions with the `<Break>` parameter.
 ```diff
++Decorate(StatementBreak ::= "break"         ";") -> SemanticBreak := (SemanticBreak[times=1]);
++Decorate(StatementBreak ::= "break" INTEGER ";") -> SemanticBreak := (SemanticBreak[times=TokenWorth(INTEGER)]);
+
++Decorate(StatementContinue ::= "continue"         ";") -> SemanticContinue := (SemanticContinue[times=1]);
++Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (SemanticContinue[times=TokenWorth(INTEGER)]);
+
 -Decorate(Statement ::= StatementExpression) -> SemanticStatementExpression
 -	:= Decorate(StatementExpression);
 -Decorate(Statement ::= StatementConditional<∓Unless>) -> SemanticConditional
@@ -142,15 +146,19 @@ Update all `Expression*`, `Statement*`, and `Declaration*` productions with the 
 +	:= Decorate(StatementExpression<?Break>);
 +Decorate(Statement<Break> ::= StatementConditional<∓Unless><?Break>) -> SemanticConditional
 +	:= Decorate(StatementConditional<∓Unless><?Break>);
-
-+Decorate(Statement<Break> ::= <Break+>("break" ";")) -> SemanticBreak
-+	:= (SemanticBreak[times=1]);
-+Decorate(Statement<Break> ::= <Break+>("break" INTEGER ";")) -> SemanticBreak
-+	:= (SemanticBreak[times=TokenWorth(INTEGER)]);
-+Decorate(Statement<Break> ::= <Break+>("continue" ";")) -> SemanticContinue
-+	:= (SemanticContinue[times=1]);
-+Decorate(Statement<Break> ::= <Break+>("continue" INTEGER ";")) -> SemanticContinue
-+	:= (SemanticContinue[times=TokenWorth(INTEGER)]);
+-Decorate(Statement        ::= StatementLoop) -> SemanticLoop
++Decorate(Statement<Break> ::= StatementLoop) -> SemanticLoop
+	:= Decorate(StatementLoop);
+-Decorate(Statement        ::= StatementIteration) -> SemanticIteration
++Decorate(Statement<Break> ::= StatementIteration) -> SemanticIteration
+	:= Decorate(StatementIteration);
++Decorate(Statement<Break> ::= <Break+>StatementBreak) -> SemanticBreak
++	:= Decorate(StatementBreak);
++Decorate(Statement<Break> ::= <Break+>StatementContinue) -> SemanticContinue
++	:= Decorate(StatementContinue);
+-Decorate(Statement        ::= Declaration) -> SemanticDeclaration
++Decorate(Statement<Break> ::= Declaration) -> SemanticDeclaration
+	:= Decorate(Declaration);
 
 -Decorate(Block        ::= "{" Statement+         "}") -> SemanticBlock
 +Decorate(Block<Break> ::= "{" Statement<?Break>+ "}") -> SemanticBlock

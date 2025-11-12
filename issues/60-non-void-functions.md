@@ -59,17 +59,8 @@ TypeFunction<Named>
 -	::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>"  "void";
 +	::= "\" "(" ","? ParameterType<?Named># ","? ")" "=>" ("void" | Type);
 
-Statement<Break, Return> ::=
-	| StatementExpression<?Break><?Return>
-	| StatementConditional<∓Unless><?Break><?Return>
-	| StatementLoop<Return>
-	| StatementIteration<Return>
-	| <Break+> ("break"    INTEGER?                             ";")
-	| <Break+> ("continue" INTEGER?                             ";")
--	| <Return+>("return"                                        ";");
-+	| <Return+>("return"   Expression<+Block><?Break><?Return>? ";");
-	| Declaration
-;
+-StatementReturn  ::= "return"                                      ";";
++StatementReturn  ::= "return" Expression<+Block><?Break><?Return>? ";";
 
 -DeclaredFunction   ::=     "(" ","? ParameterFunction# ","? ")" ":"  "void"          Block<-Break><+Return>;
 -ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":"  "void"          Block<-Break><+Return>;
@@ -106,10 +97,10 @@ Decorate(TypeFunction<Named> ::= "\" "(" ","? ParameterType<?Named># ","? ")" "=
 +		Decorate(Type)
 +	);
 
-Decorate(Statement<Break, Return> ::= <Return+>("return" ";")) -> SemanticReturn
+Decorate(StatementReturn ::= "return" ";") -> SemanticReturn
 	:= (SemanticReturn);
-+Decorate(Statement<Break, Return> ::= <Return+>("return" Expression ";")) -> SemanticReturn
-+	:= (SemanticReturn Decorate(Expression));
++Decorate(StatementReturn ::= "return" Expression<+Block><?Break><?Return> ";") -> SemanticReturn
++	:= (SemanticReturn Decorate(Expression<+Block><?Break><?Return>));
 
 Decorate(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 	:= (SemanticFunction
