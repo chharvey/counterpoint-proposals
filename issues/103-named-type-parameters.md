@@ -30,9 +30,17 @@ The same rules of named arguments (#57) apply:
 
 ## Syntax
 ```diff
-ParameterGeneric<Optional> ::=
-	|               ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
-+	|          "$"? ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
-+	| Word "="      ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
+-ParameterGeneric<Optional> ::=
++ParameterGeneric<Named><Optional> ::=
+-	|                          ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
++	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
+;
+
+ParametersGeneric ::=
+-	| ","? ParameterGeneric<-Optional># ("," ParameterGeneric<+Optional>#)? ","?
+-	| ","?                                   ParameterGeneric<+Optional>#   ","?
++	| ","? ParameterGeneric<-Named><-Optional># ("," ParameterGeneric<-Named><+Optional>#)? ("," ParameterGeneric<+Named><∓Optional>#)? ","?
++	| ","?                                           ParameterGeneric<-Named><+Optional>#   ("," ParameterGeneric<+Named><∓Optional>#)? ","?
++	| ","?                                                                                       ParameterGeneric<+Named><∓Optional>#   ","?
 ;
 ```
