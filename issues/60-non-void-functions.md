@@ -59,8 +59,20 @@ TypeFunction
 -	::= "\" "(" ParametersType? ")" "=>"  "void";
 +	::= "\" "(" ParametersType? ")" "=>" ("void" | Type);
 
--StatementReturn  ::= "return"                                      ";";
-+StatementReturn  ::= "return" Expression<+Block><?Break><?Return>? ";";
+-StatementReturn        ::= "return"                                      ";";
++StatementReturn<Break> ::= "return" Expression<+Block><?Break><+Return>? ";";
+
+Statement<Break, Return> ::=
+	| StatementExpression<?Break><?Return>
+	| StatementConditional<∓Unless><?Break><?Return>
+	| StatementLoop<Return>
+	| StatementIteration<Return>
+	| <Break+> StatementBreak
+	| <Break+> StatementContinue
+-	| <Return+>StatementReturn
++	| <Return+>StatementReturn<?Break>
+	| Declaration
+;
 
 -DeclaredFunction   ::=     "(" ParametersFunction? ")" ":"  "void"          Block<-Break><+Return>;
 -ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":"  "void"          Block<-Break><+Return>;
@@ -101,10 +113,16 @@ Decorate(TypeFunction ::= "\" "(" ParametersType ")" "=>" "void") -> SemanticTyp
 +		Decorate(Type)
 +	);
 
-Decorate(StatementReturn ::= "return" ";") -> SemanticReturn
+-Decorate(StatementReturn        ::= "return" ";") -> SemanticReturn
++Decorate(StatementReturn<Break> ::= "return" ";") -> SemanticReturn
 	:= (SemanticReturn);
-+Decorate(StatementReturn ::= "return" Expression<+Block><?Break><?Return> ";") -> SemanticReturn
-+	:= (SemanticReturn Decorate(Expression<+Block><?Break><?Return>));
++Decorate(StatementReturn<Break> ::= "return" Expression<+Block><?Break><+Return> ";") -> SemanticReturn
++	:= (SemanticReturn Decorate(Expression<+Block><?Break><+Return>));
+
+-Decorate(Statement<Break, Return> ::= <Return+>StatementReturn)         -> SemanticReturn
++Decorate(Statement<Break, Return> ::= <Return+>StatementReturn<?Break>) -> SemanticReturn
+-	:= Decorate(StatementReturn);
++	:= Decorate(StatementReturn<?Break>);
 
 Decorate(DeclaredFunction ::= "(" ")" ":" "void" Block<-Break><+Return>) -> SemanticFunction
 	:= (SemanticFunction Decorate(Block<-Break><+Return>));
