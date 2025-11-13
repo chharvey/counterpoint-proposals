@@ -45,6 +45,32 @@ function add(var a: int, b: int): void {
 }
 ```
 
+Some parameters may be **named**, which means when the function is called (see v0.7.0) its arguments must have a corresponding name. The **exernal name** is before the equals sign and is what the caller will use to name their arguments. The **internal name** comes after the equal sign and is used as the parameter name in the function body.
+```cpl
+function add(alpha= a: int, bravo= var b: int): void {
+	set b = b - 1;
+	"""
+		The first argument is {{ a }}.
+		The second argument is {{ b }}.
+	""";
+	return;
+}
+```
+When called, the caller must supply arguments for `alpha` and `bravo`.
+
+If we want the external and internal names to be the same, we can use `$`-punning: `$a` is shorthand for `a= a`.
+```cpl
+function add($a: int, var $b: int): void {
+	set b = b - 1;
+	"""
+		The first argument is {{ a }}.
+		The second argument is {{ b }}.
+	""";
+	return;
+}
+```
+Now the caller must supply arguments for `a` and `b`, which are the same names used in the function body.
+
 ## Type Signatures
 A function’s **type signature** is its type, written in the form of `\(‹params›) => ‹return›`. It indicates what types of arguments are accepted and what type the function returns. This issue only covers functions that return `void`.
 ```point
@@ -57,25 +83,25 @@ let my_fn: \(a: int, b: int) => void =
 
 ## Function Assignment
 When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned parameter order must match up with the assignee parameters.
-```point
+```cpl
 type BinaryOperatorType = \(first: int, second: float) => void;
-let add: BinaryOperatorType = \(second: float, first: int): void { first + second; return; }; %> TypeError
+let add: BinaryOperatorType = \($second: float, $first: int): void { first + second; return; }; %> TypeError
 ```
 > TypeError: Type `\(second: float, first: int) => void` is not assignable to type `\(first: int, second: float) => void`.
 
 The reason for this error is that one should expect to be able to call any `BinaryOperatorType` with the positional arguments of an `int` followed by a `float`. Calling it with e.g. `4.0` and `2`, in that order, should fail. From this perspective, function assignment is a bit like tuple assignment.
 
 From another perspective, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
-```point
+```cpl
 type BinaryOperatorType = \(first: float, second: float) => void;
-let subtract: BinaryOperatorType = \(x: float, y: float): void { x - y; return; }; %> TypeError
+let subtract: BinaryOperatorType = \($x: float, $y: float): void { x - y; return; }; %> TypeError
 ```
 > TypeError: Type `\(x: float, y: float) => void` is not assignable to type `\(first: float, second: float) => void`.
 
 This errors because a caller must be able to call `subtract` with the named arguments `first` and `second`.
 
-Luckily, function parameter syntax has a built-in mechanism for handling function assignment/implementation with named parameters. In the parameter name, use `first= x` to alias the real parameter `x` to the assignee parameter `first`.
-```point
+Luckily, because parameters’ external names can be different from their internal names, this is a convenient way of handling function assignment/implementation mismatches.
+```cpl
 let subtract: BinaryOperatorType = \(first= x: float, second= y: float): void {
 	first;  %> ReferenceError
 	second; %> ReferenceError
@@ -83,7 +109,7 @@ let subtract: BinaryOperatorType = \(first= x: float, second= y: float): void {
 	return;
 };
 ```
-This lets the function author internally use the parameter names `x` and `y` while still allowing the caller to call the function with named arguments `first` and `second` repectively.
+This lets the function author internally use the parameter names `x` and `y` while still allowing the caller to call the function with named arguments `first` and `second` repectively, and now the assignment to type `BinaryOperatorType` is valid.
 
 
 ## Variance
@@ -229,8 +255,10 @@ StatementContinue ::= "continue" INTEGER? ";";
 +ParameterType<Named>
 +	::= <Named+>(Word ":") Type;
 
-+ParameterFunction
-+	::= (Word "=")? "var"? ("_" | IDENTIFIER) ":" Type;
++ParameterFunction ::=
++	|          "var"? "$"? ("_" | IDENTIFIER) ":" Type
++	| Word "=" "var"?      ("_" | IDENTIFIER) ":" Type
++;
 
 +DeclarationFunction
 +	::= "function" IDENTIFIER DeclaredFunction;
@@ -389,6 +417,28 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
++Decorate(ParameterFunction ::= "$" "_" ":" Type) -> SemanticParameter
++	:= (SemanticParameter[unfixed=false]
++		(SemanticKey[id=TokenWorth("_")])
++		Decorate(Type)
++	);
++Decorate(ParameterFunction ::= "$" IDENTIFIER ":" Type) -> SemanticParameter
++	:= (SemanticParameter[unfixed=false]
++		(SemanticKey[id=TokenWorth(IDENTIFIER)])
++		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
++		Decorate(Type)
++	);
++Decorate(ParameterFunction ::= "var" "$" "_" ":" Type) -> SemanticParameter
++	:= (SemanticParameter[unfixed=true]
++		(SemanticKey[id=TokenWorth("_")])
++		Decorate(Type)
++	);
++Decorate(ParameterFunction ::= "var" "$" IDENTIFIER ":" Type) -> SemanticParameter
++	:= (SemanticParameter[unfixed=true]
++		(SemanticKey[id=TokenWorth(IDENTIFIER)])
++		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
++		Decorate(Type)
++	);
 +Decorate(ParameterFunction ::= Word "=" "_" ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		Decorate(Word)
@@ -444,6 +494,11 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		];
 
 +FunctionTypeOf(ParameterFunction ::= "var"? ("_" | IDENTIFIER) ":" Type) -> SemanticParameterType
++	:= (SemanticParameterType
++		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
++		Decorate(Type)
++	);
++FunctionTypeOf(ParameterFunction ::= "var"? "$" ("_" | IDENTIFIER) ":" Type) -> SemanticParameterType
 +	:= (SemanticParameterType
 +		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 +		Decorate(Type)
