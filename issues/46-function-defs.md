@@ -512,11 +512,11 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +FunctionTypeOf(ExpressionFunction ::= "\" "(" ParametersFunction ")" ":" "void" Block<-Break>) -> SemanticTypeFunction
 +	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
 
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># ","?) -> Sequence<SemanticParameter>
++	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># ","?) -> Sequence<SemanticItemType>
 +		:= FunctionTypeOf(ParameterFunction<-Named>#);
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<+Named># ","?) -> Sequence<SemanticParameter>
++	FunctionTypeOf(ParametersFunction ::= ParameterFunction<+Named># ","?) -> Sequence<SemanticPropertyType>
 +		:= FunctionTypeOf(ParameterFunction<+Named>#);
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># "," ParameterFunction<+Named># ","?) -> Sequence<SemanticParameter>
++	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># "," ParameterFunction<+Named># ","?) -> Sequence<SemanticItemType | SemanticPropertyType>
 +		:= [
 +			...FunctionTypeOf(ParameterFunction<-Named>#),
 +			...FunctionTypeOf(ParameterFunction<+Named>#),
@@ -537,7 +537,7 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+FunctionTypeOf(ParameterFunction ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
 +	:= (SemanticPropertyType[optional=false]
 +		Decorate(Word)
 +		Decorate(Type)

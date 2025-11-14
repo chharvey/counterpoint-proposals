@@ -330,7 +330,7 @@ Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence
 -	];
 
 +Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># ","?) -> Sequence<SemanticParameter>
-+	:= ParseList(ParameterFunction<?Named><-Optional>, SemanticParameter)
++	:= ParseList(ParameterFunction<-Named><-Optional>, SemanticParameter)
 +Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticParameter>
 +	:= ParseList(ParameterFunction<-Named><+Optional>, SemanticParameter)
 +Decorate(ParametersFunction ::= ","? ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameter>
@@ -360,77 +360,68 @@ Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence
 
 ## FunctionTypeOf
 ```diff
-FunctionTypeOf(DeclaredFunction ::= "(" ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction);
--FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-+FunctionTypeOf(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
--	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
-+	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
-FunctionTypeOf(DeclaredFunction ::= "(" ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction Decorate(Type));
--FunctionTypeOf(DeclaredFunction ::= "(" ","? ParameterFunction# ","? ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-+FunctionTypeOf(DeclaredFunction ::= "(" ","? ParametersFunction      ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction
--		...FunctionTypeOf(ParameterFunction#)
-+		...FunctionTypeOf(ParametersFunction)
-		Decorate(Type)
-	);
-
-
-FunctionTypeOf(ExpressionFunction ::= "\" "(" ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction);
--FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-+FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" "void" (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
--	:= (SemanticTypeFunction ...FunctionTypeOf(ParameterFunction#));
-+	:= (SemanticTypeFunction ...FunctionTypeOf(ParametersFunction));
-FunctionTypeOf(ExpressionFunction ::= "\" "(" ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction Decorate(Type));
--FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParameterFunction# ","? ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-+FunctionTypeOf(ExpressionFunction ::= "\" "(" ","? ParametersFunction      ")" ":" Type (Block<-Break> | "=>" Expression<+Block><-Break><+Return> ";")) -> SemanticTypeFunction
-	:= (SemanticTypeFunction
--		...FunctionTypeOf(ParameterFunction#)
-+		...FunctionTypeOf(ParametersFunction)
-		Decorate(Type)
-	);
-
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Optional># ","?) -> Sequence<SemanticParameter>
-+		:= FunctionTypeOf(ParameterFunction<-Optional>#);
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<+Optional># ","?) -> Sequence<SemanticParameter>
-+		:= FunctionTypeOf(ParameterFunction<+Optional>#);
-+	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Optional># "," ParameterFunction<+Optional># ","?) -> Sequence<SemanticParameter>
+-	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># ","?) -> Sequence<SemanticItemType>
+-		:= FunctionTypeOf(ParameterFunction<-Named>#);
+-	FunctionTypeOf(ParametersFunction ::= ParameterFunction<+Named># ","?) -> Sequence<SemanticPropertyType>
+-		:= FunctionTypeOf(ParameterFunction<+Named>#);
+-	FunctionTypeOf(ParametersFunction ::= ParameterFunction<-Named># "," ParameterFunction<+Named># ","?) -> Sequence<SemanticItemType | SemanticPropertyType>
+-		:= [
+-			...FunctionTypeOf(ParameterFunction<-Named>#),
+-			...FunctionTypeOf(ParameterFunction<+Named>#),
+-		];
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># ","?) -> Sequence<SemanticItemType>
++		:= FunctionTypeOf(ParameterFunction<-Named><-Optional>#)
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
++		:= FunctionTypeOf(ParameterFunction<-Named><+Optional>#)
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticPropertyType>
++		:= FunctionTypeOf(ParameterFunction<+Named><∓Optional>#)
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
 +		:= [
-+			...FunctionTypeOf(ParameterFunction<-Optional>#),
-+			...FunctionTypeOf(ParameterFunction<+Optional>#),
++			...FunctionTypeOf(ParameterFunction<-Named><+Optional>#),
++			...FunctionTypeOf(ParameterFunction<-Named><-Optional>#),
++		];
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticItemType | SemanticPropertyType>
++		:= [
++			...FunctionTypeOf(ParameterFunction<+Named><∓Optional>#),
++			...FunctionTypeOf(ParameterFunction<-Named><-Optional>#),
++		];
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticItemType | SemanticPropertyType>
++		:= [
++			...FunctionTypeOf(ParameterFunction<+Named><∓Optional>#),
++			...FunctionTypeOf(ParameterFunction<-Named><+Optional>#),
++		];
++	FunctionTypeOf(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticItemType | SemanticPropertyType>
++		:= [
++			...FunctionTypeOf(ParameterFunction<-Named><+Optional>#),
++			...FunctionTypeOf(ParameterFunction<-Named><-Optional>#),
++			...FunctionTypeOf(ParameterFunction<+Named><∓Optional>#),
 +		];
 
--	FunctionTypeOf(ParameterFunction#            ::= ParameterFunction)            -> Tuple<SemanticParameterType>
-+	FunctionTypeOf(ParameterFunction<±Optional># ::= ParameterFunction<±Optional>) -> Tuple<SemanticParameterType>
--		:= [FunctionTypeOf(ParameterFunction)];
-+		:= [FunctionTypeOf(ParameterFunction<±Optional>)];
--	FunctionTypeOf(ParameterFunction#            ::= ParameterFunction#            "," ParameterFunction)            -> Sequence<SemanticParameterType>
-+	FunctionTypeOf(ParameterFunction<±Optional># ::= ParameterFunction<±Optional># "," ParameterFunction<±Optional>) -> Sequence<SemanticParameterType>
-		:= [
--			...FunctionTypeOf(ParameterFunction#),
--			FunctionTypeOf(ParameterFunction),
-+			...FunctionTypeOf(ParameterFunction<±Optional>#),
-+			FunctionTypeOf(ParameterFunction<±Optional>),
-		];
+-	FunctionTypeOf(ParameterFunction<Named>#           ::= ParameterFunction<?Named>)            -> Tuple<SemanticItemType | SemanticPropertyType>
++	FunctionTypeOf(ParameterFunction<Named, Optional># ::= ParameterFunction<?Named><?Optional>) -> Tuple<SemanticItemType | SemanticPropertyType>
+-		:= [FunctionTypeOf(ParameterFunction<?Named>)];
++		:= [FunctionTypeOf(ParameterFunction<?Named><?Optional>)];
+-	FunctionTypeOf(ParameterFunction<Named>#           ::= ParameterFunction<?Named>#            "," ParameterFunction<?Named>)            -> Sequence<SemanticItemType | SemanticPropertyType>
++	FunctionTypeOf(ParameterFunction<Named, Optional># ::= ParameterFunction<?Named><?Optional># "," ParameterFunction<?Named><?Optional>) -> Sequence<SemanticItemType | SemanticPropertyType>
+-		:= [
+-			...FunctionTypeOf(ParameterFunction<?Named>#),
+-			FunctionTypeOf(ParameterFunction<?Named>),
++			...FunctionTypeOf(ParameterFunction<?Named><?Optional>#),
++			FunctionTypeOf(ParameterFunction<?Named><?Optional>),
+-		];
 
--FunctionTypeOf(ParameterFunction            ::= "var"? ("_" | IDENTIFIER) ":" Type)                                -> SemanticParameterType
-+FunctionTypeOf(ParameterFunction<±Optional> ::= "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression)) -> SemanticParameterType
-	:= (SemanticParameterType
+-FunctionTypeOf(ParameterFunction<-Named>            ::= "var"? ("_" | IDENTIFIER) ":" Type)                                                         -> SemanticItemType
++FunctionTypeOf(ParameterFunction<-Named><∓Optional> ::= "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression<+Block><-Break><-Return>)) -> SemanticItemType
+	:= (SemanticItemType[optionanl=false] Decorate(Type));
+-FunctionTypeOf(ParameterFunction<+Named>            ::= "var"? "$" ("_" | IDENTIFIER) ":" Type)                                                         -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= "var"? "$" ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
+	:= (SemanticPropertyType[optional=false]
 		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 		Decorate(Type)
 	);
--FunctionTypeOf(ParameterFunction            ::= "var"? "$" ("_" | IDENTIFIER) ":" Type)                                                         -> SemanticParameterType
-+FunctionTypeOf(ParameterFunction<∓Optional> ::= "var"? "$" ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression<+Block><-Break><-Return>)) -> SemanticParameterType
-	:= (SemanticParameterType
-		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
-		Decorate(Type)
-	);
--FunctionTypeOf(ParameterFunction            ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type)                                -> SemanticParameterType
-+FunctionTypeOf(ParameterFunction<±Optional> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression)) -> SemanticParameterType
-	:= (SemanticParameterType
+-FunctionTypeOf(ParameterFunction<+Named>            ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type)                                                         -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type & <Optional+>("?=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
+	:= (SemanticPropertyType[optional=false]
 		Decorate(Word)
 		Decorate(Type)
 	);
