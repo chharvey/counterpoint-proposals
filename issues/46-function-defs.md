@@ -259,15 +259,12 @@ StatementContinue ::= "continue" INTEGER? ";";
 -Block<Break>         ::= "{" Statement<?Break>*          "}";
 +Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
 
-+ParameterType<Named>
-+	::= EntryType<?Named><-Optional>;
-
 +ParameterFunction<Named>
 +	::= <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) ":" Type;
 
 +ParametersType ::=
-+	| ","? ParameterType<-Named># ("," ParameterType<+Named>#)? ","?
-+	| ","?                             ParameterType<+Named>#   ","?
++	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?
++	| ","?                                    EntryType<+Named><-Optional>#   ","?
 +;
 
 +ParametersFunction ::=
@@ -409,11 +406,6 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		Decorate(Block<-Break><+Return>)
 +	);
 
-+Decorate(ParameterType<-Named> ::= EntryType<-Named><-Optional>) -> SemanticItemType
-+	:= Decorate(EntryType<-Named><-Optional>);
-+Decorate(ParameterType<+Named> ::= EntryType<+Named><-Optional>) -> SemanticPropertyType
-+	:= Decorate(EntryType<+Named><-Optional>);
-
 +Decorate(ParameterFunction<-Named> ::= "_" ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=false]
 +		Decorate(Type)
@@ -477,14 +469,14 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		Decorate(Type)
 +	);
 
-+Decorate(ParametersType ::= ","? ParameterType<-Named># ","?) -> Sequence<SemanticItemType>
-+	:= ParseList(ParameterType<-Named>, SemanticItemType)
-+Decorate(ParametersType ::= ","? ParameterType<+Named># ","?) -> Sequence<SemanticPropertyType>
-+	:= ParseList(ParameterType<+Named>, SemanticPropertyType)
-+Decorate(ParametersType ::= ","? ParameterType<-Named># "," ParameterType<+Named># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
++Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence<SemanticItemType>
++	:= ParseList(EntryType<-Named><-Optional>, SemanticItemType)
++Decorate(ParametersType ::= ","? EntryType<+Named><-Optional># ","?) -> Sequence<SemanticPropertyType>
++	:= ParseList(EntryType<+Named><-Optional>, SemanticPropertyType)
++Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<+Named><-Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
 +	:= [
-+		...ParseList(ParameterType<-Named>, SemanticItemType),
-+		...ParseList(ParameterType<+Named>, SemanticPropertyType),
++		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
++		...ParseList(EntryType<+Named><-Optional>, SemanticPropertyType),
 +	];
 
 +Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># ","?) -> Sequence<SemanticParameter>
