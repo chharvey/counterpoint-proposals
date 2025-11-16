@@ -3,7 +3,7 @@ The `while` loop is a control flow statement that repeatedly executes based on a
 Syntax:
 ```diff
 +StatementLoop
-+	::= (("while" | "until") Expression<+Block> & "do" Block) ";";
++	::= (("while" | "until") Expression<+Block> && "do" Block) ";";
 
 +StatementIteration
 +	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block> "do" Block ";";

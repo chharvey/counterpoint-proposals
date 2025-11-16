@@ -178,7 +178,7 @@ let [d$: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
 ## Syntax Grammar
 ```diff
 +DestructureVariableItem<Typed> ::=
-+	| "var"? ("_" | IDENTIFIER) . <Typed+>(":" Type)
++	| "var"? ("_" | IDENTIFIER) <Typed+>(":" Type)
 +	| DestructureVariables<?Typed>
 +	| <Typed+>(DestructureVariables<-Typed> ":" Type)
 +;

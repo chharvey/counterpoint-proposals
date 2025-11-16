@@ -3,13 +3,13 @@ The `if` statement is a control flow statement that executes based on a conditio
 Syntax:
 ```diff
 +StatementConditional<Unless> ::=
-+	. <Unless->"if" <Unless+>"unless" Expression
-+	. "then" Block
-+	. <Unless->(
++	& <Unless->"if" <Unless+>"unless" Expression
++	& "then" Block
++	& <Unless->(
 +		| ("else" Block)? ";"
 +		| "else" StatementConditional<?Unless>
 +	)
-+	. <Unless+>";"
++	& <Unless+>";"
 +;
 
 Statement ::=

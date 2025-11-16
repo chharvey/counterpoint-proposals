@@ -12,11 +12,11 @@ Natural numbers can use the same non-decimal radices as integers. E.g. `\o+52 ==
 ### Lexicon
 ```diff
 +Natural<Radix, Separator>
-+	:::= "+" <Radix->DigitSequenceDec<?Separator> . <Radix+>WholeDigitsRadix<?Separator>
++	:::= "+" <Radix->DigitSequenceDec<?Separator> & <Radix+>WholeDigitsRadix<?Separator>
 
 Integer<Radix, Separator>
--	:::= ("+" | "-")? <Radix->DigitSequenceDec<?Separator> . <Radix+>IntegerDigitsRadix<?Separator>;
-+	:::= "-"?         <Radix->DigitSequenceDec<?Separator> . <Radix+>WholeDigitsRadix<?Separator>;
+-	:::= ("+" | "-")? <Radix->DigitSequenceDec<?Separator> & <Radix+>IntegerDigitsRadix<?Separator>;
++	:::= "-"?         <Radix->DigitSequenceDec<?Separator> & <Radix+>WholeDigitsRadix<?Separator>;
 
 -IntegerDigitsRadix<Separator> :::=
 +WholeDigitsRadix<Separator> :::=
@@ -29,13 +29,13 @@ Integer<Radix, Separator>
 	| "\z"  DigitSequenceNif<?Separator>
 ;
 
-DigitSequenceBin<Separator> :::= ( DigitSequenceBin<?Separator> . <Separator+>"_"? )? [0-1];
-DigitSequenceQua<Separator> :::= ( DigitSequenceQua<?Separator> . <Separator+>"_"? )? [0-3];
-DigitSequenceSex<Separator> :::= ( DigitSequenceSex<?Separator> . <Separator+>"_"? )? [0-5];
-DigitSequenceOct<Separator> :::= ( DigitSequenceOct<?Separator> . <Separator+>"_"? )? [0-7];
-DigitSequenceDec<Separator> :::= ( DigitSequenceDec<?Separator> . <Separator+>"_"? )? [0-9];
-DigitSequenceHex<Separator> :::= ( DigitSequenceHex<?Separator> . <Separator+>"_"? )? [0-9a-f];
-DigitSequenceNif<Separator> :::= ( DigitSequenceNif<?Separator> . <Separator+>"_"? )? [0-9a-z];
+DigitSequenceBin<Separator> :::= ( DigitSequenceBin<?Separator> & <Separator+>"_"? )? [0-1];
+DigitSequenceQua<Separator> :::= ( DigitSequenceQua<?Separator> & <Separator+>"_"? )? [0-3];
+DigitSequenceSex<Separator> :::= ( DigitSequenceSex<?Separator> & <Separator+>"_"? )? [0-5];
+DigitSequenceOct<Separator> :::= ( DigitSequenceOct<?Separator> & <Separator+>"_"? )? [0-7];
+DigitSequenceDec<Separator> :::= ( DigitSequenceDec<?Separator> & <Separator+>"_"? )? [0-9];
+DigitSequenceHex<Separator> :::= ( DigitSequenceHex<?Separator> & <Separator+>"_"? )? [0-9a-f];
+DigitSequenceNif<Separator> :::= ( DigitSequenceNif<?Separator> & <Separator+>"_"? )? [0-9a-z];
 ```
 
 ### Syntax
