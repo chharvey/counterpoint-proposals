@@ -90,17 +90,15 @@ do { 1; } until condition;   % `do { 1; } while !condition;`
 ```
 
 # Runtime Behavior
-For `while-do` loops, the **condition** will be evaluated, and if it is *true*, the **body** will execute. These steps will repeat until the condition is *false*.
+For `while–do` loops, the **condition** will be evaluated, and if it is *true*, the **body** will execute. These steps will repeat until the condition is *false*.
 
-For `do-while` loops, the order is reversed: The body is executed for the first time, and then the condition is evaluated. The steps repeat until the condition is false.
+For `do–while` loops, the order is reversed: The body is executed for the first time, and then the condition is evaluated. The steps repeat until the condition is false.
 
-`until-do`/`do-until` loops are syntax sugar for `while-do`/`do-while` loops respectively, with the condition logically negated.
-
-There are two types of `for` loops: `for–of` loops, and `for–in` loops.
+`until–do`/`do–until` loops are syntax sugar for `while–do`/`do–while` loops respectively, with the condition logically negated.
 
 `for–of` loops iterate over dynamically indexed data types, such as lists and generators. For example, `for item: T of list` iterates over all of `list`’s items, declaring the variable `item` as type `T` and scoped to the block. The variable `item` is reassigned to the next item in `list` on each iteration. Static data types (tuples and records) and dynamically keyed data types (hashes, sets, and maps) cannot be directly iterated over, but a list of their entries may be.
 
 # Compiler Short-Circuiting
-The compiler will have an option to short-circuit loop and iteration statements. For `while-do` loops, if the compiler can determine the condition is false, the block body will not be compiled.
+The compiler will have the ability to short-circuit loop and iteration statements. For `while–do` loops, if the compiler can determine the condition is false, the block body will not be compiled.
 
-There is no similar Dead Code Elimination (#31) for `do-while` loops; however, if the `do` block is foldable (meaning it has no side-effects), then its output will be a *no-op* and only its `while` condition will be evaluated (and only once).
+There is no similar Dead Code Elimination (#31) for `do–while` loops; however, if the `do` block is foldable (meaning it has no side-effects), then its output will be a *no-op* and only its `while` condition will be evaluated (and only once).
