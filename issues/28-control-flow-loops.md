@@ -24,48 +24,48 @@ SemanticIndex[index: RealNumber]
 SemanticStatement =:=
 	| SemanticStatementExpression
 	| SemanticStatementConditional
-+	| SemanticLoop
-+	| SemanticIteration
++	| SemanticStatementLoop
++	| SemanticStatementIteration
 	| SemanticDeclaration
 ;
 
-+SemanticLoop[dofirst: Boolean][until: Boolean]
++SemanticStatementLoop[dofirst: Boolean][until: Boolean]
 +	::= SemanticExpression SemanticBlock;
 
-+SemanticIteration
++SemanticStatementIteration
 +	::= SemanticVariable? SemanticType SemanticExpression SemanticBlock;
 ```
 Decorate:
 ```diff
-+Decorate(StatementLoop ::= "while" Expression<+Block> "do" Block ";") -> SemanticLoop
-+	:= (SemanticLoop[dofirst=false][until=false]
++Decorate(StatementLoop ::= "while" Expression<+Block> "do" Block ";") -> SemanticStatementLoop
++	:= (SemanticStatementLoop[dofirst=false][until=false]
 +		Decorate(Expression<+Block>)
 +		Decorate(Block)
 +	);
-+Decorate(StatementLoop ::= "do" Block "while" Expression<+Block> ";") -> SemanticLoop
-+	:= (SemanticLoop[dofirst=true][until=false]
++Decorate(StatementLoop ::= "do" Block "while" Expression<+Block> ";") -> SemanticStatementLoop
++	:= (SemanticStatementLoop[dofirst=true][until=false]
 +		Decorate(Expression<+Block>)
 +		Decorate(Block)
 +	);
-+Decorate(StatementLoop ::= "until" Expression<+Block> "do" Block ";") -> SemanticLoop
-+	:= (SemanticLoop[dofirst=false][until=true]
++Decorate(StatementLoop ::= "until" Expression<+Block> "do" Block ";") -> SemanticStatementLoop
++	:= (SemanticStatementLoop[dofirst=false][until=true]
 +		Decorate(Expression<+Block>)
 +		Decorate(Block)
 +	);
-+Decorate(StatementLoop ::= "do" Block "until" Expression<+Block> ";") -> SemanticLoop
-+	:= (SemanticLoop[dofirst=true][until=true]
++Decorate(StatementLoop ::= "do" Block "until" Expression<+Block> ";") -> SemanticStatementLoop
++	:= (SemanticStatementLoop[dofirst=true][until=true]
 +		Decorate(Expression<+Block>)
 +		Decorate(Block)
 +	);
 
-+Decorate(StatementIteration ::= "for" "_" ":" Type "of" Expression<+Block> "do" Block ";") -> SemanticIteration
-+	:= (SemanticIteration
++Decorate(StatementIteration ::= "for" "_" ":" Type "of" Expression<+Block> "do" Block ";") -> SemanticStatementIteration
++	:= (SemanticStatementIteration
 +		(SemanticType     Decorate(Type))
 +		(SemanticIterable Decorate(Expression<+Block>))
 +		Decorate(Block)
 +	);
-+Decorate(StatementIteration ::= "for" IDENTIFIER ":" Type "of" Expression<+Block> "do" Block ";") -> SemanticIteration
-+	:= (SemanticIteration
++Decorate(StatementIteration ::= "for" IDENTIFIER ":" Type "of" Expression<+Block> "do" Block ";") -> SemanticStatementIteration
++	:= (SemanticStatementIteration
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		(SemanticType     Decorate(Type))
 +		(SemanticIterable Decorate(Expression<+Block>))
@@ -76,9 +76,9 @@ Decorate(Statement ::= StatementExpression) -> SemanticStatementExpression
 	:= Decorate(StatementExpression);
 Decorate(Statement ::= StatementConditional<±Unless>) -> SemanticStatementConditional
 	:= Decorate(StatementConditional<±Unless>);
-+Decorate(Statement ::= StatementLoop) -> SemanticLoop
++Decorate(Statement ::= StatementLoop) -> SemanticStatementLoop
 +	:= Decorate(StatementLoop);
-+Decorate(Statement ::= StatementIteration) -> SemanticIteration
++Decorate(Statement ::= StatementIteration) -> SemanticStatementIteration
 +	:= Decorate(StatementIteration);
 Decorate(Statement ::= Declaration) -> SemanticDeclaration
 	:= Decorate(Declaration);
