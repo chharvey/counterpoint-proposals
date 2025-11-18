@@ -137,26 +137,25 @@ Type! TypeOfUnfolded(SemanticOperation[operator: NEG] expr) :=
 	1. *Assert:* `expr.children.count` is 2.
 	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
 	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
-+	4. *If* *UnwrapAffirm:* `Subtype(t0, Natural)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Natural)` is `true`:
+	4. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true` *or* *UnwrapAffirm:* `IsBottomType(t1)` is `true`:
+		1. *Return:* `Nothing`.
++	5. *If* *UnwrapAffirm:* `Subtype(t0, Natural)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Natural)` is `true`:
 +		1. *Return:* `Natural`.
--	4. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
-+	4. *Else If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
+-	6. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
++	6. *Else If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
 		1. *Return:* `Integer`.
-	5. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
+	7. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
 		1. *Return:* `Float`.
-	6. *Throw:* a new TypeErrorInvalidOperation.
+	8. *Throw:* a new TypeErrorInvalidOperation.
 ;
 
 Type! TypeOfUnfolded(SemanticOperation[operator: LT | GT | LE | GE] expr) :=
 	1. *Assert:* `expr.children.count` is 2.
 	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
 	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
-+	4. *If* *UnwrapAffirm:* `Subtype(t0, Natural)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Natural)` is `true`:
-+		1. *Return:* `Boolean`.
--	4. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
-+	4. *Else If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
-		1. *Return:* `Boolean`.
-	5. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
+	4. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true` *or* *UnwrapAffirm:* `IsBottomType(t1)` is `true`:
+		1. *Return:* `Nothing`.
+	5. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Number)` is `true`:
 		1. *Return:* `Boolean`.
 	6. *Throw:* a new TypeErrorInvalidOperation.
 ;

@@ -14,13 +14,8 @@ Arithmetic operations no longer implicitly coerce ints when mixed with floats. T
 - `42 + 3.1`
 - `42 * 3.1`
 - `7.0 / 2`
-- `5.0 < 4`
-
-(For completeness), all of the following operators will now behave this way:
-- exponentiation `^`
-- multiplication `*`, division `/`
-- addition `+`, subtraction `-`
-- less than `<`, greater than `>`, less or equal `<=`, greater or equal `>=`, not less than `!<`, not greater than `!>`
+- `5.0 - 4`
+- `0.5 ^ 2`
 
 Division `a / b` will *either*: only accept two floating-point operands, and it will never truncate the result; *or* only accept two integer operands, and will always truncate the result. Mixing types is not allowed.
 - `7 / 2 == 3`, `-7 / 2 == -3` — When the fractional part is truncated, always rounds toward 0.
@@ -30,6 +25,7 @@ Division `a / b` will *either*: only accept two floating-point operands, and it 
 Equality `a == b` still coerces ints to floats when they are being compared, e.g. `42 == 42.0` is valid and will produce `true`, and `42 == 42.5` is also valid but will produce `false`. (Equivalent but opposite logic exists for `!=`.) Constant folding: `a == b` will compile to `false` when the typer can determine that `a` and `b`  will never be equal no matter what (e.g., their types are not numeric and they don’t overlap). Similarly, the expression will compile to `true` if the compiler can determine that `a` and `b` are always equal. Otherwise its type is `bool` and a VM instruction is compiled.
 
 The remaining binary operators also still accept mixed types. This hasn’t changed.
+- less than `<`, greater than `>`, less or equal `<=`, greater or equal `>=`, not less than `!<`, not greater than `!>`
 - The object instanceof operators `is`, `isnt`
 - the identity operators `===`, `!==`
 - the logical operators `&&`, `!&`, `||`, `!|`
@@ -40,28 +36,28 @@ Type! TypeOfUnfolded(SemanticOperation[operator: EXP | MUL | DIV | ADD] expr) :=
 	1. *Assert:* `expr.children.count` is 2.
 	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
 	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
--	4. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Number)` is `true`:
+	4. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true` *or* *UnwrapAffirm:* `IsBottomType(t1)` is `true`:
+		1. *Return:* `Nothing`.
+-	5. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Number)` is `true`:
 -		1. *If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *or* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
 -			1. *Return:* `Float`.
 -		2. *Else:*
 -			1. *Return:* `Integer`.
-+	4. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
++	5. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
 +		1. *Return:* `Integer`.
-+	5. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
++	6. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
 +		1. *Return:* `Float`.
-	6. *Throw:* a new TypeErrorInvalidOperation.
+	7. *Throw:* a new TypeErrorInvalidOperation.
 ;
 
 Type! TypeOfUnfolded(SemanticOperation[operator: LT | GT | LE | GE] expr) :=
 	1. *Assert:* `expr.children.count` is 2.
 	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
 	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
--	4. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Number)` is `true`:
--		1. *Return:* `Boolean`.
-+	4. *If* *UnwrapAffirm:* `Subtype(t0, Integer)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Integer)` is `true`:
-+		1. *Return:* `Boolean`.
-+	5. *Else If* *UnwrapAffirm:* `Subtype(t0, Float)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Float)` is `true`:
-+		1. *Return:* `Boolean`.
+	4. *If* *UnwrapAffirm:* `IsBottomType(t0)` is `true` *or* *UnwrapAffirm:* `IsBottomType(t1)` is `true`:
+		1. *Return:* `Nothing`.
+	5. *If* *UnwrapAffirm:* `Subtype(t0, Number)` is `true` *and* *UnwrapAffirm:* `Subtype(t1, Number)` is `true`:
+		1. *Return:* `Boolean`.
 	6. *Throw:* a new TypeErrorInvalidOperation.
 ;
 ```
