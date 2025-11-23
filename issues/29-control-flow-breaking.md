@@ -62,8 +62,7 @@ StatementIteration
 -	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block>         "do" Block         ";";
 +	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break> "do" Block<+Break> ";";
 
-+StatementBreak    ::= "break"    INTEGER? ";";
-+StatementContinue ::= "continue" INTEGER? ";";
++StatementBreak ::= ("break" | "continue") ";";
 
 -Statement ::=
 +Statement<Break> ::=
@@ -74,7 +73,6 @@ StatementIteration
 	| StatementLoop
 	| StatementIteration
 +	| <Break+>StatementBreak
-+	| <Break+>StatementContinue
 	| Declaration
 ;
 
@@ -88,8 +86,10 @@ StatementIteration
 	| "let" "var"  ("_" | IDENTIFIER) "?:" Type                                ";"
 ;
 
--DeclarationReassignment        ::= "set" Assignee "=" Expression<+Block>         ";";
-+DeclarationReassignment<Break> ::= "set" Assignee "=" Expression<+Block><?Break> ";";
+-DeclarationReassignment        ::= "set" Assignee         "=" Expression<+Block>         ";";
++DeclarationReassignment<Break> ::= "set" Assignee<?Break> "=" Expression<+Block><?Break> ";";
+
+...
 
 Goal
 -	::= #x02 Block?         #x03;
@@ -98,43 +98,24 @@ Goal
 
 ## Semantics
 ```diff
-+SemanticBreak   [times: RealNumber] ::= ();
-+SemanticContinue[times: RealNumber] ::= ();
++SemanticStatementBreak[continue: Boolean]
+	::= ();
 
 SemanticStatement =:=
 	| SemanticStatementExpression
 	| SemanticConditional
 	| SemanticLoop
 	| SemanticIteration
-+	| SemanticBreak
-+	| SemanticContinue
++	| SemanticStatementBreak
 	| SemanticDeclaration
 ;
-```
-
-### Semantic Error
-```
-SemanticBreak   [times: RealNumber] ::= ();
-SemanticContinue[times: RealNumber] ::= ();
-```
-It is a semantic error if `[times]` is negative.
-
-Note: Given an unsigned int type (#107), this semantic error may not be needed. In that case, the following syntax would be changed:
-```diff
--StatementBreak    ::= "break"    INTEGER? ";";
--StatementContinue ::= "continue" INTEGER? ";";
-+StatementBreak    ::= "break"    NATURAL? ";";
-+StatementContinue ::= "continue" NATURAL? ";";
 ```
 
 ## Decorate
 Update all `Expression*`, `Statement*`, and `Declaration*` productions with the `<Break>` parameter.
 ```diff
-+Decorate(StatementBreak ::= "break"         ";") -> SemanticBreak := (SemanticBreak[times=1]);
-+Decorate(StatementBreak ::= "break" INTEGER ";") -> SemanticBreak := (SemanticBreak[times=TokenWorth(INTEGER)]);
-
-+Decorate(StatementContinue ::= "continue"         ";") -> SemanticContinue := (SemanticContinue[times=1]);
-+Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (SemanticContinue[times=TokenWorth(INTEGER)]);
++Decorate(StatementBreak ::= "break"    ";") -> SemanticStatementBreak := (SemanticStatementBreak[continue=false]);
++Decorate(StatementBreak ::= "continue" ";") -> SemanticStatementBreak := (SemanticStatementBreak[continue=true]);
 
 -Decorate(Statement ::= StatementExpression) -> SemanticStatementExpression
 -	:= Decorate(StatementExpression);
@@ -144,10 +125,8 @@ Update all `Expression*`, `Statement*`, and `Declaration*` productions with the 
 +	:= Decorate(StatementExpression<?Break>);
 +Decorate(Statement<Break> ::= StatementConditional<∓Unless><?Break>) -> SemanticConditional
 +	:= Decorate(StatementConditional<∓Unless><?Break>);
-+Decorate(Statement<Break> ::= <Break+>StatementBreak) -> SemanticBreak
++Decorate(Statement<Break> ::= StatementBreak) -> SemanticStatementBreak
 +	:= Decorate(StatementBreak);
-+Decorate(Statement<Break> ::= <Break+>StatementContinue) -> SemanticContinue
-+	:= Decorate(StatementContinue);
 
 -Decorate(Block        ::= "{" Statement+         "}") -> SemanticBlock
 +Decorate(Block<Break> ::= "{" Statement<?Break>+ "}") -> SemanticBlock
@@ -168,41 +147,3 @@ Decorate(Goal ::= #x02 #x03) -> SemanticGoal
 
 ## Discussion
 Inside `while`/`until` and `for` loops, if a `continue` or `break` statement is encountered in the body, the rest of the body will cease to execute. If the statement is a `continue` statement, the current iteration will end and the next iteration will proceed. If it’s a `break` statement, the current iteration and any subsequent iterations will end — the loop will terminate altogether.
-
-If a non-negative integer follows the keyword `continue`, as in `continue 3;`, and the loop is nested in other loops, then that number, minus *1*, of innermost ancestor loops will be terminated, and then the surrounding loop will ‘continue’ (defined above). The statement `continue;` is a synonym of `continue 0;`.
-
-Example of nested continuing:
-```cp
-while «expressionA» do {
-	while «expressionB» do {
-		while «expressionC» do {
-			while «expressionD» do {
-				continue 2;
-				% this loop will break
-			};
-			% this loop will break
-		};
-		% this iteration will stop but this loop will continue
-	};
-	% this loop will not be affected
-};
-```
-
-If a non-negative integer follows the keyword `break`, as in `break 3;`, and the loop is nested in other loops, that number of innermost ancestor loops will also be terminated. The statement `break;` is a synonym of `break 0;`.
-
-Example of nested breaking:
-```cp
-while «expression» do {
-	while «expression» do {
-		while «expression» do {
-			while «expression» do {
-				break 2;
-				% this loop will break
-			};
-			% this loop will break
-		};
-		% this loop will break
-	};
-	% this loop will not be affected
-};
-```
