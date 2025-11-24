@@ -17,7 +17,7 @@ x == 44;
 y == 440;
 
 % record destructuring, punning:
-set [y$, x$] = [x= 45, y= 450];
+set [$y, $x] = [x= 45, y= 450];
 x == 45;
 y == 450;
 ```
@@ -31,7 +31,7 @@ set [list.[0], list.[1]] = [4.3, 0.43];
 set [dict.[.x], dict.[.y]] = [43, 430];
 set [yankee= list.[0], xray= list.[1]] = [xray= 4.3, yankee= 0.43];
 set [yankee= dict.[.y], xray= dict.[.x]] = [xray= 44, yankee= 440];
-set [y$, x$] = [x= 45, y= 450]; % ReferenceError: `x` and `y` not defined
+set [$y, $x] = [x= 45, y= 450]; % ReferenceError: `x` and `y` not defined
 ```
 
 Destructuring for reassignment can be nested as well.
@@ -40,13 +40,13 @@ Destructuring for reassignment can be nested as well.
 set [g, [h, i]] = [7, [8, 9]];
 
 % nested reassignment, record within tuple
-set [j, [k$, lima= l]] = [10, [k= 11, lima= 12]];
+set [j, [$k, lima= l]] = [10, [k= 11, lima= 12]];
 
 % nested reassignment, tuple within record
-set [m$, november= [n, o]] = [m= 13, november= [14, 15]];
+set [$m, november= [n, o]] = [m= 13, november= [14, 15]];
 
 % nested reassignment, record within record
-set [p$, quebec= [q$, romeo= r]] = [p= 16, quebec= [q= 17, romeo= 18]];
+set [$p, quebec= [$q, romeo= r]] = [p= 16, quebec= [q= 17, romeo= 18]];
 
 [g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r] ==
 [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; %== true
@@ -87,8 +87,8 @@ Assignee ::=
 DestructurePropertyItem  ::= Word     | DestructureProperties;
 +DestructureAssigneeItem ::= Assignee | DestructureAssignees;
 
-DestructurePropertyKey  ::= Word       "$" | Word "=" DestructurePropertyItem;
-+DestructureAssigneeKey ::= IDENTIFIER "$" | Word "=" DestructureAssigneeItem;
+DestructurePropertyKey  ::= "$" Word       | Word "=" DestructurePropertyItem;
++DestructureAssigneeKey ::= "$" IDENTIFIER | Word "=" DestructureAssigneeItem;
 
 DestructureProperties ::=
 	| "[" ","? DestructurePropertyItem# ","? "]"

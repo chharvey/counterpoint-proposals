@@ -9,7 +9,7 @@ When destructuring a tuple, the number of entries in the assigned object must ma
 let [a, b, c]: int[3] = [1, 2]; %> TypeError: (index `2` is missing)
 let [a, b, c]: int[2] = [1, 2]; %> AssignmentError: `c` is not initialized
 
-let [d$: int, e$: int, f$: int]   = [d= 42, e= 420];    %> TypeError (property `f` is missing)
+let [$d: int, $e: int, $f: int]   = [d= 42, e= 420];    %> TypeError (property `f` is missing)
 let [golf= g: int, hotel= h: int] = [golf= 42, h= 420]; %> TypeError (property `hotel` is missing)
 ```
 
@@ -33,7 +33,7 @@ charlie; %== 2
 
 As usual, we can use `$` punning to assign variables with the same name as the record key.
 ```cp
-let [a$: int, b$: int ?= 3, c$: int] = [a= 1, c= 2];
+let [$a: int, $b: int ?= 3, $c: int] = [a= 1, c= 2];
 a; %== 1
 b; %== 3
 c; %== 2
@@ -59,7 +59,7 @@ function g(arg= [a= alfa: int, b= bravo: int ?= 3, c= charlie: int]): Object {
 % typeof g: (arg: [a: int, b?: int, c: int]) => Object
 g.([a= 1, c= 2]); %== [1, 3, 2]
 
-function h(arg= [a$: int, b$: int ?= 3, c$: int]): Object {
+function h(arg= [$a: int, $b: int ?= 3, $c: int]): Object {
 	arg; %> ReferenceError
 	return [a, b, c];
 };
@@ -75,7 +75,7 @@ function f(arg= [a: int, b: int, c: int ?= 3] ?= [4, 5, 6]): Object => [a, b, c]
 f.([1, 2]); %== [1, 2, 3]
 f.();       %== [4, 5, 6]
 
-function h(arg= [a$: int, b$: int ?= 3, c$: int] ?= [a= 4, c= 5]): Object => [a, b, c];
+function h(arg= [$a: int, $b: int ?= 3, $c: int] ?= [a= 4, c= 5]): Object => [a, b, c];
 % typeof h: (arg?: [a: int, b?: int, c: int]) => Object
 h.([a= 1, c= 2]); %== [1, 3, 2]
 h.();             %== [4, 3, 5]
@@ -116,19 +116,19 @@ let [a: int, b: int, [c: int, [d: int ?= 7] ?= [6]]   ?= [4, [5]]] = [1, 2, [3, 
 ## Execution Order
 As with function parameter defaults, the default value is only evaluated if being assigned. If an assigned value is provided, the default value is ignored.
 ```cp
-let [a$: int, b$: int, c$: int ?= some_fn_with_side_effects.()] = [a= 1, c= 2, b= 3];
+let [$a: int, $b: int, $c: int ?= some_fn_with_side_effects.()] = [a= 1, c= 2, b= 3];
 ```
 Since `c` is assigned `2`, the function call is not executed and its side effects are not observed.
 
 If *multiple* default values are evaluated, they are done so left-to-right in source code order.
 ```cp
-let [a$: int, b$: int ?= print_and_return_2.(), c$: int ?= print_and_return_3.()] = [a= 1];
+let [$a: int, $b: int ?= print_and_return_2.(), $c: int ?= print_and_return_3.()] = [a= 1];
 ```
 After assigning `a`, the program will print `2` and assign `b`, then print `3` and assign `c`.
 
 However, as demonstrated in #65, it’s important to remember that the assigned object is *completely evaluated* before any assignments take place. This means that any function calls in the assigned object are evaluated in source order, regardless of variable assignment order.
 ```cp
-let [a$: int, b$: int, c$: int] = [c= print_and_return_3.(), b= print_and_return_2.(), a= 1];
+let [$a: int, $b: int, $c: int] = [c= print_and_return_3.(), b= print_and_return_2.(), a= 1];
 ```
 The program first prints `3` and `2` in that order, then assigns variables `a`, `b`, and `c` in that order.
 
@@ -148,10 +148,10 @@ The program first prints `3` and `2` in that order, then assigns variables `a`, 
 ;
 
 -DestructureVariableKey<Typed> ::=
--	| ("_" | IDENTIFIER) "$" <Typed+>(":" Type)
+-	| "$" ("_" | IDENTIFIER) <Typed+>(":" Type)
 -	| Word "=" DestructureVariableItem<?Typed>
 +DestructureVariableKey<Typed, Optional> ::=
-+	| ("_" | IDENTIFIER) "$" <Typed+>(":" Type) <Optional+>("?=" Expression)
++	| "$" ("_" | IDENTIFIER) <Typed+>(":" Type) <Optional+>("?=" Expression)
 +	| Word "=" DestructureVariableItem<?Typed><?Optional>
 ;
 

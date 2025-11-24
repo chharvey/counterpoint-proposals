@@ -47,21 +47,21 @@ function printPlanet(planet: [name: str, value: float]): void {
 ```
 we can destructure the record into separate parameters:
 ```cp
-function printPlanet(planet= [name$, value$]: [name: str, value: float]): void {
+function printPlanet(planet= [$name, $value]: [name: str, value: float]): void {
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
 Or, with the “inside” type annotation, if you like:
 ```cp
-function printPlanet(planet= [name$: str, value$: float]): void {
+function printPlanet(planet= [$name: str, $value: float]): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
 
 As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why type aliases and abstract methods do not allow it.
 
-Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `[x$]` is shorthand for `[x= x]`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
+Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `[$x]` is shorthand for `[x= x]`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
 ```cp
 function printPlanet(planet= [name= n: str, value= v: float]): void {
 	name;  %> ReferenceError
@@ -75,9 +75,9 @@ The caller must supply a `[name: str, value: float]` argument, but the internal 
 Again, we can declare unfixed parameters.
 ```cp
 function f(numbers= [
-	w$:          int,
+	$w:          int, % punning for `w= w: int`
 	xray=     x: int,
-	y=    var y: int,
+	var $y:      int, % punning for `y= var y: int`
 	zulu= var z: int,
 ]): void {
 	set w = 0; %> AssignmentError
@@ -111,19 +111,19 @@ function nest(
 	ab= [a, b]: int[2],
 
 	% regular parameter destructuring, record
-	cd= [c$: int, delta= d: int],
+	cd= [$c: int, delta= d: int],
 
 	% nested parameter destructuring, tuple within tuple
 	ghi= [g: int, [h, i]: int[2]],
 
 	% nested parameter destructuring, record within tuple
-	jkl= [j: int, [k$: int, lima= l: int]],
+	jkl= [j: int, [$k: int, lima= l: int]],
 
 	% nested parameter destructuring, tuple within record
-	mno= [m$: int, november= [n, o]: int[2]],
+	mno= [$m: int, november= [n, o]: int[2]],
 
 	% nested parameter destructuring, record within record
-	pqr= [papa= p: int, quebec= [q$: int, romeo= r: int]],
+	pqr= [papa= p: int, quebec= [$q: int, romeo= r: int]],
 ): void {
 	% typeof each of [a, b, c, d, g, h, i, j, k, l, m, n, o, p, q, r] == int
 	uniform;  %> ReferenceError
@@ -154,11 +154,11 @@ nest.(
 
 function nestOptional(
 	s= [a, b]: int[2]                                   ?= [19, 20],
-	t= [c$: int, delta= d: int]                         ?= [c= 21, delta= 22],
+	t= [$c: int, delta= d: int]                         ?= [c= 21, delta= 22],
 	u= [g: int, [h, i]: int[2]]                         ?= [23, [24, 25]],
-	v= [j: int, [k$: int, lima= l: int]]                ?= [26, [k= 27, lima= 28]],
-	w= [m$: int, november= (n, o): int[2]]              ?= [m= 29, november= [30, 31]],
-	x= [papa= p: int, quebec= [q$: int, romeo= r: int]] ?= [papa= 32, quebec= [q= 33, romeo= 34]],
+	v= [j: int, [$k: int, lima= l: int]]                ?= [26, [k= 27, lima= 28]],
+	w= [$m: int, november= (n, o): int[2]]              ?= [m= 29, november= [30, 31]],
+	x= [papa= p: int, quebec= [$q: int, romeo= r: int]] ?= [papa= 32, quebec= [q= 33, romeo= 34]],
 ): void {;}
 %% typeof nestOptional: (
 	s?: [int, int],

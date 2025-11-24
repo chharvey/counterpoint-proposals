@@ -99,12 +99,11 @@ Keyword :::=
 
 ## Syntax
 ```diff
-+GenericSpecifier
-+	::= "<" ","? ParametersGeneric ">";
+GenericSpecifier
+	::= "<" ParametersGeneric ">";
 
--DeclarationType         ::= "type"     IDENTIFIER ("<" ","? ParametersGeneric ">")? "="  Type ";";
-+DeclarationType         ::= "type"     IDENTIFIER GenericSpecifier?                 "="  Type ";";
-+DeclarationTypeFunction ::= "typefunc" IDENTIFIER GenericSpecifier?                 "=>" Type ";";
+DeclarationType          ::= "type"     ("_" | IDENTIFIER) GenericSpecifier? "="  Type ";";
++DeclarationTypeFunction ::= "typefunc" ("_" | IDENTIFIER) GenericSpecifier? "=>" Type ";";
 
 Declaration ::=
 	| DeclarationType
@@ -118,13 +117,13 @@ SemanticTypeCall
 	::= SemanticTypeAlias SemanticType*;
 
 SemanticDeclarationTypeAlias
-	::= SemanticTypeAlias SemanticType;
+	::= SemanticTypeAlias? SemanticType;
 
 SemanticDeclarationTypeGeneric
-	::= SemanticTypeAlias SemanticTypeParam+ SemanticType;
+	::= SemanticTypeAlias? SemanticTypeParam+ SemanticType;
 
 +SemanticDeclarationTypeFunction
-+	::= SemanticTypeAlias SemanticTypeParam* SemanticType;
++	::= SemanticTypeAlias? SemanticTypeParam* SemanticType;
 
 SemanticDeclaration =:=
 	| SemanticDeclarationVariable
@@ -136,26 +135,21 @@ SemanticDeclaration =:=
 
 ## Decorate
 ```diff
-+Decorate(GenericSpecifier ::= "<" ","? ParametersGeneric ">") -> Sequence<SemanticTypeParam>
++Decorate(GenericSpecifier ::= "<" ParametersGeneric ">") -> Sequence<SemanticTypeParam>
 +	:= Decorate(ParametersGeneric);
 
-Decorate(DeclarationType ::= "type" IDENTIFIER "=" Type ";") -> SemanticDeclarationTypeAlias
-	:= (SemanticDeclarationTypeAlias
-		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
--Decorate(DeclarationType ::= "type" IDENTIFIER "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
-+Decorate(DeclarationType ::= "type" IDENTIFIER GenericSpecifier               "=" Type ";") -> SemanticDeclarationTypeGeneric
-	:= (SemanticDeclarationTypeGeneric
-		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
--		...Decorate(ParametersGeneric)
-+		...Decorate(GenericSpecifier)
-		Decorate(Type)
-	);
-
++Decorate(DeclarationTypeFunction ::= "typefunc" "_" "=>" Type ";") -> SemanticDeclarationTypeFunction
++	:= (SemanticDeclarationTypeFunction
++		Decorate(Type)
++	);
 +Decorate(DeclarationTypeFunction ::= "typefunc" IDENTIFIER "=>" Type ";") -> SemanticDeclarationTypeFunction
 +	:= (SemanticDeclarationTypeFunction
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
++		Decorate(Type)
++	);
++Decorate(DeclarationTypeFunction ::= "typefunc" "_" GenericSpecifier? "=>" Type ";") -> SemanticDeclarationTypeFunction
++	:= (SemanticDeclarationTypeFunction
++		...Decorate(GenericSpecifier)
 +		Decorate(Type)
 +	);
 +Decorate(DeclarationTypeFunction ::= "typefunc" IDENTIFIER GenericSpecifier? "=>" Type ";") -> SemanticDeclarationTypeFunction
@@ -165,8 +159,6 @@ Decorate(DeclarationType ::= "type" IDENTIFIER "=" Type ";") -> SemanticDeclarat
 +		Decorate(Type)
 +	);
 
-Decorate(Declaration ::= DeclarationType) -> SemanticDeclarationTypeAlias | SemanticDeclarationTypeGeneric
-	:= Decorate(DeclarationType);
 +Decorate(Declaration ::= DeclarationTypeFunction) -> SemanticDeclarationTypeFunction
 +	:= Decorate(DeclarationTypeFunction);
 ```

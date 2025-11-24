@@ -58,19 +58,19 @@ nest.(
 	[a, b]= [1, 2],
 
 	% regular argument destructuring, record
-	[c$, delta= d]= [c= 3, delta= 4],
+	[$c, delta= d]= [c= 3, delta= 4],
 
 	% nested argument destructuring, tuple within tuple
 	[g, [h, i]]= [7, [8, 9]],
 
 	% nested argument destructuring, record within tuple
-	[j, [k$, lima= l]]= [10, [k= 11, lima= 12]],
+	[j, [$k, lima= l]]= [10, [k= 11, lima= 12]],
 
 	% nested argument destructuring, tuple within record
-	[m$, november= [n, o]]= [m= 13, november= [14, 15]],
+	[$m, november= [n, o]]= [m= 13, november= [14, 15]],
 
 	% nested argument destructuring, record within record
-	[papa= p, quebec= [q$, romeo= r]]= [papa= 16, quebec= [q= 17, romeo= 18]],
+	[papa= p, quebec= [$q, romeo= r]]= [papa= 16, quebec= [q= 17, romeo= 18]],
 );
 % shorthand for:
 %% nest.(
@@ -85,8 +85,8 @@ Syntax diff is identical to #44. Reiterating here for clarity.
 DestructurePropertyItem  ::= Word       | DestructureProperties;
 DestructureAssigneeItem  ::= Assignee   | DestructureAssignees;
 
-DestructurePropertyKey  ::= Word       "$" | Word "=" DestructurePropertyItem;
-DestructureAssigneeKey  ::= IDENTIFIER "$" | Word "=" DestructureAssigneeItem;
+DestructurePropertyKey  ::= "$" Word       | Word "=" DestructurePropertyItem;
+DestructureAssigneeKey  ::= "$" IDENTIFIER | Word "=" DestructureAssigneeItem;
 
 DestructureProperties ::=
 	| "[" ","? DestructurePropertyItem# ","? "]"
@@ -99,7 +99,7 @@ DestructureAssignees ::=
 ;
 
 Property ::=
-	| IDENTIFIER "$"
+	| "$" IDENTIFIER
 	| (Word | DestructureProperties) "=" Expression
 ;
 

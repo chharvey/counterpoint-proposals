@@ -61,12 +61,12 @@ Keyword :::=
 +	::= ("_" | IDENTIFIER) ("narrows" Type)? <Optional+>("?=" Type);
 
 +ParametersGeneric ::=
-+	|  ParameterGeneric<-Optional># ","?
-+	| (ParameterGeneric<-Optional># ",")? ParameterGeneric<+Optional># ","?
++	| ","? ParameterGeneric<-Optional># ("," ParameterGeneric<+Optional>#)? ","?
++	| ","?                                   ParameterGeneric<+Optional>#   ","?
 +;
 
 +GenericSpecifier
-+	::= "<" ","? ParametersGeneric ">";
++	::= "<" ParametersGeneric ">";
 
 -DeclarationType ::= "type" ("_" | IDENTIFIER)                   "=" Type ";";
 +DeclarationType ::= "type" ("_" | IDENTIFIER) GenericSpecifier? "=" Type ";";
@@ -133,8 +133,10 @@ SemanticDeclaration =:=
 +		(SemanticDefaultType Decorate(Type__1))
 +	);
 
-+Decorate(ParametersGeneric ::= ParameterGeneric<?Optional># ","?) -> Sequence<SemanticTypeParam>
-+	:= ParseList(ParameterGeneric<?Optional>, SemanticTypeParam);
++Decorate(ParametersGeneric ::= ParameterGeneric<-Optional># ","?) -> Sequence<SemanticTypeParam>
++	:= ParseList(ParameterGeneric<-Optional>, SemanticTypeParam);
++Decorate(ParametersGeneric ::= ParameterGeneric<+Optional># ","?) -> Sequence<SemanticTypeParam>
++	:= ParseList(ParameterGeneric<+Optional>, SemanticTypeParam);
 +Decorate(ParametersGeneric ::= ParameterGeneric<-Optional># "," ParameterGeneric<+Optional># ","?) -> Sequence<SemanticTypeParam>
 +	:= [
 +		...ParseList(ParameterGeneric<-Optional>),

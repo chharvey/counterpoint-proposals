@@ -2,6 +2,8 @@
 
 ## Syntax
 ```diff
+#... StringTemplate thru MapLiteral
+
 -ExpressionUnit<Block> ::=
 +ExpressionUnit<Block, Break> ::=
 	| IDENTIFIER
@@ -15,18 +17,18 @@
 -	| SetLiteral
 -	| MapLiteral
 -	| <Block+>Block
-+	| StringTemplate<?Break>
-+	| ExpressionGrouped<?Break>
-+	| TupleLiteral<?Break>
-+	| RecordLiteral<?Break>
-+	| ListLiteral<?Break>
-+	| DictLiteral<?Break>
-+	| SetLiteral<?Break>
-+	| MapLiteral<?Break>
-+	| <Block+>Block<?Break>
++	| StringTemplate    <?Break>
++	| ExpressionGrouped <?Break>
++	| TupleLiteral      <?Break>
++	| RecordLiteral     <?Break>
++	| ListLiteral       <?Break>
++	| DictLiteral       <?Break>
++	| SetLiteral        <?Break>
++	| MapLiteral        <?Break>
++	| <Block+>Block     <?Break>
 ;
 
-...
+#... ExpressionCompound thru ExpressionConditional
 
 -Expression<Block> ::=
 -	| ExpressionDisjunctive<?Block>
@@ -125,8 +127,17 @@ Update all `Expression*`, `Statement*`, and `Declaration*` productions with the 
 +	:= Decorate(StatementExpression<?Break>);
 +Decorate(Statement<Break> ::= StatementConditional<∓Unless><?Break>) -> SemanticConditional
 +	:= Decorate(StatementConditional<∓Unless><?Break>);
+-Decorate(Statement        ::= StatementLoop) -> SemanticLoop
++Decorate(Statement<Break> ::= StatementLoop) -> SemanticLoop
+	:= Decorate(StatementLoop);
+-Decorate(Statement        ::= StatementIteration) -> SemanticIteration
++Decorate(Statement<Break> ::= StatementIteration) -> SemanticIteration
+	:= Decorate(StatementIteration);
 +Decorate(Statement<Break> ::= StatementBreak) -> SemanticStatementBreak
 +	:= Decorate(StatementBreak);
+-Decorate(Statement        ::= Declaration) -> SemanticDeclaration
++Decorate(Statement<Break> ::= Declaration) -> SemanticDeclaration
+	:= Decorate(Declaration);
 
 -Decorate(Block        ::= "{" Statement+         "}") -> SemanticBlock
 +Decorate(Block<Break> ::= "{" Statement<?Break>+ "}") -> SemanticBlock
