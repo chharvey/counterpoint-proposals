@@ -90,6 +90,7 @@ type ($C, d: nominal D<out W narrows (anything,) ?= X>) = (C: B.<U= null>, d: W.
 
 typefunc A<T> => int | T;
 ```
+Type functions cannot.
 
 ## Errors and Caveats
 
@@ -142,13 +143,14 @@ type Z = And.<(c: int, d: float)>; % TypeError: `(c: int, d: float)` does not na
 
 An alternative to providing restrictions with `narrows`, we can destructure the parameter `T`.
 ```cpl
-type Or<T= (U, V)>        = U | V;                 % `narrows (anything, anything)` is implied
-type And<T= (a: U, b: V)> = U & V;                 % `narrows (a: anything, b: anything)` is implied
+type Or<(U, V)>        = U | V;                 % `narrows (anything, anything)` is implied
+type And<(a: U, b: V)> = U & V;                 % `narrows (a: anything, b: anything)` is implied
 ```
 By default, each part of the destructured parameter narrows `anything`, but we can still explicitly declare its restriction to refine it more.
 ```cpl
-type Flatten<T narrows ((anything,), (a: anything))>         = (T.0.0, T.1.a); % not destructured
-type Flatten<T= (U, V) narrows ((anything,), (a: anything))> = (U.0, V.a);     % destructured
+type Flatten<T narrows ((anything,), (a: anything))>           = (T.0.0, T.1.a); % not destructured
+type Flatten<(U, V) narrows ((anything,), (a: anything))>      = (U.0, V.a);     % destructured
+type Flatten<(U narrows (anything,), V narrows (a: anything))> = (U.0, V.a);     % destructured, inner style
 
 type W = Flatten.<((int,), (a: float))>; %== (int, float)
 ```
@@ -156,25 +158,31 @@ Above, `U` narrows `(anything,)` and `V` narrows `(a: anything)`, so the propert
 
 However, this can also be achieved with *nested* destructuring.
 ```cpl
-type Flatten<T= ((U), (a: V))> = (U, V);
+type Flatten<((U), (a: V))> = (U, V);
 
 type W = Flatten.<((int,), (a: float))>; %== (int, float)
 ```
 
-## Destructuring Record Type Properties
-Similar to destructuring properties of records (#44), we can destructure the properties of record *types*:
+As with function parameters (#47), we can have *named* destructured generic parameters.
 ```cpl
-type R = (
-	a:      int,
-	(b, c): (str, str), % shorthand for `b: str, c: str,`
-);
+type Or<T= (U, V)>        = U | V;
+type And<T= (a: U, b: V)> = U & V;
+
+type Flatten<T= (U, V) narrows ((anything,), (a: anything))> = (U.0, V.a);
+type Flatten<T= ((U), (a: V))> = (U, V);
+```
+When specified, the generic type call’s arguments must be labeled.
+```cpl
+type X = Or.<T= (int, float)>;
+type Y = And.<T= (a: int, b: float)>;
+type W = Flatten.<T= ((int,), (a: float))>;
 ```
 
 ## Destructuring Generic Type Named Arguments
 When *specifying* (“calling”) generic types with named arguments, we can destructure the named arguments in the same way that we can with function calls.
 ```cpl
-type A = Or.<T= int, U= float>;     % not destructured
-type B = Or.<(T, U)= (int, float)>; % destructured
+type A = Union.<T= int, U= float>;     % not destructured
+type B = Union.<(T, U)= (int, float)>; % destructured
 ```
 
 # Specfication

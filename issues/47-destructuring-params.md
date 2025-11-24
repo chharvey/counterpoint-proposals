@@ -8,22 +8,21 @@ Consider this function:
 function printPlanet(planet: (str, float)): void {
 	"""The radius of {{ planet.0 }} is {{ planet.1 }}km.""";
 }
-% typeof printPlanet: \(planet: (str, float)) => void
+% typeof printPlanet: \((str, float)) => void
 ```
 Rather than keep track of a tuple argument, we can **destructure the tuple** into function parameters.
 ```cpl
-function printPlanet(planet= (name, value): (str, float)): void {
-%                ^ label for destructured parameter
-	planet; %> ReferenceError
+function printPlanet((name, value): (str, float)): void {
+%                    ^ destructured parameter
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
-% typeof printPlanet: \(planet: (str, float)) => void
+% typeof printPlanet: \((str, float)) => void
 ```
-Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `(str, float)`, but inside the function body we can treat each component as if it were a separate parameter. Notice also the parameter name `planet`, followed by the symbol `=` used for aliasing (#46). It’s not defined inside the function body, but the caller may still use it as the label of a named argument if they wish.
+Notice the “pattern” in the brackets. The function still has one parameter, a tuple of type `(str, float)`, but inside the function body we can treat each component as if it were a separate parameter.
 
 We can make our declaration a litle more consise by moving the typings inside the destructure pattern.
 ```cpl
-function printPlanet(planet= (name: str, value: float)): void {
+function printPlanet((name: str, value: float)): void {
 	% typeof name  == str
 	% typeof value == float
 	;
@@ -32,49 +31,74 @@ function printPlanet(planet= (name: str, value: float)): void {
 
 Destructuring applies to unfixed parameters as well.
 ```cpl
-function printPlanet(planet= (var name, value): (str, float)): void {
+function printPlanet((var name, value): (str, float)): void {
 	set name  = """Planet {{ name }}"""; % ok
 	set value = value + 1.0;             %> AssignmentError
 }
 ```
 
+The syntax for named parameters (#46) is the same as before; just prepend the destructured pattern with the name of the parameter and an equals sign `=`. When the parameter is named, the caller is expected to provide that label for the argument when calling the function.
+```cpl
+function printPlanet(planet= (name, value): (str, float)): void {
+%                    ^ label for destructured parameter
+	planet; %> ReferenceError
+	"""The radius of {{ name }} is {{ value }}km.""";
+}
+% typeof printPlanet: \(planet: (str, float)) => void
+printPlanet.(planet= my_planet);
+```
+Because the purpose of destructuring is to simplify parameter names inside the function body, named destructured parameters cannot be “punned” (using the `$` sigil).
+```cpl
+function printPlanet($(name, value): (str, float)): void {;} %> SyntaxError
+```
+
 Above, we used **tuple destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter…
 ```cpl
-function printPlanet(planet: (name: str, value: float)): void {
+function printPlanet((name: str, value: float)): void {
 	"""The radius of {{ planet.name }} is {{ planet.value }}km.""";
 }
-% typeof printPlanet: \(planet: (name: str, value: float)) => void
+% typeof printPlanet: \((name: str, value: float)) => void
 ```
 we can destructure the record into separate parameters:
 ```cpl
-function printPlanet(planet= ($name, $value): (name: str, value: float)): void {
-	planet; %> ReferenceError
+function printPlanet(($name, $value): (name: str, value: float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
 Or, with the “inside” type annotation, if you like:
 ```cpl
-function printPlanet(planet= ($name: str, $value: float)): void {
+function printPlanet(($name: str, $value: float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 ```
+The “record punning” (`$`) is explained below.
 
-As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why type aliases and abstract methods do not allow it.
-
-Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `($x)` is shorthand for `(x= x)`. This is called “punning”. This holds for parameters as well. We can replace `$` with internal parameter names.
+The parameter can also be named:
 ```cpl
-function printPlanet(planet= (name= n: str, value= v: float)): void {
+function printPlanet(planet= ($name: str, $value: float)): void {
+	planet; %> ReferenceError
+	"""The radius of {{ name }} is {{ value }}km.""";
+}
+% typeof printPlanet: \(planet: (name: str, value: float)) => void
+printPlanet.(planet= my_planet);
+```
+
+As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why abstract methods don’t allow it.
+
+Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `($x)` is shorthand for `(x= x)`. This is called “punning”. This holds for parameters as well. We can replace `$` with an internal parameter names.
+```cpl
+function printPlanet((name= n: str, value= v: float)): void {
 	name;  %> ReferenceError
 	value; %> ReferenceError
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
-% typeof printPlanet: \(planet: (name: str, value: float)) => void
+% typeof printPlanet: \((name: str, value: float)) => void
 ```
 The caller must supply a `(name: str, value: float)` argument, but the internal implementation of the function references the parameters `n` and `v`.
 
 Again, we can declare unfixed parameters.
 ```cpl
-function f(numbers= (
+function f((
 	$w:          int, % punning for `w= w: int`
 	xray=     x: int,
 	var $y:      int, % punning for `y= var y: int`
@@ -90,17 +114,17 @@ function f(numbers= (
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cpl
-function printPlanetNamed(planet= (name: str, value: float) ?= ("Earth", 6371.0)): void {
+function printPlanetNamed((name: str, value: float) ?= ("Earth", 6371.0)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
-% typeof printPlanetNamed: \(planet?: (str, float)) => void
+% typeof printPlanetNamed: \(?: (str, float)) => void
 ```
 We can also have optional record destructuring parameters:
 ```cpl
-function printPlanetNamed(planet= (name= n: str, value= v: float) ?= (name= "Earth", value= 6371.0)): void {
+function printPlanetNamed((name= n: str, value= v: float) ?= (name= "Earth", value= 6371.0)): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
-% typeof printPlanetNamed: \(planet?: (name: str, value: float)) => void
+% typeof printPlanetNamed: \(?: (name: str, value: float)) => void
 ```
 
 ## Nested Destructuring
@@ -144,12 +168,12 @@ function nest(
 ) => void %%
 % example call:
 nest.(
-	(1, 2),
-	(c= 3, delta= 4),
-	(7, (8, 9)),
-	(10, (k= 11, lima= 12)),
-	(m= 13, november= (14, 15)),
-	(papa= 16, quebec= (q= 17, romeo= 18)),
+	ab=  (1, 2),
+	cd=  (c= 3, delta= 4),
+	ghi= (7, (8, 9)),
+	jkl= (10, (k= 11, lima= 12)),
+	mno= (m= 13, november= (14, 15)),
+	pqr= (papa= 16, quebec= (q= 17, romeo= 18)),
 );
 
 function nestOptional(

@@ -102,6 +102,15 @@ rec == (
 ); %== true
 ```
 
+## Destructuring Record Type Properties
+We can destructure the properties of record *types* as well:
+```cpl
+type R = (
+	a:      int,
+	(b, c): (str, str), % shorthand for `b: str, c: str,`
+);
+```
+
 # Specfication
 ## Syntax Grammar
 ```diff
