@@ -45,7 +45,7 @@ function add(var a: int, b: int): void {
 }
 ```
 
-Some parameters may be **named**, which means when the function is called (see v0.7.0) its arguments must have a corresponding name. The **exernal name** is before the equals sign and is what the caller will use to name their arguments. The **internal name** comes after the equal sign and is used as the parameter name in the function body.
+Some parameters may be **named**, which means when the function is called (see v0.7.0) its arguments must have a corresponding name. The **external name** is before the equals sign and is what the caller will use to name their arguments. The **internal name** comes after the equal sign and is used as the parameter name in the function body.
 ```cpl
 function add(alpha= a: int, bravo= var b: int): void {
 	set b = b - 1;
@@ -86,35 +86,23 @@ let my_fn: \(int, b: int) => void =
 ```
 
 ## Function Assignment
-When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned parameter order must match up with the assignee parameters.
+When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned positional parameter order must match up with the assignee positional parameters.
 ```cpl
-type BinaryOperatorType = \(first: int, second: float) => void;
-let add: BinaryOperatorType = \($second: float, $first: int): void { first + second; return; }; %> TypeError
+type BinaryOperatorType = \(int, float) => void;
+let add: BinaryOperatorType = \(second: float, first: int): void { float first + second; return; }; %> TypeError
 ```
-> TypeError: Type `\(second: float, first: int) => void` is not assignable to type `\(first: int, second: float) => void`.
+> TypeError: Type `\(float, int) => void` is not assignable to type `\(int, float) => void`.
 
-The reason for this error is that one should expect to be able to call any `BinaryOperatorType` with the positional arguments of an `int` followed by a `float`. Calling it with e.g. `4.0` and `2`, in that order, should fail. From this perspective, function assignment is a bit like tuple assignment.
+The reason for this error is that one should expect to be able to call any `BinaryOperatorType` with the positional arguments of an `int` followed by a `float`. Calling it with e.g. `4.0` and `2`, in that order, should fail. For positional parameters, function assignment is like tuple assignment.
 
-From another perspective, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
+For named parameters, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
 ```cpl
 type BinaryOperatorType = \(first: float, second: float) => void;
 let subtract: BinaryOperatorType = \($x: float, $y: float): void { x - y; return; }; %> TypeError
 ```
 > TypeError: Type `\(x: float, y: float) => void` is not assignable to type `\(first: float, second: float) => void`.
 
-This errors because a caller must be able to call `subtract` with the named arguments `first` and `second`.
-
-Luckily, because parameters’ external names can be different from their internal names, this is a convenient way of handling function assignment/implementation mismatches.
-```cpl
-let subtract: BinaryOperatorType = \(first= x: float, second= y: float): void {
-	first;  %> ReferenceError
-	second; %> ReferenceError
-	x - y;
-	return;
-};
-```
-This lets the function author internally use the parameter names `x` and `y` while still allowing the caller to call the function with named arguments `first` and `second` repectively, and now the assignment to type `BinaryOperatorType` is valid.
-
+This errors because a caller must be able to call `subtract` with the named arguments `first` and `second`. We can fix it by using named parameter aliases as discussed above.
 
 ## Variance
 Function parameter types are **contravariant**. This means that when assigning a function `g` to a function type `F`, the type of each parameter of `F` must be assignable to the corresponding parameter’s type of `g`.
