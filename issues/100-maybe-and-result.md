@@ -428,3 +428,48 @@ The `Maybe.<T>` and `Result.<T, Exception>` types are *abstractions* of the type
 
 ## Counterpoint Specification Type «None»
 The Counterpoint Specification Type *None* must be reamed to *Nil* to avoid conflict with the `None` variant of `Maybe`. Its singleton value must also be renamed from *none* to *nil*.
+
+## Specifying A Result Type Exception
+Introducing `!(…)` as a new type operator. `T!(X)` is shorthand for `Result.<T, X>`, where `X` must narrow `Exception`. It has the same precedence as the symbolic unary operators `?` and `!`, and is left-associative. The operation `T!` is “retconned” to now mean `T!(Exception)`, with `Exception` as the default argument. It’s a compiler-raised TypeErrorInvalidOperation if the right-hand argument does not narrow `Exception`.
+```cpl
+let rec_result: [item: int]!(ExceptionEmptyCollection) = Fail.<[item: int]>(ExceptionEmptyCollection.());
+%               ^ shorthand for `Result.<[value: int], ExceptionEmptyCollection>`
+```
+
+### Grammar Changes
+Note `!` is *not a binary operator*. It accepts an optional parenthesized type on the right-hand side as an argument, similar to a function call.  However, it’s also not a compound type (dot access, generic call, etc). Its prescedence sits in between, alongside the other unary symbol opeartors.
+
+Parsing clarifications:
+
+Syntax      | Explicit Parsing | Expansion                   | Note
+----------- | ---------------- | --------------------------- | ----
+`A!X`       | ParseError       |                             | You probably meant `A!(X)`. The right-hand argument must be parenthesized.
+`A.p!(X)`   | `(A.p)!(X)`      | `Result.<A.p, X>`           | Weaker than type property access.
+`A.<P>!(X)` | `(A.<P>)!(X)`    | `Result.<A.<P>, X>`         | Weaker than generic calls.
+`A!(X).p`   | ParseError       |                             | You probably meant `(A!(X)).p` or `A!(X.p)`.
+`A!(X).<P>` | ParseError       |                             | You probably meant `(A!(X)).<P>` or `A!(X.<P>)`.
+`A!(X)!(Y)` | `(A!(X))!(Y)`    | `Result.<A!(X), Y>`         | Left-associative.
+`A!(X)!`    | `(A!(X))!`       | `Result.<A!(X), Exception>` | Same strength as symbol unary operators.
+`A!!(X)`    | `(A!)!(X)`       | `Result.<A!, X>`            | Same strength as symbol unary operators.
+`mut A!(X)` | `mut (A!(X))`    | `mut Result.<A, X>`         | Stronger than keyword unary operators. (Note: `Result`s are immutable)
+`A!(X) & B` | `(A!(X)) & B`    | `Result.<A, X> & B`         | Stronger than binary operators.
+`A & B!(X)` | `A & (B!(X))`    | `A & Result.<B, X>`         | Stronger than binary operators.
+
+The parentheses may contain any type expression, so `A!(X.p)`, `A!(X.<P>)`, `A!(X!)`, `A!(X!(Y))`, `A!(mut X)`, and `A!(X & Y)` are all well-formed type expressions.
+
+```diff
+TypeCompound ::=
+	| TypeUnit
+	| TypeCompound (
+		| ("." | "?.") PropertyAccessorType
+		|  "."         GenericArguments
+	)
+;
+
+-TypeUnarySymbol  ::= TypeCompound    | TypeUnarySymbol ("?" | "!"             );
++TypeUnarySymbol  ::= TypeCompound    | TypeUnarySymbol ("?" | "!" TypeGrouped?);
+ TypeUnaryKeyword ::= TypeUnarySymbol | "mut" TypeUnaryKeyword;
+
+TypeIntersection ::= (TypeIntersection "&")? TypeUnaryKeyword;
+TypeUnion        ::= (TypeUnion        "|")? TypeIntersection;
+```
