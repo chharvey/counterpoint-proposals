@@ -71,13 +71,34 @@ For dynamically-indexed objects like Lists, Dicts, Sets, and Maps, use their res
 +assert {"hello" -> 42}.hasKey.("hello") == true;
 ```
 
-The `isset` unary operator is given its own position among the other unary keyword operators. It may only be used on `Assignee` nonterminals.
+## The `!isset` Operator
+`!isset a` is syntax sugar for `!(isset a)`.
+
+## Grammar
+The `isset` and `!isset` unary operators are given their own position among the other unary keyword operators. They may only be used on `Assignee` nonterminals.
 ```diff
+KeywordOther :::=
+	// operator
+		...
+		| "mut"
++		| "isset"
++		| "!isset"
+		| "as"
+		| "as?"
+		| "as!"
+		| "is"
+		| "isnt"
+		| "if"
+		| "then"
+		| "else"
+#	...
+;
+
 PropertyAccessor<Break>
 	::= INTEGER | Word | "[" Expression<+Block><?Break> "]";
 
 ExpressionUnaryKeyword<Block, Break> ::=
-+	| "isset" Assignee<?Break>
++	| ("isset" | "!isset") Assignee<?Break>
 	| ExpressionUnarySymbol<?Block><?Break>
 	| ("int" | "float") ExpressionUnaryKeyword<?Block><?Break>
 ;
@@ -87,7 +108,7 @@ Assignee<Break> ::=
 	| ExpressionCompound<+Block><?Break> "." PropertyAccessor<?Break>
 ;
 ```
-Therefore, syntax like `isset (a || b)` is not well-formed, while `isset a || b` is (the latter of which parses to `(isset a) || b`).
+Therefore, syntaxes like `?isset a` and `isset (a || b)` are not well-formed, while `?(isset a)` and `isset a || b` are (the latter of which parses to `(isset a) || b`).
 
 # The `delete` Statement
 ```cpl
