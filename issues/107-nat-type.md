@@ -1,56 +1,76 @@
 The `nat` (natural number) type contains unsigned integers.
 
-Like signed integers, they are 64-bit, but range from *0* to *2^64 - 1* (instead of from *-(2^63)* to *2^63 - 1* like ints do). Unsigned integer values are encoded “as-is” in binary. Representations having an MSB of 1 (the leading bit) are interpreted as their numeric values, rather than as negative numbers like signed integers in two’s complement. There is no way to have a `nat` value less than 0. As with the integer type, there is only one representation for 0 in the natural number type.
+Like signed integers, they are 64-bit, but range from *0* to *2^64 - 1* (instead of from *-(2^63)* to *2^63 - 1* like ints do). Unsigned integer values are encoded “as-is” in binary. Representations having an MSB of 1 (the leading bit) are interpreted as their numeric values, rather than as negative numbers like signed integers in two’s complement. There is no way to have a `nat` value less than 0. As with the integer type, there is only one representation for *0* in the natural number type.
 
-The `nat` type is used for the number of entries in a countable and tuple/list indices. It can also be used anywhere non-negative integers are needed, such as in a factorial function. `nat` types and `int` types can be compared via the equality operators `==` and `!=` (without explicit casting needed). However, `nat` and `int` values, and `nat` and `float` values for that matter, cannot be combined together in arithmetic and comparator operations without explicit coercion first. For example, if `n` is a nat and `i` is an int, then the expression `n + i` would be invalid. The programmer must explicitly cast `n` into an int in order to validate the expression: `int n + i`.
+The `nat` type is used for the number of entries in a countable and tuple/list indices. It can also be used anywhere non-negative integers are needed, such as in a factorial function. `nat` types and `int` types can be compared via the equality operators `==` and `!=` (without explicit casting needed). However, `nat` and `int` values, and `nat` and `float` values for that matter, cannot be combined together in arithmetic operations without explicit coercion first. For example, if `n` is a nat and `i` is an int, then the expression `n + i` would be invalid. The programmer must explicitly cast `n` into an int in order to validate the expression: `int n + i`.
+
+Nat values may be used for index access of a tuple type or tuple value. Int values are still accepted, because negative integers count backwards from end. This is all valid:
+```cpl
+type Point3d = (float, float, float);
+let var x: Point3d.0  = 2.718; % using int-type accessor
+let var y: Point3d.+1 = 6.283; % using nat-type accessor
+let var z: Point3d.-1 = 1.414; % using int-type accessor, negative
+
+let tup: Point3d = (2.718, 6.283, 1.414);
+set x = tup.0;  % using int-type accessor
+set y = tup.+1; % using nat-type accessor
+set z = tup.-1; % using int-type accessor, negative
+```
+
+Dynamic access of list values is also updated.
+```cpl
+let list: [float] = (2.718, 6.283, 1.414);
+let x: float = list.[0];  % using int-type accessor
+let y: float = list.[+1]; % using nat-type accessor
+let z: float = list.[-1]; % using int-type accessor, negative
+```
 
 ## Syntax
-The syntax for `nat` literals is a plus sign (`+`) followed by integer syntax. For example, `+42` represents the unsigned integer 42 whereas `42` represents the signed integer 42. Though their binary representations are identical, they are not type-compatible. (Note this is a breaking change, since previously `+42` would just be a no-op on the `int` value 42.) `float` values may still keep their unary `+` operator: `+42.0` is still a float.
+The syntax for `nat` literals is a plus sign (`+`) followed by integer syntax. For example, `+42` represents the unsigned integer *42* whereas `42` represents the signed integer *42*. Though their binary representations are identical, they are not type-compatible. (Note this is a breaking change, since previously `+42` would just be a no-op on the `int` value *42*.) `float` values may still keep their unary `+` operator: `+42.0` is still a float.
 
-Natural numbers can use the same non-decimal radices as integers. E.g. `\o+52 === +42`. See documentation for the Integer type for details.
+Natural numbers can use the same non-decimal radices as integers. E.g. `+\o52 === +42`. See documentation for the Integer type for details.
 
 ### Lexicon
 ```diff
-+Natural<Radix, Separator>
-+	:::= "+" <Radix->DigitSequenceDec<?Separator> & <Radix+>WholeDigitsRadix<?Separator>
+Integer
+-	:::= ("+" | "-")? WholeDigits;
++	:::=        "-"?  WholeDigits;
 
-Integer<Radix, Separator>
--	:::= ("+" | "-")? <Radix->DigitSequenceDec<?Separator> & <Radix+>IntegerDigitsRadix<?Separator>;
-+	:::= "-"?         <Radix->DigitSequenceDec<?Separator> & <Radix+>WholeDigitsRadix<?Separator>;
++Natural
++	:::= "+" WholeDigits
 
--IntegerDigitsRadix<Separator> :::=
-+WholeDigitsRadix<Separator> :::=
-	| "\b"  DigitSequenceBin<?Separator>
-	| "\q"  DigitSequenceQua<?Separator>
-	| "\s"  DigitSequenceSex<?Separator>
-	| "\o"  DigitSequenceOct<?Separator>
-	| "\d"? DigitSequenceDec<?Separator>
-	| "\x"  DigitSequenceHex<?Separator>
-	| "\z"  DigitSequenceNif<?Separator>
+WholeDigits :::=
+	| "\b"  DigitSequenceBin
+	| "\q"  DigitSequenceQua
+	| "\s"  DigitSequenceSex
+	| "\o"  DigitSequenceOct
+	| "\d"? DigitSequenceDec
+	| "\x"  DigitSequenceHex
+	| "\z"  DigitSequenceNif
 ;
-
-DigitSequenceBin<Separator> :::= ( DigitSequenceBin<?Separator> & <Separator+>"_"? )? [0-1];
-DigitSequenceQua<Separator> :::= ( DigitSequenceQua<?Separator> & <Separator+>"_"? )? [0-3];
-DigitSequenceSex<Separator> :::= ( DigitSequenceSex<?Separator> & <Separator+>"_"? )? [0-5];
-DigitSequenceOct<Separator> :::= ( DigitSequenceOct<?Separator> & <Separator+>"_"? )? [0-7];
-DigitSequenceDec<Separator> :::= ( DigitSequenceDec<?Separator> & <Separator+>"_"? )? [0-9];
-DigitSequenceHex<Separator> :::= ( DigitSequenceHex<?Separator> & <Separator+>"_"? )? [0-9a-f];
-DigitSequenceNif<Separator> :::= ( DigitSequenceNif<?Separator> & <Separator+>"_"? )? [0-9a-z];
 ```
 
 ### Syntax
 ```diff
-+// NATURAL ::= [./lexicon.ebnf#Natural];
  // INTEGER ::= [./lexicon.ebnf#Integer];
++// NATURAL ::= [./lexicon.ebnf#Natural];
 
 PrimitiveLiteral ::=
-+	| NATURAL
 	| INTEGER
++	| NATURAL
 	| FLOAT
 	| STRING
 	| KeywordValue
 	| "@" Word
 ;
+
+PropertyAccessorType
+-	::= INTEGER |           Word;
++	::= INTEGER | NATURAL | Word;
+
+PropertyAccessor<Break>
+-	::= INTEGER |           Word | "[" Expression<+Block><?Break> "]";
++	::= INTEGER | NATURAL | Word | "[" Expression<+Block><?Break> "]";
 ```
 
 ## Operators
