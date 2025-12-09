@@ -221,9 +221,8 @@ Type ::=
 -	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break>          "do" Block<+Break> ";";
 +	::= "for" ("_" | IDENTIFIER) ":" Type "of" Expression<+Block><-Break><?Return> "do" Block<+Break><?Return> ";";
 
-StatementBreak    ::= "break"    INTEGER? ";";
-StatementContinue ::= "continue" INTEGER? ";";
-+StatementReturn  ::= "return"            ";";
+StatementBreak    ::= ("break" | "continue") ";";
++StatementReturn  ::=  "return"              ";";
 
 -Statement<Break> ::=
 -	| StatementExpression<?Break>
@@ -236,7 +235,6 @@ StatementContinue ::= "continue" INTEGER? ";";
 +	| StatementLoop<Return>
 +	| StatementIteration<Return>
 	| <Break+> StatementBreak
-	| <Break+> StatementContinue
 +	| <Return+>StatementReturn
 	| Declaration
 ;
@@ -372,9 +370,6 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 -Decorate(Statement<Break>         ::= <Break+>StatementBreak) -> SemanticBreak
 +Decorate(Statement<Break, Return> ::= <Break+>StatementBreak) -> SemanticBreak
 	:= Decorate(StatementBreak);
--Decorate(Statement<Break>         ::= <Break+>StatementContinue) -> SemanticContinue
-+Decorate(Statement<Break, Return> ::= <Break+>StatementContinue) -> SemanticContinue
-	:= Decorate(StatementContinue);
 +Decorate(Statement<Break, Return> ::= <Return+>StatementReturn) -> SemanticReturn
 +	:= Decorate(StatementReturn);
 

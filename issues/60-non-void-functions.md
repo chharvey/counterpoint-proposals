@@ -68,7 +68,6 @@ Statement<Break, Return> ::=
 	| StatementLoop<Return>
 	| StatementIteration<Return>
 	| <Break+> StatementBreak
-	| <Break+> StatementContinue
 -	| <Return+>StatementReturn
 +	| <Return+>StatementReturn<?Break>
 	| Declaration
