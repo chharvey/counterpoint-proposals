@@ -7,48 +7,75 @@ A declared function may be specified to implement a type signature using the `im
 ## Motivation
 A function’s type signature is basically its *type*, with additional information such as parameter names and optionality. Since function declarations have types in their syntax, their function signatures are built in.
 
-```cp
+```cpl
 function add(x: float, y: float): float => x + y;
 %             ^         ^       ^ these types form the type signature
-add; %: (x: float, y: float) => float
+add; %: \(x: float, y: float) => float
 ```
 
 Type signatures are useful in higher-order functions. For example, the type signature of a typical list folding (or “reducing”) function would include a function type as a parameter. We can use our `add` function above as a reducer of a list of floats.
-```cp
-claim foldList: <T>(list: List.<T>, reducer: (T, T) => T) => T;
+```cpl
+claim foldList<T>(list: List.<T>, reducer: \(T, T) => T): T;
 let sum: float = foldList.<float>([4.2, 40.2], add); %== 44.4
 ```
 In fact, `add` could be used many times in dozens of higher-order functions like `foldList`. But what if the type signature of `add` changes? This could break our function call.
-```cp
+```cpl
 function add(x: float, y: float, z: float): float => x + y + z;
 let sum: float = foldList.<float>([4.2, 40.2], add); %> TypeError
 ```
-> TypeError: `(x: float, y: float, z: float) => float` not assignable to `(float, float) => float`.
+> TypeError: `\(float, float, float) => float` not assignable to `\(float, float) => float`.
 
 It’s a good thing this error is raised, because it’s warning us that the function type is not valid where it’s used. But the problem is, the error is reported at the *call sites*, wherever the function is used, instead of just once at the *source site*. Making one change to `add` could result in dozens of new compile-time errors, possibly far away from where the change even occurred. It would be nice to have a stricter form of function signature, to warn us that we shouldn’t change `add` in the first place.
 
 ## Description
 This is where function annotations save the day. Functions can be **annotated** with the `impl` keyword, indicating their type signature must match the given type.
-```cp
-type BinaryOperatorFloat = (float, float) => float;
+```cpl
+type BinaryOperatorFloat = \(float, float) => float;
 function add(x, y) impl BinaryOperatorFloat {
 	x; %: float
 	y; %: float
 	return x + y; %: float
 }
 ```
-Since the type signature of `foldList.<float>` expects a `(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
-```cp
+Since the type signature of `foldList.<float>` expects a `\(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
+```cpl
 let sum: float = foldList.<float>([4.2, 40.2], add); % ok
 ```
 When annotating a function type implementation, explicit parameter and return type annotations must be removed. The type-checker uses the `impl` clause to determine the function type, so explicit annotations are redundant.
-```cp
+```cpl
 function add(x: float, y: float): float impl BinaryOperatorFloat => x + y; %> SyntaxError
 ```
 
 Now when we make a breaking change to `add`, we get only one new error, right at the source of that change.
-```cp
+```cpl
 function add(x, y, z) impl BinaryOperatorFloat => x + y + z; %> TypeError
 let sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported here
 ```
 > TypeError: Got 3 parameters, but expected 2.
+
+### Optional Parameters
+When a function implements an annotation that has optional parameters, it syntactically looks like it has required parameters. They’re still optional though.
+```cpl
+type Binop = \(float, ?: float) => float; % second parameter is optional
+function add(a, b) impl Binop {
+%               ^ looks required, but isn’t
+	a; %: float
+	b; %: float | null
+	return a + (b || 0.0);
+};
+add.(2.0, 3.0); %== 5.0
+add.(2.0);      %== 2.0
+```
+In this example, `add` implements `Binop`, so we don’t explicitly write out its parameter types. Parameter `b` is optional, but it also doesn’t have an explicit default value (its default value is implicitly `null` — see #55). These facts combined make it look like `b` is a required parameter from a syntax perspective. Semantically, though, it’s still optional when the function is called.
+
+There may be a future change in syntax to address this problem. For now, it’s better to provide a default value if possible.
+```cpl
+type Binop = \(float, ?: float) => float;
+function add(a, b ?= 0.0) impl Binop {
+	a; %: float
+	b; %: float
+	return a + b;
+};
+add.(2.0, 3.0); %== 5.0
+add.(2.0);      %== 2.0
+```
