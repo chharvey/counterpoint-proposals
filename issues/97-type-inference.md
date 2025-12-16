@@ -125,7 +125,7 @@ let untyped_var = (\(a, b) => a + b,); %> TypeError
 ```
 
 # Top-Down Type Inference
-Top-down type inference is used for inferring parameter and return types of a lambda when the lambda is assigned to a symbol (a variable, field, collection entry, or typed function parameter). When this is the case, we may omit type annotations from the lambda’s parameters and return signature, even if its parameters are required (or don’t have default values).
+Top-down type inference is used for inferring parameter and return types of a function expression when it’s assigned to a symbol (a variable, field, collection entry, or typed function parameter). When this is the case, we may omit type annotations from the function’s parameters and return signature, even if its parameters are required (or don’t have default values).
 ```cpl
 let typed_var: \(a: int, b: int) => int = \(a, b) {
 	a; %: int
@@ -173,3 +173,23 @@ type Binop = \(int, ?: int) => int;
 function add(a, b ?= some_value) impl Binop => a + b;
 %                    ^ same… via the `impl` clause
 ```
+
+Another form of top-down type inference applies to generic arguments in constructor calls. When a constructor call expression is assigned to a symbol with an explicit type, we can omit the generic arguments from the call expression.
+```cpl
+class Box<T> {
+	new (public value: T) {;}
+}
+
+let data = Box.<int>(42); % bottom-up type inference (explained in last section)
+
+let data: Box.<int> = Box.(42); % top-down type inference
+%                        ^ constructor call expression may omit the `<int>` generic arg
+
+let data: Box.<int> | Box.<float> = Box.(42); %> TypeError: generic argument required
+
+function make_box<U>(value: U): mut Box.<U>
+	=> Box.<U>(value);
+
+let data: Box.<int> = make_box.(42); %> TypeError: generic argument required
+```
+Note that the annotated type must be the same as the constructor’s return type, or a non-`mut` version of it. This top-down generic inference only applies to *constructor* call expressions, not arbitrary function call expressions.
