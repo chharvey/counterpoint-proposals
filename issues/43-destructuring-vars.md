@@ -22,46 +22,42 @@ Additional topics not covered here:
 
 ## Variable Declaration
 Rather than declaring and initializing variables separately …
-```cp
+```cpl
 let x: int = 42;
 let y: int = 420;
 ```
 … we can do so in one concise destructuring statement:
-```cp
-let [x, y]: [int, int] = [42, 420];
+```cpl
+let (x, y): (int, int) = (42, 420);
 x; %== 42
 y; %== 420
 ```
-Since both `x` and `y` are of type `int`, we can make our declaration a little more consise by using tuple shorthand syntax.
-```cp
-let [x, y]: int[2] = [42, 420];
-```
-Or we can move the type annotations inside the destructure pattern. All three variations are equivalent.
-```cp
-let [x: int, y: int] = [42, 420];
+Or we can move the type annotations inside the destructure pattern. Both variations are equivalent.
+```cpl
+let (x: int, y: int) = (42, 420);
 ```
 
 Destructuring applies to unfixed variables as well.
-```cp
-let [x, var y]: int[2] = [42, 420];
+```cpl
+let (x, var y): (int, int) = (42, 420);
 set x = 0; %> AssignmentError
 set y = 0; % ok
 ```
 
-Above, we used **tuple destructuring**, that is, assigning the “pattern” *[`x`, `y`]* a tuple. We can also use **record destructuring** by assigning it a record.
-```cp
-let [$y, $x]: [x: int, y: int] = [x= 42, y= 420];
+Above, we used **tuple destructuring**, that is, assigning the “pattern” *(`x`, `y`)* a tuple. We can also use **record destructuring** by assigning it a record.
+```cpl
+let ($y, $x): (x: int, y: int) = (x= 42, y= 420);
 y; %== 420
 x; %== 42
 ```
 Or, with the “inside” type annotation, if you like:
-```cp
-let [$y: int, $x: int] = [x= 42, y= 420];
+```cpl
+let ($y: int, $x: int) = (x= 42, y= 420);
 ```
 
-As with record punning (#24), the symbol `$` is shorthand for repeating the variable name — `[$x]` is shorthand for `[x= x]`, where the first `x` is the property in the record that we’re destructuring, and the second `x` is the new variable we want to declare. If our record has different property names, we can use aliases.
-```cp
-let [yankee= y: int, xray= x: int] = [xray= 42, yankee= 420];
+As with record punning (#24), the symbol `$` is shorthand for repeating the variable name — `($x)` is shorthand for `(x= x)`, where the first `x` is the property in the record that we’re destructuring, and the second `x` is the new variable we want to declare. If our record has different property names, we can use aliases.
+```cpl
+let (yankee= y: int, xray= x: int) = (xray= 42, yankee= 420);
 y; %== 420
 x; %== 42
 yankee; %> ReferenceError
@@ -71,18 +67,18 @@ xray;   %> ReferenceError
 Record destructuring has an advantage over tuple destructuring: we can change up the order in which we declare variables. With a tuple, the order of declared variables must match the order of entries in the tuple. With a record, we can switch the order as shown above.
 
 Again, we can assign unfixed variables.
-```cp
-let [
+```cpl
+let (
 	$w:          int, % punning for `w= w: int`
 	xray=     x: int,
 	var $y:      int, % punning for `y= var y: int`
 	zulu= var z: int,
-] = [
+) = (
 	w=       42,
 	y=      420,
 	xray=  4200,
 	zulu= 42000,
-];
+);
 set w = 0; %> AssignmentError
 set x = 0; %> AssignmentError
 set y = 0; % ok
@@ -91,38 +87,38 @@ set z = 0; % ok
 
 ## Nested Destructuring
 Destructuring for variable declaration can be recursive: We can nest destructured patterns within each other.
-```cp
+```cpl
 % regular variable destructuring, tuple
-let [a, b]: int[2] = [1, 2];
+let (a, b): (int, int) = (1, 2);
 
 % regular variable destructuring, record
-let [$c: int, delta= d: int] = [c= 3, delta= 4];
+let ($c: int, delta= d: int) = (c= 3, delta= 4);
 
-[a, b, c, d] ==
-[1, 2, 3, 4]; %== true
+(a, b, c, d) ==
+(1, 2, 3, 4); %== true
 
 % nested variable destructuring, tuple within tuple
-let [g, [h, i]]: [int, int[2]] = [7, [8, 9]];
-let [g: int, [h, i]: int[2]]   = [7, [8, 9]];
-let [g: int, [h: int, i: int]] = [7, [8, 9]];
+let (g, (h, i)): (int, (int, int)) = (7, (8, 9));
+let (g: int, (h, i): (int, int))   = (7, (8, 9));
+let (g: int, (h: int, i: int)) = (7, (8, 9));
 
 % nested variable destructuring, record within tuple
-let [j, [$k, lima= l]]: [int, [k: int, lima: int]] = [10, [k= 11, lima= 12]];
-let [j: int, [$k, lima= l]: [k: int, lima: int]]   = [10, [k= 11, lima= 12]];
-let [j: int, [$k: int, lima= l: int]]              = [10, [k= 11, lima= 12]];
+let (j, ($k, lima= l)): (int, (k: int, lima: int)) = (10, (k= 11, lima= 12));
+let (j: int, ($k, lima= l): (k: int, lima: int))   = (10, (k= 11, lima= 12));
+let (j: int, ($k: int, lima= l: int))              = (10, (k= 11, lima= 12));
 
 % nested variable destructuring, tuple within record
-let [$m, november= [n, o]]: [m: int, november: int[2]] = [m= 13, november= [14, 15]];
-let [$m: int, november= [n, o]: int[2]]                = [m= 13, november= [14, 15]];
-let [$m: int, november= [n: int, o: int]]              = [m= 13, november= [14, 15]];
+let ($m, november= (n, o)): (m: int, november: (int, int)) = (m= 13, november= (14, 15));
+let ($m: int, november= (n, o): (int, int))                = (m= 13, november= (14, 15));
+let ($m: int, november= (n: int, o: int))              = (m= 13, november= (14, 15));
 
 % nested variable destructuring, record within record
-let [$p, quebec= [$q, romeo= r]]: [p: int, quebec: [q: int, romeo: int]] = [p= 16, quebec= [q= 17, romeo= 18]];
-let [$p: int, quebec= [$q, romeo= r]: [q: int, romeo: int]]              = [p= 16, quebec= [q= 17, romeo= 18]];
-let [$p: int, quebec= [$q: int, romeo= r: int]]                          = [p= 16, quebec= [q= 17, romeo= 18]];
+let ($p, quebec= ($q, romeo= r)): (p: int, quebec: (q: int, romeo: int)) = (p= 16, quebec= (q= 17, romeo= 18));
+let ($p: int, quebec= ($q, romeo= r): (q: int, romeo: int))              = (p= 16, quebec= (q= 17, romeo= 18));
+let ($p: int, quebec= ($q: int, romeo= r: int))                          = (p= 16, quebec= (q= 17, romeo= 18));
 
-[g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r] ==
-[7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; %== true
+(g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r) ==
+(7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18); %== true
 ```
 Any variable in a nested destructure may be preceded with the modifier `var`.
 
@@ -131,71 +127,65 @@ Any variable in a nested destructure may be preceded with the modifier `var`.
 ### Desugaring
 Destructuring is not *perfect* syntax sugar. That is, you could not replace the syntax with its “desugared form” and always expect the same results. In particular, this is due to the fact that the assigned expression is evaluated only once as opposed to multiple times. For example, if the assigned expression is a function call with side-effects, then those side-effects will only be observed once in the destructured form.
 
-Say `f` is a function that generates a pseudo-random number `r` and returns a tuple `[r, r]` of that number duplicated. Then with destructuring two variables, we can be sure the variables are equal.
-```cp
-let [r1, r2]: float[2] = f.();
+Say `f` is a function that generates a pseudo-random number `r` and returns a tuple `(r, r)` of that number duplicated. Then with destructuring two variables, we can be sure the variables are equal.
+```cpl
+let (r1, r2): (float, float) = f.();
 r1 == r2; %== true
 ```
 We’re not afforded this certainty if we “desugar” the destructuring statement, since the function is called twice, resulting in two possibly different random numbers.
-```cp
+```cpl
 let r1: float = f.().0;
 let r2: float = f.().1;
 r1 == r2; % not necessarily true, in fact most likely false
 ```
 
-However, destructuring punning with `$` is purely syntactic sugar. For example, `let [$x: int] = [x= 42]` may be replaced with `let [x= x: int] = [x= 42]` at parse-time.
+However, destructuring punning with `$` is purely syntactic sugar. For example, `let ($x: int) = (x= 42)` may be replaced with `let (x= x: int) = (x= 42)` at parse-time.
 
 ### Type Errors
 Type errors are raised when the assigned expression of a destructuring statement doesn’t match the assignee.
 
 Assigning a tuple with greater items is fine, but not fewer items.
-```cp
-let [a, b, c]: int[3] = [42, 420, 4200, 42000]; % `42000` is dropped, but no error
-let [d, e, f]: int[2] = [42, 420];              %> TypeError (index `2` is missing)
+```cpl
+let (a, b, c): (int, int, int) = (42, 420, 4200, 42000); % `42000` is dropped, but no error
+let (d, e, f): (int, int) = (42, 420);              %> TypeError (index `2` is missing)
 ```
 
 Assigning a list gives us the same error.
-```cp
-let list: int[] = List.<int>([42, 420, 4200, 42000]);
-let [a, b, c]: int[3] = list;                       %> TypeError (index `0` could be missing)
-let [d, e, f]: int[] = List.<int>([42, 420, 4200]); %> TypeError (`int[]` not assignable to `unknown[3]`)
+```cpl
+let list: [int] = [42, 420, 4200, 42000];
+let (a, b, c): (int, int, int) = list;                       %> TypeError (index `0` could be missing)
+let (d, e, f): [int] = [42, 420, 4200]; %> TypeError (`[int]` not assignable to `(anything, anything, anything)`)
 ```
 
 Assigning a record with extra properties is fine, but not missing properties.
-```cp
-let [$a: int, $b: int, $c: int] = [a= 42, b= 420, c= 4200, d= 42000]; % `d` is dropped, but no error
-let [$d: int, $e: int, $f: int] = [d= 42, e= 420];                    %> TypeError (property `f` is missing)
-let [golf= g: int, hotel= h: int] = [golf= 42, h= 420];               %> TypeError (property `hotel` is missing)
+```cpl
+let ($a: int, $b: int, $c: int) = (a= 42, b= 420, c= 4200, d= 42000); % `d` is dropped, but no error
+let ($d: int, $e: int, $f: int) = (d= 42, e= 420);                    %> TypeError (property `f` is missing)
+let (golf= g: int, hotel= h: int) = (golf= 42, h= 420);               %> TypeError (property `hotel` is missing)
 ```
 
 Of course, the assigned items must be assignable to the variables’ types.
-```cp
-let [a, b, c]: int[3]       = [42, 420, 123.45];      %> TypeError (`123.45` is not an int)
-let [$d: int, echo= e: int] = [d= null, echo= "420"]; %> TypeError
+```cpl
+let (a, b, c): (int, int, int)       = (42, 420, 123.45);      %> TypeError (`123.45` is not an int)
+let ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 ```
 
 # Specfication
 ## Syntax Grammar
 ```diff
-+DestructureVariableItem<Typed> ::=
-+	| "var"? ("_" | IDENTIFIER) <Typed+>(":" Type)
-+	| DestructureVariables<?Typed>
-+	| <Typed+>(DestructureVariables<-Typed> ":" Type)
++DestructureVariable<Named, Typed> ::=
++	|          <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
++	|                         <Named+>(Word "=")                     DestructureVariables<?Typed>
++	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> ":" Type)
 +;
 
-+DestructureVariableKey<Typed> ::=
-+	| "$" ("_" | IDENTIFIER) <Typed+>(":" Type)
-+	| Word "=" DestructureVariableItem<?Typed>
-+;
++DestructureVariables<Typed>
++	::= "(" ","? (DestructureVariable<-Named><?Typed># | DestructureVariable<+Named><?Typed>#) ","? ")";
 
-+DestructureVariables<Typed> ::=
-+	| "[" ","? DestructureVariableItem <?Typed># ","? "]"
-+	| "[" ","? DestructureVariableKey  <?Typed># ","? "]"
-+;
-
-DeclarationVariable ::=
-	| "let" "var"? ("_" | IDENTIFIER)    ":" Type "=" Expression ";"
-+	| "let" DestructureVariables<-Typed> ":" Type "=" Expression ";"
-+	| "let" DestructureVariables<+Typed>          "=" Expression ";"
+DeclarationVariable<Break, Return> ::=
+	| "let" "var"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
+	| "let" "var"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
++	| "let" DestructureVariables<-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
++	| "let" DestructureVariables<+Typed>           "=" Expression<+Block><?Break><?Return> ";"
 ;
 ```
