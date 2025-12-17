@@ -47,7 +47,7 @@ function f(arg= (a: int, b: int, c: int ?= 3)): anything {
 	return (a, b, c);
 }
 % typeof f: \(arg: (int, int, ?: int)) => anything
-f.((1, 2)); %== (1, 2, 3)
+f.(arg= (1, 2)); %== (1, 2, 3)
 
 function g(arg= (a= alfa: int, b= bravo: int ?= 3, c= charlie: int)): anything {
 	arg; %> ReferenceError
@@ -57,14 +57,14 @@ function g(arg= (a= alfa: int, b= bravo: int ?= 3, c= charlie: int)): anything {
 	return (alfa, bravo, charlie);
 }
 % typeof g: \(arg: (a: int, b?: int, c: int)) => anything
-g.((a= 1, c= 2)); %== (1, 3, 2)
+g.(arg= (a= 1, c= 2)); %== (1, 3, 2)
 
 function h(arg= ($a: int, $b: int ?= 3, $c: int)): anything {
 	arg; %> ReferenceError
 	return (a, b, c);
 };
 % typeof h: \(arg: (a: int, b?: int, c: int)) => anything
-h.((a= 1, c= 2)); %== (1, 3, 2)
+h.(arg= (a= 1, c= 2)); %== (1, 3, 2)
 ```
 Since named function parameters are required, we must **alias** the destructured parameter with the `=` symbol (#46). In the examples above, callers may assign the provided parameter to the named argument `arg`, even though that identifier isn’t available in the body.
 
@@ -72,13 +72,13 @@ Just because a destructured function parameter may have optional entries doesn�
 ```cpl
 function f(arg= (a: int, b: int, c: int ?= 3) ?= (4, 5, 6)): anything => (a, b, c);
 % typeof f: \(arg?: (int, int, ?: int)) => anything
-f.((1, 2)); %== (1, 2, 3)
-f.();       %== (4, 5, 6)
+f.(arg= (1, 2)); %== (1, 2, 3)
+f.();            %== (4, 5, 6)
 
 function h(arg= ($a: int, $b: int ?= 3, $c: int) ?= (a= 4, c= 5)): anything => (a, b, c);
 % typeof h: \(arg?: (a: int, b?: int, c: int)) => anything
-h.((a= 1, c= 2)); %== (1, 3, 2)
-h.();             %== (4, 3, 5)
+h.(arg= (a= 1, c= 2)); %== (1, 3, 2)
+h.();                  %== (4, 3, 5)
 ```
 
 ## Syntax Note
@@ -100,17 +100,17 @@ h.();             %== (4, 3, 5)
 ## Nested Destructuring
 Nested destructuring works the same as before. With nesting, the type annotation doesn’t need to go on the entry itself, as long as its innards are all typed.
 ```cpl
-let (a: int, b: int, (c, d): int(2)        ?= (3, 4)) = (1, 2); % the typing can go on the optional entry,
+let (a: int, b: int, (c, d): (int, int)    ?= (3, 4)) = (1, 2); % the typing can go on the optional entry,
 let (a: int, b: int, (c: int, d: int)      ?= (3, 4)) = (1, 2); % or it can go in each of the nested entries.
 let (a: int, b: int, (c: int, d: int ?= 5) ?= (3, 4)) = (1, 2); % we can even have nested defaults!
 
-let (a: int, b: int, (c, d ?= 6): (int, ?: int) ?= (4, 5)) = (1, 2, (3));
-let (a: int, b: int, (c: int, d: int ?= 6)      ?= (4, 5)) = (1, 2, (3));
+let (a: int, b: int, (c, d ?= 6): (int, ?: int) ?= (4, 5)) = (1, 2, (3,));
+let (a: int, b: int, (c: int, d: int ?= 6)      ?= (4, 5)) = (1, 2, (3,));
 
-let (a: int, b: int, (c, (d) ?= (6)): (int, ?: (int)) ?= (4, (5))) = (1, 2, (3));
-let (a: int, b: int, (c: int, (d): (int)    ?= (6))   ?= (4, (5))) = (1, 2, (3));
-let (a: int, b: int, (c: int, (d: int)      ?= (6))   ?= (4, (5))) = (1, 2, (3));
-let (a: int, b: int, (c: int, (d: int ?= 7) ?= (6))   ?= (4, (5))) = (1, 2, (3, ())); % we can go deeper…
+let (a: int, b: int, (c, (d) ?= (6,)): (int, ?: (int,)) ?= (4, (5,))) = (1, 2, (3,));
+let (a: int, b: int, (c: int, (d): (int,)   ?= (6))     ?= (4, (5,))) = (1, 2, (3,));
+let (a: int, b: int, (c: int, (d: int)      ?= (6))     ?= (4, (5,))) = (1, 2, (3,));
+let (a: int, b: int, (c: int, (d: int ?= 7) ?= (6))     ?= (4, (5,))) = (1, 2, (3, ())); % we can go deeper…
 ```
 
 ## Execution Order

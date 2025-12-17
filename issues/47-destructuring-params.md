@@ -126,6 +126,11 @@ function printPlanetNamed((name= n: str, value= v: float) ?= (name= "Earth", val
 }
 % typeof printPlanetNamed: \(?: (name: str, value: float)) => void
 ```
+It’s a syntax error to have an optional destructured parameter without a default value.
+```cpl
+function printPlanetNamed((name, value)?: (str, float)): void {;} % SyntaxError
+```
+> `null` cannot be destructured into `(name, value)`
 
 ## Nested Destructuring
 Like destructuring for variables, we can nest destructuing syntax for functions.
