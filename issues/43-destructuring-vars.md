@@ -173,25 +173,19 @@ let ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 # Specfication
 ## Syntax Grammar
 ```diff
-+DestructureVariableItem<Typed> ::=
-+	| "var"? ("_" | IDENTIFIER) <Typed+>(":" Type)
-+	| DestructureVariables<?Typed>
-+	| <Typed+>(DestructureVariables<-Typed> ":" Type)
++DestructureVariable<Named, Typed> ::=
++	|          <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
++	|                         <Named+>(Word "=")                     DestructureVariables<?Typed>
++	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> ":" Type)
 +;
 
-+DestructureVariableKey<Typed> ::=
-+	| "$" ("_" | IDENTIFIER) <Typed+>(":" Type)
-+	| Word "=" DestructureVariableItem<?Typed>
-+;
++DestructureVariables<Typed>
++	::= "(" ","? (DestructureVariable<-Named><?Typed># | DestructureVariable<+Named><?Typed>#) ","? ")";
 
-+DestructureVariables<Typed> ::=
-+	| "(" ","? DestructureVariableItem <?Typed># ","? ")"
-+	| "(" ","? DestructureVariableKey  <?Typed># ","? ")"
-+;
-
-DeclarationVariable ::=
-	| "let" "var"? ("_" | IDENTIFIER)    ":" Type "=" Expression ";"
-+	| "let" DestructureVariables<-Typed> ":" Type "=" Expression ";"
-+	| "let" DestructureVariables<+Typed>          "=" Expression ";"
+DeclarationVariable<Break, Return> ::=
+	| "let" "var"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
+	| "let" "var"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
++	| "let" DestructureVariables<-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
++	| "let" DestructureVariables<+Typed>           "=" Expression<+Block><?Break><?Return> ";"
 ;
 ```

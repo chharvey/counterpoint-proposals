@@ -114,22 +114,17 @@ type R = (
 # Specfication
 ## Syntax Grammar
 ```diff
-+DestructurePropertyItem
-+	::= Word | DestructureProperties;
-
-+DestructurePropertyKey ::=
-+	| "$" Word
-+	| Word "=" DestructurePropertyItem
++DestructureProperty<Named> ::=
++	| <Named+>(Word "=" | "$") Word
++	| <Named+>(Word "=")       DestructureProperties
 +;
 
-+DestructureProperties ::=
-+	| "(" ","? DestructurePropertyItem# ","? ")"
-+	| "(" ","? DestructurePropertyKey#  ","? ")"
-+;
++DestructureProperties
++	::= "(" ","? (DestructureProperty<-Named># | DestructureProperty<+Named>#) ","? ")";
 
-Property ::=
+Property<Break> ::=
 	| "$" IDENTIFIER
--	| Word                           "=" Expression
-+	| (Word | DestructureProperties) "=" Expression
+-	|  Word                          "=" Expression<+Block><?Break>
++	| (Word | DestructureProperties) "=" Expression<+Block><?Break>
 ;
 ```

@@ -79,26 +79,26 @@ y == 420; % not 440
 
 # Specification
 ```diff
-Assignee ::=
+Assignee<Break> ::=
 	| IDENTIFIER
-	| ExpressionCompound PropertyAssign
+	| ExpressionCompound<+Block><?Break> "." PropertyAccessor<?Break>
 ;
 
-DestructurePropertyItem  ::= Word     | DestructureProperties;
-+DestructureAssigneeItem ::= Assignee | DestructureAssignees;
-
-DestructurePropertyKey  ::= "$" Word       | Word "=" DestructurePropertyItem;
-+DestructureAssigneeKey ::= "$" IDENTIFIER | Word "=" DestructureAssigneeItem;
-
-DestructureProperties ::=
-	| "(" ","? DestructurePropertyItem# ","? ")"
-	| "(" ","? DestructurePropertyKey#  ","? ")"
+DestructureProperty<Named> ::=
+	| <Named+>(Word "=" | "$") Word
+	| <Named+>(Word "=")       DestructureProperties
 ;
 
-+DestructureAssignees ::=
-+	| "(" ","? DestructureAssigneeItem# ","? ")"
-+	| "(" ","? DestructureAssigneeKey#  ","? ")"
++DestructureAssignee<Named> ::=
++	| <Named+>"$"        IDENTIFIER
++	| <Named+>(Word "=") (Assignee | DestructureAssignees)
 +;
+
+DestructureProperties
+	::= "(" ","? (DestructureProperty<-Named># | DestructureProperty<+Named>#) ","? ")";
+
++DestructureAssignees
++	::= "(" ","? (DestructureAssignee<-Named># | DestructureAssignee<+Named>#) ","? ")";
 
 DeclarationReassignment ::=
 	| "set" Assignee             ("=" | AugmentOperator | AugmentNegate) Expression ";"

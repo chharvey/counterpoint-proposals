@@ -207,9 +207,9 @@ nestOptional.(
 
 ## Syntax Grammar
 ```diff
-ParameterFunction<Optional> ::=
-		| (Word "=")? "var"? ("_" | IDENTIFIER)    ":" Type  & <Optional+>("?=" Expression)
-+		|  Word "="   DestructureVariables<-Typed> ":" Type  & <Optional+>("?=" Expression)
-+		|  Word "="   DestructureVariables<+Typed>           & <Optional+>("?=" Expression)
+ParameterFunction<Named, Optional> ::=
+	| <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER)           <Optional->(":" Type)   <Optional+>("?:" Type | ":" Type "?=" Expression<+Block><-Break><-Return>)
++	|                <Named+>(Word "=")                     DestructureVariables<-Typed>             ":" Type  & <Optional+>(                     "?=" Expression<+Block><-Break><-Return>)
++	|                <Named+>(Word "=")                     DestructureVariables<+Typed>                       & <Optional+>(                     "?=" Expression<+Block><-Break><-Return>)
 ;
 ```

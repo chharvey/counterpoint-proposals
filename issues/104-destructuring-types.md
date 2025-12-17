@@ -188,35 +188,24 @@ type B = Union.<(T, U)= (int, float)>; % destructured
 # Specfication
 ## Syntax Grammar
 ```diff
-ParameterGeneric<Optional>
--	::= (Word "=")?  IDENTIFIER                           (("narrows" | "widens") Type)? <Optional+>("?=" Type);
-+	::= (Word "=")? (IDENTIFIER | DestructureTypeAliases) (("narrows" | "widens") Type)? <Optional+>("?=" Type);
-
-ParametersGeneric ::=
-	|  ParameterGeneric<-Optional># ","?
-	| (ParameterGeneric<-Optional># ",")? ParameterGeneric<+Optional># ","?
+ParameterGeneric<Named, Optional> ::=
+	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER)                  (("narrows" | "widens") Type)?   <Optional+>("?=" Type)
++	| <Named+>(Word "=")       DestructureTypeAliases<-Restricted> (("narrows" | "widens") Type)?   <Optional+>("?=" Type)
++	| <Named+>(Word "=")       DestructureTypeAliases<+Restricted>                                & <Optional+>("?=" Type)
 ;
 
-GenericSpecifier
-	::= "<" ","? ParametersGeneric ">";
-
-
-+DestructureTypeAliasItem ::=
-+	| IDENTIFIER
-+	| DestructureTypeAliases
++DestructureTypeAlias<Named, Restricted> ::=
++	|               <Named+>(Word ":" | "$") ("_" | IDENTIFIER) <Restricted+>(("narrows" | "widens") Type)?
++	|               <Named+>(Word ":")       DestructureTypeAliases<?Restricted>
++	| <Restricted+>(<Named+>(Word ":")       DestructureTypeAliases<-Restricted> (("narrows" | "widens") Type)?)
 +;
 
-+DestructureTypeAliasKey ::=
-+	| "$" IDENTIFIER
-+	| Word ":" DestructureTypeAliasItem
-+;
++DestructureTypeAliases<Restricted>
++	::= "(" ","? (DestructureTypeAlias<-Named><?Restricted># | DestructureTypeAlias<+Named><?Restricted>#) ","? ")";
 
-+DestructureTypeAliases ::=
-+	| "(" ","? DestructureTypeAliasItem# ","? ")"
-+	| "(" ","? DestructureTypeAliasKey#  ","? ")"
-+;
-
--DeclarationType         ::= "type"      IDENTIFIER GenericSpecifier?                           "="  Type ";";
-+DeclarationType         ::= "type"     (IDENTIFIER GenericSpecifier? | DestructureTypeAliases) "="  Type ";";
- DeclarationTypeFunction ::= "typefunc"  IDENTIFIER GenericSpecifier?                           "=>" Type ";";
+DeclarationType ::=
+	| "type" ("_" | IDENTIFIER) (GenericSpecifier | ("narrows" | "widens") Type)? "="  Type ";"
++	| "type" DestructureTypeAliases<-Restricted> (("narrows" | "widens") Type)?   "="  Type ";"
++	| "type" DestructureTypeAliases<+Restricted>                                  "="  Type ";"
+;
 ```

@@ -80,32 +80,4 @@ nest.(
 ```
 
 # Syntax
-Syntax diff is identical to #44. Reiterating here for clarity.
-```diff
-DestructurePropertyItem  ::= Word       | DestructureProperties;
-DestructureAssigneeItem  ::= Assignee   | DestructureAssignees;
-
-DestructurePropertyKey  ::= "$" Word       | Word "=" DestructurePropertyItem;
-DestructureAssigneeKey  ::= "$" IDENTIFIER | Word "=" DestructureAssigneeItem;
-
-DestructureProperties ::=
-	| "(" ","? DestructurePropertyItem# ","? ")"
-	| "(" ","? DestructurePropertyKey#  ","? ")"
-;
-
-DestructureAssignees ::=
-	| "(" ","? DestructureAssigneeItem# ","? ")"
-	| "(" ","? DestructureAssigneeKey#  ","? ")"
-;
-
-Property ::=
-	| "$" IDENTIFIER
-	| (Word | DestructureProperties) "=" Expression
-;
-
-FunctionArguments ::=
-	| "("                                        ")"
-	| "(" ","?  Expression#                 ","? ")"
-	| "(" ","? (Expression# ",")? Property# ","? ")"
-;
-```
+Syntax diff is identical to #57 and #44.
