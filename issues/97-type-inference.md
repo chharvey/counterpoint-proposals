@@ -3,9 +3,9 @@ Type inference allows the programmer to omit explicit type annotations from some
 This issue opens the discussion, but not all features are slated for v0.5.0. Specifically, only variable declarations are slated for this release. Other features such as classes and functions are just brainstormed here.
 
 # Bottom-Up Type Inference
-If a variable/field is initialized to a primitive literal, template literal, typed lambda, or constructor call (including “IICEs”: immediately-invoked class expressions), then the type annotation may be omitted and the symbol’s type is inferred by the compiler. This also applies to optional function parameters with explicit default values.
+If a variable/field is initialized to a primitive literal, template literal, typed function expression, or constructor call (including “IICEs”: immediately-invoked class expressions), then the type annotation may be omitted and the symbol’s type is inferred by the compiler. This also applies to optional function parameters with explicit default values.
 
-For fixed variables and constant fields, the inferred type is the narrowest type of the initializer. A primitive literal implies a unit type, a template literal implies the `str` type, a typed lambda implies its type, and a constructor call implies the corresponding interface of the constructor’s class (mutable if not a data class).
+For fixed variables and constant fields, the inferred type is the narrowest type of the initializer. A primitive literal implies a unit type, a template literal implies the `str` type, a typed function expression implies its type, and a constructor call implies the corresponding interface of the constructor’s class (mutable if not a data class).
 ```cpl
 let untyped_var = null;                 %: null
 let untyped_var = false;                %: false
@@ -67,17 +67,17 @@ If the symbol is uninitialized or initialized to something else (e.g. a variable
 let untyped_var;             %> ParseError
 let var untyped_unfixed_var; %> ParseError
 
-let untyped_var = null && true;     %> TypeError
-let untyped_var = !!false;          %> TypeError
-let untyped_var = @hi || @there;    %> TypeError
-let untyped_var = 41 + 1;           %> TypeError
-let untyped_var = 3.2 + 1.5;        %> TypeError
-let untyped_var = return_hello.();  %> TypeError
-let untyped_var = ("hello",).0;     %> TypeError
-let untyped_var = \(a, b) => a + b; %> TypeError
+let untyped_var = null && true;     %> AssignmentError
+let untyped_var = !!false;          %> AssignmentError
+let untyped_var = @hi || @there;    %> AssignmentError
+let untyped_var = 41 + 1;           %> AssignmentError
+let untyped_var = 3.2 + 1.5;        %> AssignmentError
+let untyped_var = return_hello.();  %> AssignmentError
+let untyped_var = ("hello",).0;     %> AssignmentError
+let untyped_var = \(a, b) => a + b; %> AssignmentError
 
-function voidFn(no_default_value) {;}                       %> TypeError
-function sum(x ?= 1 - 1, var y ?= parseInt.("0")) => x + y; %> TypeError
+function voidFn(no_default_value) {;}                       %> AssignmentError
+function sum(x ?= 1 - 1, var y ?= parseInt.("0")) => x + y; %> AssignmentError
 ```
 
 If the symbol is declared/initialized to a collection literal (tuple/record/list/dict/set/map), then the above rules are applied recursively based on that collection’s entries. For example, if the collection only contains primitive literals, typed lambdas, and constructor calls, then the symbol may be unannotated. If the collection literal contains variables, operations, property accesses, or function calls, then the symbol must be explicitly annotated.
@@ -118,10 +118,10 @@ let var untyped_unfixed_var = (
 	\(a: int, b: int) => int,
 ) %%
 
-let untyped_var = (41 + 1,);           %> TypeError
-let untyped_var = (hello,);            %> TypeError
-let untyped_var = (return_hello.(),);  %> TypeError
-let untyped_var = (\(a, b) => a + b,); %> TypeError
+let untyped_var = (41 + 1,);           %> AssignmentError
+let untyped_var = (hello,);            %> AssignmentError
+let untyped_var = (return_hello.(),);  %> AssignmentError
+let untyped_var = (\(a, b) => a + b,); %> AssignmentError
 ```
 
 # Top-Down Type Inference
