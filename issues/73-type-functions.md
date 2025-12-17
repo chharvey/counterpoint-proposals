@@ -99,10 +99,7 @@ Keyword :::=
 
 ## Syntax
 ```diff
-GenericSpecifier
-	::= "<" ParametersGeneric ">";
-
-DeclarationType          ::= "type"     ("_" | IDENTIFIER) GenericSpecifier? "="  Type ";";
+ DeclarationType         ::= "type"     ("_" | IDENTIFIER) GenericSpecifier? "="  Type ";";
 +DeclarationTypeFunction ::= "typefunc" ("_" | IDENTIFIER) GenericSpecifier? "=>" Type ";";
 
 Declaration ::=

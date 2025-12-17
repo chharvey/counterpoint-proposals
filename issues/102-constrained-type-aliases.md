@@ -40,16 +40,8 @@ Since `Person` is nominal, anything assigned to it must nominally be a `Person`.
 
 # Syntax
 ```diff
-ParameterGeneric<Optional>
-	::= IDENTIFIER ("narrows" Type)? <Optional+>("?=" Type);
-
-ParametersGeneric ::=
-	|  ParameterGeneric<-Optional># ","?
-	| (ParameterGeneric<-Optional># ",")? ParameterGeneric<+Optional># ","?
-;
-
--DeclarationType ::= "type" IDENTIFIER ("<" ","? ParametersGeneric ">"                              )? "=" Type ";";
-+DeclarationType ::= "type" IDENTIFIER ("<" ","? ParametersGeneric ">" | ("narrows" | "widens") Type)? "=" Type ";";
+-DeclarationType ::= "type" ("_" | IDENTIFIER)  GenericSpecifier?                                "="  Type ";";
++DeclarationType ::= "type" ("_" | IDENTIFIER) (GenericSpecifier | ("narrows" | "widens") Type)? "="  Type ";";
 ```
 
 # Semantics
