@@ -30,6 +30,17 @@ The same rules of named arguments (#57) apply:
 
 ## Syntax
 ```diff
++GenericArgumentNamed ::=
++	| "$" IDENTIFIER
++	| Word "=" Type
++;
+
+GenericArguments ::=
+-	| "<" ","? Type#                              ","? ">"
++	| "<" ","? Type# ("," GenericArgumentNamed#)? ","? ">"
++	| "<" ","?            GenericArgumentNamed#   ","? ">"
+;
+
 -ParameterGeneric<Optional> ::=
 +ParameterGeneric<Named, Optional> ::=
 -	|                          ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
