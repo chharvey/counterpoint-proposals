@@ -54,27 +54,14 @@ let sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported her
 > TypeError: Got 3 parameters, but expected 2.
 
 ### Optional Parameters
-When a function implements an annotation that has optional parameters, it syntactically looks like it has required parameters. They’re still optional though.
+When a function implements an annotation that has optional parameters, the optional parameter is succeeded by a `?` sigil. When it has no default value, it implicitly defaults to `null` (#55).
 ```cpl
 type Binop = \(float, ?: float) => float; % second parameter is optional
-function add(a, b) impl Binop {
-%               ^ looks required, but isn’t
+function add(a, b?) impl Binop {
+%               ^ optional, defaulting to `null`
 	a; %: float
 	b; %: float | null
 	return a + (b || 0.0);
-};
-add.(2.0, 3.0); %== 5.0
-add.(2.0);      %== 2.0
-```
-In this example, `add` implements `Binop`, so we don’t explicitly write out its parameter types. Parameter `b` is optional, but it also doesn’t have an explicit default value (its default value is implicitly `null` — see #55). These facts combined make it look like `b` is a required parameter from a syntax perspective. Semantically, though, it’s still optional when the function is called.
-
-There may be a future change in syntax to address this problem. For now, it’s better to provide a default value if possible.
-```cpl
-type Binop = \(float, ?: float) => float;
-function add(a, b ?= 0.0) impl Binop {
-	a; %: float
-	b; %: float
-	return a + b;
 };
 add.(2.0, 3.0); %== 5.0
 add.(2.0);      %== 2.0

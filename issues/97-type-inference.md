@@ -152,11 +152,11 @@ map.<Person, str>(people, \(p, i) {
 });
 ```
 
-As discussed in #84, there’s not currently a way for an untyped function expression to indicate that one of its parameters is optional, aside from providing a default value. There may be a future change in syntax to address this problem.
+As shown in #84, an untyped optional parameter is succeeded by a question mark `?` (and potentially a default value).
 ```cpl
 type Binop = \(float, ?: float) => float; % second parameter is optional
-let add: Binop = \(a, b) {
-%                     ^ looks required, but isn’t … providing a default value would make it clear
+let add: Binop = \(a, b?) {
+%                     ^ optional
 	a; %: float
 	b; %: float | null
 	return a + (b || 0.0);
