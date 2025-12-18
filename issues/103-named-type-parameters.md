@@ -1,8 +1,8 @@
 Like function parameters (#46), type parameters (of a type alias or type function) may be named. The name may be supplied when **specified** (“called”).
 
 ```cpl
-type Union<Left= A, Right= B> = A | B;
-type Intersection<Left= A, Right= B ?= null> = A & B;
+typefunc Union<Left= A, Right= B> => A | B;
+typefunc Intersection<Left= A, Right= B? = null> => A & B;
 
 type IntOrFloat = Union.<Left=  int,   Right= float>; %== int   | float
 type IntOrFloat = Union.<Right= float, Left=  int>;   %== int   | float
@@ -17,7 +17,7 @@ Identifiers `A` and `B` are **internal**: accessible at the “define site”; i
 
 We can use `$`-punning for shorthand when the external and internal name are the same: `$T` is shorthand for `T= T`.
 ```cpl
-type Union<$A, $B> = A | B;
+typefunc Union<$A, $B> => A | B;
 type IntOrFloat = Union.<A= int, B= float>;
 ```
 
@@ -30,10 +30,21 @@ The same rules of named arguments (#57) apply:
 
 ## Syntax
 ```diff
++GenericArgumentNamed ::=
++	| "$" IDENTIFIER
++	| Word "=" Type
++;
+
+GenericArguments ::=
+-	| "<" ","? Type#                              ","? ">"
++	| "<" ","? Type# ("," GenericArgumentNamed#)? ","? ">"
++	| "<" ","?            GenericArgumentNamed#   ","? ">"
+;
+
 -ParameterGeneric<Optional> ::=
 +ParameterGeneric<Named, Optional> ::=
--	|                          ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
-+	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
+-	|                          ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
 ;
 
 ParametersGeneric ::=

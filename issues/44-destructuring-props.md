@@ -106,25 +106,35 @@ rec == (
 We can destructure the properties of record *types* as well:
 ```cpl
 type R = (
-	a:      int,
-	(b, c): (str, str), % shorthand for `b: str, c: str,`
+	a:            int,
+	(b, c):       (str, str),         % shorthand for `b: str,  c: str,`
+	($d, $e):     (d: bool, e: bool), % shorthand for `d: bool, e: bool,`
+	(f: g, h: i): (f: nat, h: nat),   % shorthand for `g: nat,  i: nat,`
 );
 ```
 
 # Specfication
 ## Syntax Grammar
 ```diff
-+DestructureProperty<Named> ::=
-+	| <Named+>(Word "=" | "$") Word
-+	| <Named+>(Word "=")       DestructureProperties
++DestructureLabel<Named, Colon> ::=
++	| <Named+>(Word & <Colon->"=" <Colon+>":" | "$") Word
++	| <Named+>(Word & <Colon->"=" <Colon+>":")       DestructureLabels
 +;
 
-+DestructureProperties
-+	::= "(" ","? (DestructureProperty<-Named># | DestructureProperty<+Named>#) ","? ")";
++DestructureLabels<Colon>
++	::= "(" ","? (DestructureLabel<-Named><?Colon># | DestructureLabel<+Named><?Colon>#) ","? ")";
+
+PropertiesType
+-	::= ","?  EntryType<+Named><∓Optional>                                      # ","?;
++	::= ","? (EntryType<+Named><∓Optional> | DestructureLabels<+Colon> ":" Type)# ","?;
+
+TypeRecordLiteral ::= "(" PropertiesType ")";
 
 Property<Break> ::=
 	| "$" IDENTIFIER
--	|  Word                          "=" Expression<+Block><?Break>
-+	| (Word | DestructureProperties) "=" Expression<+Block><?Break>
+-	|  Word                              "=" Expression<+Block><?Break>
++	| (Word | DestructureLabels<-Colon>) "=" Expression<+Block><?Break>
 ;
+
+RecordLiteral<Break> ::= "(" ","? Property<?Break># ","? ")";
 ```

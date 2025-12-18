@@ -66,7 +66,7 @@ Unbound variables in default parameter values must be captured.
 ```cp
 let my_var: str = "hello";
 
-function make_question[my_var](s: str ?= my_var): str => """{{ s }}?""";
+function make_question[my_var](s?: str = my_var): str => """{{ s }}?""";
 
 make_question.(); %== "hello?"
 
@@ -82,7 +82,7 @@ function my_fn(): str {
 }
 
 % copies and binds `my_fn` to `make_question`, but does not evaluate `my_fn.()` here
-function make_question[my_fn](s: str ?= my_fn.()): str => """{{ s }}?""";
+function make_question[my_fn](s?: str = my_fn.()): str => """{{ s }}?""";
 
 make_question.();     % prints `"hello"`, returns `"world?"`
 make_question.("hi"); % prints nothing,   returns `"hi?"`

@@ -4,7 +4,7 @@ The built-in types `Maybe<T>` and `Result<T, E>` declare values that may be one 
 The built-in type `Maybe<T>` declares a value that may or may not exist. It is similar to `T | null` except that `Maybe` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Maybe` type is split into two subtypes, `Some` and `None`. The `Some` type has an internal value whereas `None` does not.
 ```cp
 interface Maybe<out T> {
-	then<U ?= T>(callback: (T) => U): Maybe.<U>;
+	then<U? = T>(callback: (T) => U): Maybe.<U>;
 }
 interface Some<out T> inherits Maybe.<T> {
 	new (value: T);
@@ -171,14 +171,14 @@ if maybe is Some then {
 ## Result
 The built-in type `Result<T, E>` declares a value that may be any value or may be an Exception. It is similar to `T | Exception` except that `Result` is a **discriminated** (“tagged”) union, or “algebraic sum” type. Unlike a (“untagged”) type union, it has structure. The `Result` type is split into two subtypes, `Ok` and `Fail`. Both subtypes have internal values, with the value of `Fail` being an instance of the `Exception` class.
 ```cp
-interface Result<out T, out E narrows Exception ?= Exception> {
-	then<U ?= T, V ?= E>(on_ok: (T) => U, on_ex: (E) => V): Result.<U, V>;
+interface Result<out T, out E? narrows Exception = Exception> {
+	then<U? = T, V? = E>(on_ok: (T) => U, on_ex: (E) => V): Result.<U, V>;
 }
-interface Ok<out T, out E narrows Exception ?= Exception> inherits Result.<T, E> {
+interface Ok<out T, out E? narrows Exception = Exception> inherits Result.<T, E> {
 	new (value: T);
 	% private readonly value: T;
 }
-interface Fail<out T, out E narrows Exception ?= Exception> inherits Result.<T, E> {
+interface Fail<out T, out E? narrows Exception = Exception> inherits Result.<T, E> {
 	new (reason?: E | str);
 	% private readonly reason: E;
 }

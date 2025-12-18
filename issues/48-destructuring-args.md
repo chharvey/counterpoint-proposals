@@ -80,4 +80,24 @@ nest.(
 ```
 
 # Syntax
-Syntax diff is identical to #57 and #44.
+```diff
+DestructureLabel<Named, Colon> ::=
+	| <Named+>(Word & <Colon->"=" <Colon+>":" | "$") Word
+	| <Named+>(Word & <Colon->"=" <Colon+>":")       DestructureLabels
+;
+
+DestructureLabels<Colon>
+	::= "(" ","? (DestructureLabel<-Named><?Colon># | DestructureLabel<+Named><?Colon>#) ","? ")";
+
+
+GenericArgumentNamed ::=
+	| "$" IDENTIFIER
+-	|  Word                              "=" Type
++	| (Word | DestructureLabels<-Colon>) "=" Type
+;
+
+GenericArguments ::=
+	| "<" ","? Type# ("," GenericArgumentNamed#)? ","? ">"
+	| "<" ","?            GenericArgumentNamed#   ","? ">"
+;
+```

@@ -37,7 +37,7 @@ eq2.(42, "42"); % no error; returns `false` at runtime
 ## Optional & Constrained Parameters
 Like generic type aliases, generic functions can have optional generic parameters (with a default value). Below, if a type is not provided for `U`, it is `T` by default.
 ```cp
-function foldList<T, U ?= T>(list: T[], reducer: (U, T) => U, initial: U): U {
+function foldList<T, U? = T>(list: T[], reducer: (U, T) => U, initial: U): U {
 	; % ...
 }
 let total: int = foldList.<int>([2, 3, 4], (a: int, b: int): int => a + b, 0);
@@ -61,44 +61,47 @@ makeBox.<null>("42"); %> TypeError: Expression of type `"42"` is not assignable 
 
 ## Generic Function Types
 A **generic function type** has generic parameters preceding the regular parameter list.
-```cp
-type Comparator1 = <T>(T, T) => int;
+```cpl
+type Comparator1 = \<T>(T, T) => int;
+%                  ^ generic function type
 ```
-The type above is a generic function that requires one type argument and two arguments every time it is called.
-```cp
-let lessThan1: Comparator1 = <U>(a: U, b: U): int {
+The type above represents a function that requires one generic argument and two value arguments every time it is called.
+```cpl
+let lessThan1: Comparator1 = \<U>(a: U, b: U): int {
 	; % ...
-}
+};
 lessThan1.<int>(3, 4);            %== true
 lessThan1.<int>("three", "four"); %== false
+lessThan1.(3, 4);                 %> TypeError: expected 1 generic arguments, got 0
 ```
 
-This is different from a *generic type alias that happens to be a function type*:
-```cp
-type Comparator2<T> = (T, T) => int;
+This is different from a *generic type function (#73) that also happens to be a (non-generic) function type*:
+```cpl
+typefunc Comparator2<T> => (T, T) => int;
 ```
 The latter only requires a type argument when specified, but not when called.
-```cp
-let lessThan2: Comparator2.<float> = (a: float, b: float): int {
+```cpl
+let lessThan2: Comparator2.<float> = \(a: float, b: float): int {
 	; % ...
 }
-lessThan2.(3.0, 4.0); %== true
-lessThan2.(3, 4);     %> TypeError: argument `int` not assignable to parameter `float`
+lessThan2.(3.0, 4.0);        %== true
+lessThan2.(3, 4);            %> TypeError: argument `int` not assignable to parameter `float`
+lessThan2.<float>(3.0, 4.0); %> TypeError: expected 0 generic arguments, got 1
 ```
 
-It is possible to combine a *generic function type* with a *generic type alias*.
-```cp
-type Nuller<T> = <U>(T, U) => null;
+It is possible to define a *generic type function* with a *generic function type*. Though a bit confusing, it can be useful in function annotations (#86).
+```cpl
+typefunc Nuller<T> => \<U>(T, U) => null;
+%        ^            ^ generic function type
+%        ^ generic type function
 
-let g: Nuller.<int> = <U>(i: int, j: U): null {
+let g: Nuller.<int> = \<U>(i: int, j: U): null {
 	i; j; return null;
 };
-let h: Nuller.<bool> = <U>(i: bool, j: U): null {
+let h: Nuller.<bool> = \<U>(i: bool, j: U): null {
 	i; j; return null;
 };
 
 g.<float>(42, 4.2);
 h.<str>(true, "world");
 ```
-
-(To make matters worse, both concepts above are unrelated to *type functions* (#73).)

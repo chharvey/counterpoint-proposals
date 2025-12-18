@@ -77,7 +77,7 @@ let untyped_var = ("hello",).0;     %> AssignmentError
 let untyped_var = \(a, b) => a + b; %> AssignmentError
 
 function voidFn(no_default_value) {;}                       %> AssignmentError
-function sum(x ?= 1 - 1, var y ?= parseInt.("0")) => x + y; %> AssignmentError
+function sum(x? = 1 - 1, var y? = parseInt.("0")) => x + y; %> AssignmentError
 ```
 
 If the symbol is declared/initialized to a collection literal (tuple/record/list/dict/set/map), then the above rules are applied recursively based on that collection’s entries. For example, if the collection only contains primitive literals, typed lambdas, and constructor calls, then the symbol may be unannotated. If the collection literal contains variables, operations, property accesses, or function calls, then the symbol must be explicitly annotated.
@@ -167,10 +167,10 @@ add.(2.0);      %== 2.0
 
 In the last section, we said that a parameter initialized to something other than a literal, typed lambda, or constructor call, would require a type annotation. The exception is in top-down typing, where an untyped lambda has a parameter with a default value. The default value can be “something else” (e.g. a variable, operation, property access, function call, block-expression, or even another *untyped* lambda), which is acceptable because the whole lambda is getting typed anyway, through top-down assignment.
 ```cpl
-let subtract: \(int, ?: int) => int = (a, b ?= some_value) => a - b;
+let subtract: \(int, ?:int) => int = \(a, b? = some_value) => a - b;
 %                                              ^ type inference is still possible here because `b` will be assigned type `int`.
-type Binop = \(int, ?: int) => int;
-function add(a, b ?= some_value) impl Binop => a + b;
+type Binop = \(int, ?:int) => int;
+function add(a, b? = some_value) impl Binop => a + b;
 %                    ^ same… via the `impl` clause
 ```
 

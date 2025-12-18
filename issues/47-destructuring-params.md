@@ -114,14 +114,14 @@ function f((
 ## Optional Parameters
 Optional destructured parameters work just like regular parameters; they must be initialized to a value assignable to the correct type.
 ```cpl
-function printPlanetNamed((name: str, value: float) ?= ("Earth", 6371.0)): void {
+function printPlanetNamed((name: str, value: float)? = ("Earth", 6371.0)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanetNamed: \(?: (str, float)) => void
 ```
 We can also have optional record destructuring parameters:
 ```cpl
-function printPlanetNamed((name= n: str, value= v: float) ?= (name= "Earth", value= 6371.0)): void {
+function printPlanetNamed((name= n: str, value= v: float)? = (name= "Earth", value= 6371.0)): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: \(?: (name: str, value: float)) => void
@@ -182,12 +182,12 @@ nest.(
 );
 
 function nestOptional(
-	s= (a, b): (int, int)                               ?= (19, 20),
-	t= ($c: int, delta= d: int)                         ?= (c= 21, delta= 22),
-	u= (g: int, (h, i): (int, int))                     ?= (23, (24, 25)),
-	v= (j: int, ($k: int, lima= l: int))                ?= (26, (k= 27, lima= 28)),
-	w= ($m: int, november= (n, o): (int, int))          ?= (m= 29, november= (30, 31)),
-	x= (papa= p: int, quebec= ($q: int, romeo= r: int)) ?= (papa= 32, quebec= (q= 33, romeo= 34)),
+	s= (a, b)?: (int, int)                               = (19, 20),
+	t= ($c: int, delta= d: int)?                         = (c= 21, delta= 22),
+	u= (g: int, (h, i): (int, int))?                     = (23, (24, 25)),
+	v= (j: int, ($k: int, lima= l: int))?                = (26, (k= 27, lima= 28)),
+	w= ($m: int, november= (n, o): (int, int))?          = (m= 29, november= (30, 31)),
+	x= (papa= p: int, quebec= ($q: int, romeo= r: int))? = (papa= 32, quebec= (q= 33, romeo= 34)),
 ): void {;}
 %% typeof nestOptional: \(
 	s?: (int, int),
@@ -213,8 +213,8 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Named, Optional> ::=
-	| <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER)           <Optional->(":" Type)   <Optional+>("?:" Type | ":" Type "?=" Expression<+Block><-Break><-Return>)
-+	|                <Named+>(Word "=")                     DestructureVariables<-Typed>             ":" Type  & <Optional+>(                     "?=" Expression<+Block><-Break><-Return>)
-+	|                <Named+>(Word "=")                     DestructureVariables<+Typed>                       & <Optional+>(                     "?=" Expression<+Block><-Break><-Return>)
+	| <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER)           <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	|                <Named+>(Word "=")                     DestructureVariables<-Typed> <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	|                <Named+>(Word "=")                     DestructureVariables<+Typed> <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
 ;
 ```

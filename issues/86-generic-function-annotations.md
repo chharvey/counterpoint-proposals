@@ -10,8 +10,8 @@ function lessThan2(a, b) impl Comparator2.<float> {
 ```
 
 The only thing to remember here is that if the implemented signature takes a generic parameter, the generic parameter of the implmeneting function may be declared. This allows us to use the parameter as an argument of the annotation, if needed.
-```cp
-type Voider<A, B> = (A, B) => void;
+```cpl
+typefunc Voider<A, B> => \(A, B) => void;
 
 function myFunction<T>(x, y) impl Voider.<str, T> {
 %                   ^ generic parameter is here, on the function name
@@ -24,9 +24,9 @@ myFunction.<int>("hello", 42);
 ```
 The function `myFunction` above has a generic parameter, which is required whenever the function is called. That parameter also happens to be used as an argument of the `Voider` generic type.
 
-This next example uses a generic type alias whose value is itself a generic function. Notice we may omit a function’s generic parameter if we’re not using it in the implementation call nor in the function body.
-```cp
-type Nuller<T> = <U>(T, U) => null;
+This next example uses a generic type function whose value is itself a generic function. Notice we may omit a function’s generic parameter if we’re not using it in the implementation call nor in the function body.
+```cpl
+typefunc Nuller<T> => \<U>(T, U) => null;
 
 function g(i, j) impl Nuller.<int> {
 %         ^ no generic parameter needed
