@@ -34,7 +34,7 @@ multiply.(a= 5, b= 3, c= 2); %> TypeError: too many arguments
 
 After all arguments are assigned, and assuming no type errors, any unassigned optional parameters are then evaluated. This happens in the function *call*, not in its definition.
 ```cpl
-function multiply(a: float, b: float ?= 1.0): float {
+function multiply(a: float, b?: float = 1.0): float {
 	return a * b;
 };
 multiply.(2.0); % evaluates default `b` here

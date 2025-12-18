@@ -2,7 +2,7 @@ Like function parameters (#46), type parameters (of a type alias or type functio
 
 ```cpl
 typefunc Union<Left= A, Right= B> => A | B;
-typefunc Intersection<Left= A, Right= B ?= null> => A & B;
+typefunc Intersection<Left= A, Right= B? = null> => A & B;
 
 type IntOrFloat = Union.<Left=  int,   Right= float>; %== int   | float
 type IntOrFloat = Union.<Right= float, Left=  int>;   %== int   | float
@@ -43,8 +43,8 @@ GenericArguments ::=
 
 -ParameterGeneric<Optional> ::=
 +ParameterGeneric<Named, Optional> ::=
--	|                          ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
-+	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type)
+-	|                          ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
 ;
 
 ParametersGeneric ::=

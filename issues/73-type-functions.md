@@ -120,7 +120,7 @@ There are other kinds of type functions that aren’t infinite loops, but simply
 ## Optional Parameters
 Generic type functions can be defined with **optional generic parameters**, which must have a default value. When the generic is specified, the argument may be omitted, in which case the default value is assumed. All optional parameters must come after all required parameters.
 ```cpl
-typefunc Or<T, U ?= null> => T | U;
+typefunc Or<T, U? = null> => T | U;
 type X = Or.<int, bool>;            % resolves to type `int | bool`
 type Y = Or.<int>;                  % resolves to type `int | null`
 ```
@@ -169,7 +169,7 @@ Keyword :::=
 ## Syntax
 ```diff
 +ParameterGeneric<Optional>
-+	::= ("_" | IDENTIFIER) (("narrows" | "widens") Type)? <Optional+>("?=" Type);
++	::= ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type);
 
 +ParametersGeneric ::=
 +	| ","? ParameterGeneric<-Optional># ("," ParameterGeneric<+Optional>#)? ","?
@@ -240,32 +240,32 @@ SemanticDeclaration =:=
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage[dir=WIDENS] Decorate(Type))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= "_" "?=" Type) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= "_" "?" "=" Type) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticDefaultType Decorate(Type))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?=" Type) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?" "=" Type) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticDefaultType Decorate(Type))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= "_" "narrows" Type__0 "?=" Type__1) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= "_" "?" "narrows" Type__0 "=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticHeritage[dir=NARROWS] Decorate(Type__0))
 +		(SemanticDefaultType Decorate(Type__1))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "narrows" Type__0 "?=" Type__1) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?" "narrows" Type__0 "=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage[dir=NARROWS] Decorate(Type__0))
 +		(SemanticDefaultType Decorate(Type__1))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= "_" "widens" Type__0 "?=" Type__1) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= "_" "?" "widens" Type__0 "=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticHeritage[dir=WIDENS] Decorate(Type__0))
 +		(SemanticTypeDefault Decorate(Type__1))
 +	);
-+Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "widens" Type__0 "?=" Type__1) -> SemanticTypeParam
++Decorate(ParameterGeneric<+Optional> ::= IDENTIFIER "?" "widens" Type__0 "=" Type__1) -> SemanticTypeParam
 +	:= (SemanticTypeParam
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		(SemanticHeritage[dir=WIDENS] Decorate(Type__0))

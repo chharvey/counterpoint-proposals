@@ -47,17 +47,17 @@ type (
 ### Defaults and Shorthand
 As with variable/parameter destructuring (#43, #47), we can provide defaults for symbols that don’t have a corresponding entry.
 ```cpl
-type (A, B ?= str)                = (int,);         % `(A, B) == (int, str)`
-type ($C ?= int, $D ?= bool)      = (D: str);       % `(C, D) == (int, str)`
-type (echo: E ?= int, foxtrot: F) = (foxtrot: str); % `(E, F) == (int, str)`
+type (A, B? = str)                = (int,);         % `(A, B) == (int, str)`
+type ($C? = int, $D? = bool)      = (D: str);       % `(C, D) == (int, str)`
+type (echo: E? = int, foxtrot: F) = (foxtrot: str); % `(E, F) == (int, str)`
 ```
 
 You can use this same notation to short-hand type declarations, if you like.
 ```cpl
 % shorthand for `type (A, B) = (int, str);`
-type (A ?= int, B ?= str) = ();                       % `(A, B) == (int, str)`
-type ($C ?= int, $D ?= str) = (x: bool);              % `(C, D) == (int, str)`
-type (echo: E ?= int, foxtrot: F ?= str) = (x: bool); % `(E, F) == (int, str)`
+type (A? = int, B? = str) = ();                       % `(A, B) == (int, str)`
+type ($C? = int, $D? = str) = (x: bool);              % `(C, D) == (int, str)`
+type (echo: E? = int, foxtrot: F? = str) = (x: bool); % `(E, F) == (int, str)`
 ```
 
 ## Nested Destructuring
@@ -188,9 +188,9 @@ type B = Union.<(T, U)= (int, float)>; % destructured
 +	::= "(" ","? (DestructureTypeAlias<-Named><?Restricted># | DestructureTypeAlias<+Named><?Restricted>#) ","? ")";
 
 ParameterGeneric<Named, Optional> ::=
-	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER)                  (("narrows" | "widens") Type)?   <Optional+>("?=" Type)
-+	| <Named+>(Word "=")       DestructureTypeAliases<-Restricted> (("narrows" | "widens") Type)?   <Optional+>("?=" Type)
-+	| <Named+>(Word "=")       DestructureTypeAliases<+Restricted>                                & <Optional+>("?=" Type)
+	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER)                  <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=")       DestructureTypeAliases<-Restricted> <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=")       DestructureTypeAliases<+Restricted> <Optional+>"?"                                <Optional+>("=" Type)
 ;
 
 DeclarationType ::=
