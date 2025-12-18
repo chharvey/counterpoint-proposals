@@ -14,6 +14,7 @@ There are five areas where destructuring can be used:
 	3. to reassign variables and properties
 	4. to pass named arguments to a function call
 	5. to declare function parameters
+	6. to declare types
 
 Additional topics not covered here:
 - destructuring defaults for variables and function parameters
