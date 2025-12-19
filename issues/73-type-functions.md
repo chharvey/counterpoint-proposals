@@ -63,7 +63,7 @@ typefunc BinaryTree => () | (BinaryTree, BinaryTree);
 ```
 In this example, `BinaryTree` references itself, as a 2-tuple of `BinaryTree`s. One might be interested in computing the depth of such an object.
 ```cpl
-function depth(tree: BinaryTree): int
+func depth(tree: BinaryTree): int
 	=> if tree.count > 0
 		then 1 + max.(depth.(tree.0), depth.(tree.1))
 		else 0;

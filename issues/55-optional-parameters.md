@@ -4,7 +4,7 @@
 An optional parameter must have a **default value**, and when the argument for that optional parameter is omitted, the function is called as if the default value were provided.
 
 ```cpl
-function moveForward(steps?: int = 1): void {
+func moveForward(steps?: int = 1): void {
 	steps; %: int
 }
 moveForward; %: \(?: int) => void
@@ -21,18 +21,18 @@ The signature above indicates that a function of type `BinaryOperatorTypeUnnamed
 
 All optional parameters must be declared after all required parameters; otherwise it’s a syntax error.
 ```cpl
-function breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
-function dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
+func breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
+func dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
 type Meal = \(?:str, str) => void;                            %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
 ```cpl
-function moveForward(steps?: int = false): void {;} %> TypeError: `false` not assignable to `int`
+func moveForward(steps?: int = false): void {;} %> TypeError: `false` not assignable to `int`
 ```
 
 Optional parameters may be unfixed (reassignable within the function):
 ```cpl
-function greet(var greeting?: str = "Hello"): void {
+func greet(var greeting?: str = "Hello"): void {
 	greeting = if greeting == "" then "Hi" else greeting;
 	"""{{ greeting }}, world!""";
 }
@@ -42,20 +42,20 @@ greet; %: \(?: str) => void
 ## Default Parameter Evaluation
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cpl
-function say_hello(): void {
+func say_hello(): void {
 	print.("hello");
 };
-function run[say_hello](x?: void = say_hello.()): void {}; % does not print "hello" here
-run.();                                                    % prints "hello" here
-run.();                                                    % prints "hello" again
+func run[say_hello](x?: void = say_hello.()): void {}; % does not print "hello" here
+run.();                                                % prints "hello" here
+run.();                                                % prints "hello" again
 ```
 
 If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cpl
 %-- Variable Reassignment --%
 %% line 2 %% let var init: bool = false;
-function say[init](b?: bool = init): void { print.(b); }
-%                             ^ refers to the `init` from line 2
+func say[init](b?: bool = init): void { print.(b); }
+%                         ^ refers to the `init` from line 2
 say.(); % prints `false`
 
 set init = true; % reassigns `init` from line 2, but not captured variable on line 3
@@ -66,8 +66,8 @@ say.();          % still prints `false`
 %-- Import Shadowing --%
 % Module "a"
 %% line 3 %% let init: bool = false;
-public function say[init](b?: bool = init): void { print.(b); }
-%                                    ^ refers to the `init` from line 3
+public func say[init](b?: bool = init): void { print.(b); }
+%                                ^ refers to the `init` from line 3
 say.(); % prints `false`
 
 % Module "b"
@@ -79,7 +79,7 @@ say.();                % still prints `false`
 ```cpl
 %-- Variable Mutation --%
 let a: mut [int] = [42];
-function twice[a](x?: int = a.[0]): int => x * 2;
+func twice[a](x?: int = a.[0]): int => x * 2;
 twice.(); %== 84
 set a.[0] = 12;
 twice.(); %== 24
