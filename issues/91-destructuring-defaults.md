@@ -59,7 +59,7 @@ function g(arg= (a= alfa: int, b= bravo?: int = 3, c= charlie: int)): anything {
 % typeof g: \(arg: (a: int, b?: int, c: int)) => anything
 g.(arg= (a= 1, c= 2)); %== (1, 3, 2)
 
-function h(arg= ($a: int, $b?: int = 3, $c: int)): anything {
+func h(arg= ($a: int, $b?: int = 3, $c: int)): anything {
 	arg; %> ReferenceError
 	return (a, b, c);
 };
@@ -70,12 +70,12 @@ Since named function parameters are required, we must **alias** the destructured
 
 Just because a destructured function parameter may have optional entries doesn’t mean the *entire parameter* is optional. The three examples above all have required parameters (an argument is required when calling). If we want the parameter to be optional, we must provide a *separate* default value (#55).
 ```cpl
-function f(arg= (a: int, b: int, c?: int = 3)? = (4, 5, 6)): anything => (a, b, c);
+func f(arg= (a: int, b: int, c?: int = 3)? = (4, 5, 6)): anything => (a, b, c);
 % typeof f: \(arg?: (int, int, ?: int)) => anything
 f.(arg= (1, 2)); %== (1, 2, 3)
 f.();            %== (4, 5, 6)
 
-function h(arg= ($a: int, $b?: int = 3, $c: int)? = (a= 4, c= 5)): anything => (a, b, c);
+func h(arg= ($a: int, $b?: int = 3, $c: int)? = (a= 4, c= 5)): anything => (a, b, c);
 % typeof h: \(arg?: (a: int, b?: int, c: int)) => anything
 h.(arg= (a= 1, c= 2)); %== (1, 3, 2)
 h.();                  %== (4, 3, 5)

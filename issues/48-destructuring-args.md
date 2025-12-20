@@ -2,7 +2,7 @@ Destructuring named arguments for function calls.
 
 When we want to send named parameters into a function call, we may destructure the argument labels.
 ```cpl
-function pythag(side1: float, side2: float, hypotenuse: float): bool
+func pythag(side1: float, side2: float, hypotenuse: float): bool
 	=> side1 ^ 2 + side2 ^ 2 == hypotenuse ^ 2;
 ```
 We can call this function in three ways:
@@ -49,7 +49,7 @@ pythag.(
 
 Function argument destructuring can be nested as well.
 ```cpl
-function nest(
+func nest(
 	a: int, b: int, c: int, d: int, g: int, h: int, i: int, j: int,
 	k: int, l: int, m: int, n: int, o: int, p: int, q: int, r: int,
 ): void {}
