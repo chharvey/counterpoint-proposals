@@ -12,8 +12,8 @@ typefunc Nullable<T> => T | null;
 `T` is not a type, but a **type variable** that serves as a parameter to the type function. The act of providing an actual value for `T` is called **specifying** the generic type function `Nullable`. It can also be thought of as “calling” or “instantiating” it.
 
 ```cpl
-let my_value_int: Nullable.<int> = 42;   % resolves to type `int | null`
-let my_value_str: Nullable.<str> = null; % resolves to type `str | null`
+val my_value_int: Nullable.<int> = 42;   % resolves to type `int | null`
+val my_value_str: Nullable.<str> = null; % resolves to type `str | null`
 ```
 Notice the difference in syntax between generic type declaration and generic type specification: `Nullable<T>` versus `Nullable.<int>`.
 
@@ -26,7 +26,7 @@ typefunc And<T, U>   => T & U;
 Providing the incorrect number of arguments resolves in a TypeError.
 ```cpl
 typefunc Or<T, U> => T | U;
-let x: Or.<int> = 42;       %> TypeError: Got 1 generic arguments, but expected 2.
+val x: Or.<int> = 42;       %> TypeError: Got 1 generic arguments, but expected 2.
 ```
 
 Type functions that take inputs are just one example of “generic types” (though not the only one — functions, classes, and interfaces can be generic too). Not all type functions are generic — they could have no parameters. An example of a non-generic type function is:
@@ -38,13 +38,13 @@ When considering whether to use a non-generic type function versus a plain type 
 ```cpl
 %% 0. %% type TypeAlias = str | [str];
 %% 1. %% type A = TypeAlias;           % `TypeAlias` is evaluated here
-%% 2. %% let a: A = some_expression;   % type `A` is already known
+%% 2. %% val a: A = some_expression;   % type `A` is already known
 
 %% 3. %% type TypeFunction<T> = T | [T];
 %% 4. %% type B = TypeFunction.<str>;    % `TypeFunction.<str>` is specified here, but not evaluated yet
-%% 5. %% let b: B = some_expression;     % `TypeFunction.<str>` is evaluated here!
+%% 5. %% val b: B = some_expression;     % `TypeFunction.<str>` is evaluated here!
 ```
-When a type alias is declared (line 1), it’s evaluated right then and there. Its definition (`str | [str]`) is injected in place wherever it’s used. In other words, type aliases are just a surface-level construct — line 1 is exactly identical to `type A = str | [str];`, and line 2 is exactly identical to `let a: str | [str] = some_expression;`
+When a type alias is declared (line 1), it’s evaluated right then and there. Its definition (`str | [str]`) is injected in place wherever it’s used. In other words, type aliases are just a surface-level construct — line 1 is exactly identical to `type A = str | [str];`, and line 2 is exactly identical to `val a: str | [str] = some_expression;`
 
 But on line 4, when a type function is referenced, it’s not evaluated yet! It’s only evaluated, and only part by part, *when assigned an expression*, on line 5. The type-checker first asks, “is `some_expression` assignable to `TypeFunction.<str>`?” and then evaluates `TypeFunction` by parts to compute the answer. This is unlike a type alias where it already knows the type before assigning a variable to it.
 
@@ -63,7 +63,7 @@ typefunc BinaryTree => () | (BinaryTree, BinaryTree);
 ```
 In this example, `BinaryTree` references itself, as a 2-tuple of `BinaryTree`s. One might be interested in computing the depth of such an object.
 ```cpl
-function depth(tree: BinaryTree): int
+func depth(tree: BinaryTree): int
 	=> if tree.count > 0
 		then 1 + max.(depth.(tree.0), depth.(tree.1))
 		else 0;
@@ -85,22 +85,22 @@ The following example is a recursive generic type function.
 ```cpl
 typefunc Induction<T> => T | Induction.<[T]>;
 
-let x: Induction.<float> = [[42]]; % `Induction.<float>` is evaluated here
+val x: Induction.<float> = [[42]]; % `Induction.<float>` is evaluated here
 ```
 Since `Induction<T>` is defined as a union, the type-checker tests `[[42]]` on an operand basis — first checking against `float` and then recursively checking against `Induction.<[float]>`, then `[float]`, `Induction.<[[float]]>`, etc.
 
 We can use **type spread** (#68) in type functions.
-```cp
+```cpl
 typefunc EvenTuple<T> => [] | [T, T, #EvenTuple.<T>];
 
-let n0: EvenTuple.<null> = [];
-let n1: EvenTuple.<null> = [null, null];
-let n2: EvenTuple.<null> = [null, null, null, null];
-let n3: EvenTuple.<null> = [null, null, null, null, null, null];
+val n0: EvenTuple.<null> = [];
+val n1: EvenTuple.<null> = [null, null];
+val n2: EvenTuple.<null> = [null, null, null, null];
+val n3: EvenTuple.<null> = [null, null, null, null, null, null];
 ```
 
 ## Infinite Loops
-Lazy evaluation can result in infinite loops, which the compiler will report. For example, every possible value is assignable to `typefunc U => U;`. Type `U` is basically equivalent to `anything`; a declaration such as `let x: U = [42];` is valid. Since `U` is a type function, a naïve compiler would evaluate `U` at every step of the way and never stop.
+Lazy evaluation can result in infinite loops, which the compiler will report. For example, every possible value is assignable to `typefunc U => U;`. Type `U` is basically equivalent to `anything`; a declaration such as `val x: U = [42];` is valid. Since `U` is a type function, a naïve compiler would evaluate `U` at every step of the way and never stop.
 
 > (“Is `[42]` assignable to `U`? I don’t know, check the definition of `U`.
 > Is `[42]` assignable to `U`? I don’t know, …”)
@@ -110,7 +110,7 @@ A smarter compiler will memoize variable types. While checking whether `[42]` is
 > (“Is `[42]` assignable to `U`? I don’t know, but let’s assume so while checking the definition of `U`.
 > Is `[42]` assignable to `U`? It appears that it is, so return true.”)
 
-There are other kinds of type functions that aren’t infinite loops, but simply result in unassignable types. For example, no value is ever assignable to `typefunc N => (N,);`. This type declaration is valid, but as soon as an assignment is made (`let x: N = (42,);`), a type error is thrown. Type `N` is basically equivalent to `nothing`.
+There are other kinds of type functions that aren’t infinite loops, but simply result in unassignable types. For example, no value is ever assignable to `typefunc N => (N,);`. This type declaration is valid, but as soon as an assignment is made (`val x: N = (42,);`), a type error is thrown. Type `N` is basically equivalent to `nothing`.
 
 > (“Is `(42,)` assignable to `N`? I don’t know, but let’s assume so while checking the definition of `N`.
 > Is `(42,)` assignable to `(N,)`? Let’s see…
@@ -134,7 +134,7 @@ type Z = Nullish.<str>;                              %> TypeError: Type `str` is
 Use the `widens` keyword to constrain a type parameter in the opposite direction: to declare it as a supertype.
 ```cpl
 typefunc Nullish<T widens int> => T | null;
-let x: Nullish.<42 | 43> = 42;              %> TypeError: Type `int` is not a subtype of type `42 | 43`.
+val x: Nullish.<42 | 43> = 42;              %> TypeError: Type `int` is not a subtype of type `42 | 43`.
 ```
 
 `widens` is only recommended when `narrows` would require accessing latter parameters.

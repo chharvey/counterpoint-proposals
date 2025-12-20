@@ -6,16 +6,16 @@ Type declarations can be destructured.
 We can declare many types in one concise destructuring statement:
 ```cpl
 type (A, B) = (int, str);
-let x: A = 42;
-let y: B = "420";
+val x: A = 42;
+val y: B = "420";
 ```
 
 Destructuring applies to nominal type aliases as well.
 ```cpl
 type (X, nominal Y) = (int, int);
-let x: X = 42;
-let y: Y = 42;        %> TypeError
-let y: Y = 42 as <Y>; % ok
+val x: X = 42;
+val y: Y = 42;        %> TypeError
+val y: Y = 42 as <Y>; % ok
 ```
 
 Above, we used **tuple destructuring**, that is, assigning the “pattern” *(`A`, `B`)* a tuple type. We can also use **record destructuring** by assigning it a record type.
@@ -26,10 +26,10 @@ type ($A, $B) = (A: int, B: str);
 As with record punning (#24), the symbol `$` is shorthand for repeating the type name — `($A)` is shorthand for `(A: A)`, where the first `A` is the property in the record type that we’re destructuring, and the second `A` is the new type alias we want to declare. If our record type has different property names, we can use aliases.
 ```cpl
 type (alpha: A, bravo: B) = (bravo: str, alpha: int);
-let x: A     = 42;
-let y: B     = "420";
-let x: alpha = 42;    %> ReferenceError
-let y: bravo = "420"; %> ReferenceError
+val x: A     = 42;
+val y: B     = "420";
+val x: alpha = 42;    %> ReferenceError
+val y: bravo = "420"; %> ReferenceError
 ```
 
 Record type destructuring has an advantage over tuple type destructuring: we can change up the order in which we declare types. With a tuple, the order of declared types must match the order of entries in the tuple type. With a record type, we can switch the order as shown above.
@@ -107,8 +107,8 @@ type (golf= g: int, hotel= h: int) = (golf= 42, h= 420);               %> TypeEr
 
 Of course, the assigned items must be assignable to the variables’ types.
 ```cpl
-let (a, b, c): (int, int, int)       = (42, 420, 123.45);      %> TypeError (`123.45` is not an int)
-let ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
+val (a, b, c): (int, int, int)       = (42, 420, 123.45);      %> TypeError (`123.45` is not an int)
+val ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 ```
 
 ## Destructuring Generic Type Parameters

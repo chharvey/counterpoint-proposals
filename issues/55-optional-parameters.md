@@ -4,7 +4,7 @@
 An optional parameter must have a **default value**, and when the argument for that optional parameter is omitted, the function is called as if the default value were provided.
 
 ```cpl
-function moveForward(steps?: int = 1): void {
+func moveForward(steps?: int = 1): void {
 	steps; %: int
 }
 moveForward; %: \(?: int) => void
@@ -21,18 +21,18 @@ The signature above indicates that a function of type `BinaryOperatorTypeUnnamed
 
 All optional parameters must be declared after all required parameters; otherwise it’s a syntax error.
 ```cpl
-function breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
-function dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
+func breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
+func dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
 type Meal = \(?:str, str) => void;                            %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
 ```cpl
-function moveForward(steps?: int = false): void {;} %> TypeError: `false` not assignable to `int`
+func moveForward(steps?: int = false): void {;} %> TypeError: `false` not assignable to `int`
 ```
 
 Optional parameters may be unfixed (reassignable within the function):
 ```cpl
-function greet(var greeting?: str = "Hello"): void {
+func greet(mut greeting?: str = "Hello"): void {
 	greeting = if greeting == "" then "Hi" else greeting;
 	"""{{ greeting }}, world!""";
 }
@@ -42,20 +42,20 @@ greet; %: \(?: str) => void
 ## Default Parameter Evaluation
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cpl
-function say_hello(): void {
+func say_hello(): void {
 	print.("hello");
 };
-function run[say_hello](x?: void = say_hello.()): void {}; % does not print "hello" here
-run.();                                                    % prints "hello" here
-run.();                                                    % prints "hello" again
+func run[say_hello](x?: void = say_hello.()): void {}; % does not print "hello" here
+run.();                                                % prints "hello" here
+run.();                                                % prints "hello" again
 ```
 
 If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cpl
 %-- Variable Reassignment --%
-%% line 2 %% let var init: bool = false;
-function say[init](b?: bool = init): void { print.(b); }
-%                             ^ refers to the `init` from line 2
+%% line 2 %% val mut init: bool = false;
+func say[init](b?: bool = init): void { print.(b); }
+%                         ^ refers to the `init` from line 2
 say.(); % prints `false`
 
 set init = true; % reassigns `init` from line 2, but not captured variable on line 3
@@ -65,21 +65,21 @@ say.();          % still prints `false`
 ```cpl
 %-- Import Shadowing --%
 % Module "a"
-%% line 3 %% let init: bool = false;
-public function say[init](b?: bool = init): void { print.(b); }
-%                                    ^ refers to the `init` from line 3
+%% line 3 %% val init: bool = false;
+public func say[init](b?: bool = init): void { print.(b); }
+%                                ^ refers to the `init` from line 3
 say.(); % prints `false`
 
 % Module "b"
 from "a" import say;
-let init: bool = true;
+val init: bool = true;
 say.();                % still prints `false`
 %   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
 ```
 ```cpl
 %-- Variable Mutation --%
-let a: mut [int] = [42];
-function twice[a](x?: int = a.[0]): int => x * 2;
+val a: mut [int] = [42];
+func twice[a](x?: int = a.[0]): int => x * 2;
 twice.(); %== 84
 set a.[0] = 12;
 twice.(); %== 24
@@ -97,8 +97,8 @@ ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":" ("void" | Type) (Bloc
 
 -ParameterFunction<Named>
 +ParameterFunction<Named, Optional>
--	::= <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER)                ":" Type;
-+	::= <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
+-	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)                ":" Type;
++	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
 
 ParametersType ::=
 -	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?
@@ -137,13 +137,13 @@ SemanticParameter[unfixed: Boolean]
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<-Named>            ::= "var" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= "var" "_" ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<-Named>            ::= "mut" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<-Named><-Optional> ::= "mut" "_" ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<-Named>            ::= "var" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= "var" IDENTIFIER ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<-Named>            ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<-Named><-Optional> ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
@@ -161,14 +161,14 @@ SemanticParameter[unfixed: Boolean]
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<+Named>            ::= "var" "$" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "var" "$" "_" ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<+Named>            ::= "mut" "$" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named><-Optional> ::= "mut" "$" "_" ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticKey[id=TokenWorth("_")])
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<+Named>            ::= "var" "$" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "var" "$" IDENTIFIER ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<+Named>            ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named><-Optional> ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		(SemanticKey[id=TokenWorth(IDENTIFIER)])
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -187,14 +187,14 @@ SemanticParameter[unfixed: Boolean]
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" "var" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "var" "_" ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<+Named>            ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		Decorate(Word)
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" "var" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "var" IDENTIFIER ":" Type) -> SemanticParameter
+-Decorate(ParameterFunction<+Named>            ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
 	:= (SemanticParameter[unfixed=true]
 		Decorate(Word)
 		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -211,12 +211,12 @@ SemanticParameter[unfixed: Boolean]
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= "var" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<-Named><+Optional> ::= "mut" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= "var" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<-Named><+Optional> ::= "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
@@ -235,13 +235,13 @@ SemanticParameter[unfixed: Boolean]
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "var" "$" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<+Named><+Optional> ::= "mut" "$" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth("_")])
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "var" "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<+Named><+Optional> ::= "mut" "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -261,13 +261,13 @@ SemanticParameter[unfixed: Boolean]
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "var" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "mut" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Word)
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "var" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
++Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Word)
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -401,17 +401,17 @@ Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence
 +			FunctionTypeOf(ParameterFunction<?Named><?Optional>),
 -		];
 
--FunctionTypeOf(ParameterFunction<-Named>            ::= "var"? ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticItemType
-+FunctionTypeOf(ParameterFunction<-Named><∓Optional> ::= "var"? ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticItemType
+-FunctionTypeOf(ParameterFunction<-Named>            ::= "mut"? ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticItemType
++FunctionTypeOf(ParameterFunction<-Named><∓Optional> ::= "mut"? ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticItemType
 	:= (SemanticItemType[optionanl=false] Decorate(Type));
--FunctionTypeOf(ParameterFunction<+Named>            ::= "var"? "$" ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticPropertyType
-+FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= "var"? "$" ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
+-FunctionTypeOf(ParameterFunction<+Named>            ::= "mut"? "$" ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= "mut"? "$" ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
 	:= (SemanticPropertyType[optional=false]
 		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 		Decorate(Type)
 	);
--FunctionTypeOf(ParameterFunction<+Named>            ::= Word "=" "var"? ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticPropertyType
-+FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= Word "=" "var"? ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
+-FunctionTypeOf(ParameterFunction<+Named>            ::= Word "=" "mut"? ("_" | IDENTIFIER)                ":" Type)                                                        -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named><∓Optional> ::= Word "=" "mut"? ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)) -> SemanticPropertyType
 	:= (SemanticPropertyType[optional=false]
 		Decorate(Word)
 		Decorate(Type)
