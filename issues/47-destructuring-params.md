@@ -31,7 +31,7 @@ function printPlanet((name: str, value: float)): void {
 
 Destructuring applies to unfixed parameters as well.
 ```cpl
-function printPlanet((var name, value): (str, float)): void {
+function printPlanet((mut name, value): (str, float)): void {
 	set name  = """Planet {{ name }}"""; % ok
 	set value = value + 1.0;             %> AssignmentError
 }
@@ -101,8 +101,8 @@ Again, we can declare unfixed parameters.
 function f((
 	$w:          int, % punning for `w= w: int`
 	xray=     x: int,
-	var $y:      int, % punning for `y= var y: int`
-	zulu= var z: int,
+	mut $y:      int, % punning for `y= mut y: int`
+	zulu= mut z: int,
 )): void {
 	set w = 0; %> AssignmentError
 	set x = 0; %> AssignmentError
@@ -213,7 +213,7 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Named, Optional> ::=
-	| <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER)           <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
+	| <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)           <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
 +	|                <Named+>(Word "=")                     DestructureVariables<-Typed> <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
 +	|                <Named+>(Word "=")                     DestructureVariables<+Typed> <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
 ;

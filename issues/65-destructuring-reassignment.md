@@ -3,8 +3,8 @@ Destructuring for variable & property reassignment. Depends on #43.
 # Discussion
 Destructuring reassignment is shorthand syntax for reassignment of variables and properties. As with variable and property declaration, we can use either tuple or record destructuring.
 ```cpl
-let var x: int = 42;
-let var y: int = 420;
+let mut x: int = 42;
+let mut y: int = 420;
 
 % tuple destructuring:
 set (x, y) = (43, 430);
@@ -54,8 +54,8 @@ set ($p, quebec= ($q, romeo= r)) = (p= 16, quebec= (q= 17, romeo= 18));
 
 With destructuring for reassignment, we can use the variables’ previous values.
 ```cpl
-let var x: int = 42;
-let var y: int = 420;
+let mut x: int = 42;
+let mut y: int = 420;
 
 set (x, y) = (x + 1, y + 10);
 x == 43;
@@ -68,8 +68,8 @@ y == 43;
 
 We can reassign variables in the same destructuring statement without affecting each other.
 ```cpl
-let var x: int = 42;
-let var y: int = 0;
+let mut x: int = 42;
+let mut y: int = 0;
 
 set (x, y) = (x + 2, x * 10); % evaluated first as `(44, 420)`
 x == 44;

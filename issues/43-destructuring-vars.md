@@ -40,7 +40,7 @@ let (x: int, y: int) = (42, 420);
 
 Destructuring applies to unfixed variables as well.
 ```cpl
-let (x, var y): (int, int) = (42, 420);
+let (x, mut y): (int, int) = (42, 420);
 set x = 0; %> AssignmentError
 set y = 0; % ok
 ```
@@ -72,8 +72,8 @@ Again, we can assign unfixed variables.
 let (
 	$w:          int, % punning for `w= w: int`
 	xray=     x: int,
-	var $y:      int, % punning for `y= var y: int`
-	zulu= var z: int,
+	mut $y:      int, % punning for `y= mut y: int`
+	zulu= mut z: int,
 ) = (
 	w=       42,
 	y=      420,
@@ -121,7 +121,7 @@ let ($p: int, quebec= ($q: int, romeo= r: int))                          = (p= 1
 (g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r) ==
 (7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18); %== true
 ```
-Any variable in a nested destructure may be preceded with the modifier `var`.
+Any variable in a nested destructure may be preceded with the modifier `mut`.
 
 ## Errors and Caveats
 
@@ -175,7 +175,7 @@ let ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 ## Syntax Grammar
 ```diff
 +DestructureVariable<Named, Typed> ::=
-+	|          <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
++	|          <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
 +	|                         <Named+>(Word "=")                     DestructureVariables<?Typed>
 +	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> ":" Type)
 +;
@@ -184,8 +184,8 @@ let ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 +	::= "(" ","? (DestructureVariable<-Named><?Typed># | DestructureVariable<+Named><?Typed>#) ","? ")";
 
 DeclarationVariable<Break, Return> ::=
-	| "let" "var"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
-	| "let" "var"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
+	| "let" "mut"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
+	| "let" "mut"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
 +	| "let" DestructureVariables<-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
 +	| "let" DestructureVariables<+Typed>           "=" Expression<+Block><?Break><?Return> ";"
 ;

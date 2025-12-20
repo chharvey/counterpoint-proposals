@@ -36,9 +36,9 @@ let my_fn: \(a: int, b: int) => void =
 !!my_fn; %== true
 ```
 
-Some parameters may be declared with `var`, which means they can be reassigned within the function body.
+Some parameters may be declared with `mut`, which means they can be reassigned within the function body.
 ```cpl
-func add(var a: int, b: int): void {
+func add(mut a: int, b: int): void {
 	set a = a + 1; % ok
 	set b = b - 1; %> AssignmentError
 	return;
@@ -47,7 +47,7 @@ func add(var a: int, b: int): void {
 
 Some parameters may be **named**, which means when the function is called (see v0.7.0) its arguments must have a corresponding name. The **external name** is before the equals sign and is what the caller will use to name their arguments. The **internal name** comes after the equal sign and is used as the parameter name in the function body.
 ```cpl
-func add(alpha= a: int, bravo= var b: int): void {
+func add(alpha= a: int, bravo= mut b: int): void {
 	set b = b - 1;
 	"""
 		The first argument is {{ a }}.
@@ -60,7 +60,7 @@ When called, the caller must supply arguments for `alpha` and `bravo`.
 
 If we want the external and internal names to be the same, we can use `$`-punning: `$a` is shorthand for `a= a`.
 ```cpl
-func add($a: int, var $b: int): void {
+func add($a: int, mut $b: int): void {
 	set b = b - 1;
 	"""
 		The first argument is {{ a }}.
@@ -246,7 +246,7 @@ StatementBreak    ::= ("break" | "continue") ";";
 +Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
 
 +ParameterFunction<Named>
-+	::= <Named->"var"? <Named+>(Word "=" "var"? | "var"? "$") ("_" | IDENTIFIER) ":" Type;
++	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) ":" Type;
 
 +ParametersType ::=
 +	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?
@@ -398,11 +398,11 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction<-Named> ::= "var" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<-Named> ::= "mut" "_" ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction<-Named> ::= "var" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<-Named> ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
@@ -418,12 +418,12 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction<+Named> ::= "var" "$" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named> ::= "mut" "$" "_" ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth("_")])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction <+Named>::= "var" "$" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction <+Named>::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -440,12 +440,12 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction<+Named> ::= Word "=" "var" "_" ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named> ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Word)
 +		Decorate(Type)
 +	);
-+Decorate(ParameterFunction<+Named> ::= Word "=" "var" IDENTIFIER ":" Type) -> SemanticParameter
++Decorate(ParameterFunction<+Named> ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
 +	:= (SemanticParameter[unfixed=true]
 +		Decorate(Word)
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
@@ -513,14 +513,14 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +			FunctionTypeOf(ParameterFunction<?Named>),
 +		];
 
-+FunctionTypeOf(ParameterFunction<-Named> ::= "var"? ("_" | IDENTIFIER) ":" Type) -> SemanticItemType
++FunctionTypeOf(ParameterFunction<-Named> ::= "mut"? ("_" | IDENTIFIER) ":" Type) -> SemanticItemType
 +	:= (SemanticItemType[optionanl=false] Decorate(Type));
-+FunctionTypeOf(ParameterFunction<+Named> ::= "var"? "$" ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named> ::= "mut"? "$" ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
 +	:= (SemanticPropertyType[optional=false]
 +		(SemanticKey[id=TokenWorth("_" | IDENTIFIER)])
 +		Decorate(Type)
 +	);
-+FunctionTypeOf(ParameterFunction<+Named> ::= Word "=" "var"? ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
++FunctionTypeOf(ParameterFunction<+Named> ::= Word "=" "mut"? ("_" | IDENTIFIER) ":" Type) -> SemanticPropertyType
 +	:= (SemanticPropertyType[optional=false]
 +		Decorate(Word)
 +		Decorate(Type)
