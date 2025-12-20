@@ -12,14 +12,14 @@ pythag.(side1= 3.0, side2= 4.0, hypotenuse= 5.0);
 
 
 % tuple destructuring:
-let tuple: (float, float, float) = (3.0, 4.0, 5.0);
+val tuple: (float, float, float) = (3.0, 4.0, 5.0);
 pythag.((side1, side2, hypotenuse)= tuple);
 % shorthand for:
 % pythag.(side1= tuple.0, side2= tuple.1, hypotenuse= tuple.2);
 
 
 % record destructuring:
-let record: (a: float, b: float, c: float) = (a= 3.0, b= 4.0, c= 5.0);
+val record: (a: float, b: float, c: float) = (a= 3.0, b= 4.0, c= 5.0);
 pythag.((a= side1, b= side2, c= hypotenuse)= record);
 % shorthand for:
 % pythag.(side1= record.a, side2= record.b, hypotenuse= record.c);
@@ -28,7 +28,7 @@ pythag.((a= side1, b= side2, c= hypotenuse)= record);
 The arguments do not necessarily need to be destructured in the same argument; we can split them up and rearrange them:
 ```cpl
 % tuple destructuring:
-let tuple: (float, float, float) = (3.0, 4.0, 5.0);
+val tuple: (float, float, float) = (3.0, 4.0, 5.0);
 pythag.(
 	(hypotenuse)=   (5.0),
 	(side1, side2)= tuple,
@@ -38,7 +38,7 @@ pythag.(
 
 
 % record destructuring:
-let record: (a: float, b: float, c: float) = (a= 3.0, b= 4.0, c= 5.0);
+val record: (a: float, b: float, c: float) = (a= 3.0, b= 4.0, c= 5.0);
 pythag.(
 	(c= hypotenuse)=      (c= 5.0),
 	(b= side2, a= side1)= record,

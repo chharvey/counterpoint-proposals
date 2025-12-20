@@ -53,7 +53,7 @@ run.();                                                % prints "hello" again
 If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cpl
 %-- Variable Reassignment --%
-%% line 2 %% let mut init: bool = false;
+%% line 2 %% val mut init: bool = false;
 func say[init](b?: bool = init): void { print.(b); }
 %                         ^ refers to the `init` from line 2
 say.(); % prints `false`
@@ -65,20 +65,20 @@ say.();          % still prints `false`
 ```cpl
 %-- Import Shadowing --%
 % Module "a"
-%% line 3 %% let init: bool = false;
+%% line 3 %% val init: bool = false;
 public func say[init](b?: bool = init): void { print.(b); }
 %                                ^ refers to the `init` from line 3
 say.(); % prints `false`
 
 % Module "b"
 from "a" import say;
-let init: bool = true;
+val init: bool = true;
 say.();                % still prints `false`
 %   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
 ```
 ```cpl
 %-- Variable Mutation --%
-let a: mut [int] = [42];
+val a: mut [int] = [42];
 func twice[a](x?: int = a.[0]): int => x * 2;
 twice.(); %== 84
 set a.[0] = 12;

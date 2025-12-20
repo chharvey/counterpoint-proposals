@@ -30,8 +30,8 @@ This is a function expression (lambda):
 };
 ```
 Lambdas are normal expressions that can be operated on and passed around like any other value. For instance, lambdas can be assigned to variables. Lambdas are always “truthy”.
-```point
-let my_fn: \(a: int, b: int) => void =
+```cpl
+val my_fn: \(a: int, b: int) => void =
 	\(a: int, b: int): void { a + b; return; };
 !!my_fn; %== true
 ```
@@ -79,7 +79,7 @@ func foo(a: int, b: int, $c: int, delta= d: int, $e: int): void { return; }
 ## Type Signatures
 A function’s **type signature** is its type, written in the form of `\(‹params›) => ‹return›`. It indicates what types of arguments are accepted and what type the function returns. This issue only covers functions that return `void`. The type of a positional parameter is just its type, whereas the type of a named parameter is `‹name›: ‹type›`. The type signature provides a contract to the caller of what’s expected in the arguments list.
 ```cpl
-let my_fn: \(int, b: int) => void =
+val my_fn: \(int, b: int) => void =
 	\(a: int, $b: int): void { a + b; return; };
 
 % typeof my_fn: \(int, b: int) => void
@@ -89,7 +89,7 @@ let my_fn: \(int, b: int) => void =
 When assigning a function to a type signature with named parameters (in the case of type alias assignment or abstract method implementation), the assigned positional parameter order must match up with the assignee positional parameters.
 ```cpl
 type BinaryOperatorType = \(int, float) => void;
-let add: BinaryOperatorType = \(second: float, first: int): void { float first + second; return; }; %> TypeError
+val add: BinaryOperatorType = \(second: float, first: int): void { float first + second; return; }; %> TypeError
 ```
 > TypeError: Type `\(float, int) => void` is not assignable to type `\(int, float) => void`.
 
@@ -98,7 +98,7 @@ The reason for this error is that one should expect to be able to call any `Bina
 For named parameters, function assignment is like record assignment: the parameter names of the assigned must match the parameter names of the assignee.
 ```cpl
 type BinaryOperatorType = \(first: float, second: float) => void;
-let subtract: BinaryOperatorType = \($x: float, $y: float): void { x - y; return; }; %> TypeError
+val subtract: BinaryOperatorType = \($x: float, $y: float): void { x - y; return; }; %> TypeError
 ```
 > TypeError: Type `\(x: float, y: float) => void` is not assignable to type `\(first: float, second: float) => void`.
 
@@ -106,9 +106,9 @@ This errors because a caller must be able to call `subtract` with the named argu
 
 ## Variance
 Function parameter types are **contravariant**. This means that when assigning a function `g` to a function type `F`, the type of each parameter of `F` must be assignable to the corresponding parameter’s type of `g`.
-```point
+```cpl
 type UnaryOperator = \(float | str) => void;
-let g: UnaryOperator = \(x: float): void { %> TypeError
+val g: UnaryOperator = \(x: float): void { %> TypeError
 	x; %: float
 	return;
 };
@@ -116,8 +116,8 @@ let g: UnaryOperator = \(x: float): void { %> TypeError
 A type error is raised because we cannot assign a `\(float) => void` type to a `\(float | str) => void` type. Even though the parameter’s type is narrower, a caller should expect to be able to call any `UnaryOperator` implementation with a `str` argument, and our implementation doesn’t allow that.
 
 However, we can *widen* the parameter types:
-```point
-let h: UnaryOperator = \(x: int | float | str): void {
+```cpl
+val h: UnaryOperator = \(x: int | float | str): void {
 	x; %: int | float | str
 	return;
 };
