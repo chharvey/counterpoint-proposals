@@ -15,12 +15,6 @@ With the constraint in place, the typer throws a compile-time error in one place
 type JustInt narrows Maybe.<int> = float; %> TypeError: `float` is not a subtype of `Maybe.<int>`
 ```
 
-Note that type alias constraints do not (and cannot) apply to generic type aliases.
-```cp
-type MyType<T> narrows T | null = SomeComplicatedGeneric.<T> | T; %> SyntaxError
-```
-The reason is that there’s just no way, in the general case and at the declaration site, for the compiler to evaluate the assigned type expression before it’s specified with a type argument.
-
 Type aliases that are constrained by nominal type aliases (#79) must also be nominal. This ensures that nominility is preserved in the type hierarchy.
 ```cp
 type nominal Person = [name: str, dob: nat];
@@ -40,8 +34,8 @@ Since `Person` is nominal, anything assigned to it must nominally be a `Person`.
 
 # Syntax
 ```diff
--DeclarationType ::= "type" ("_" | IDENTIFIER)  GenericSpecifier?                                "="  Type ";";
-+DeclarationType ::= "type" ("_" | IDENTIFIER) (GenericSpecifier | ("narrows" | "widens") Type)? "="  Type ";";
+-DeclarationType ::= "type" ("_" | IDENTIFIER)                                "="  Type ";";
++DeclarationType ::= "type" ("_" | IDENTIFIER) (("narrows" | "widens") Type)? "="  Type ";";
 ```
 
 # Semantics
@@ -51,9 +45,6 @@ SemanticHeritage[dir: NARROWS | WIDENS] ::= SemanticType;
 SemanticDeclarationTypeAlias
 -	::= SemanticTypeAlias                   SemanticType;
 +	::= SemanticTypeAlias SemanticHeritage? SemanticType;
-
-SemanticDeclarationTypeGeneric
-	::= SemanticTypeAlias SemanticTypeParam+ SemanticType;
 ```
 
 # Decorate
@@ -75,10 +66,4 @@ Decorate(DeclarationType ::= "type" IDENTIFIER "=" Type ";") -> SemanticDeclarat
 +		(SemanticHeritage[dir=WIDENS] Decorate(Type__0))
 +		Decorate(Type__1)
 +	);
-Decorate(DeclarationType ::= "type" IDENTIFIER "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
-	:= (SemanticDeclarationTypeGeneric
-		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
-		...Decorate(ParametersGeneric)
-		Decorate(Type)
-	);
 ```

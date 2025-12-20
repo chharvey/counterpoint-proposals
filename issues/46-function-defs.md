@@ -6,8 +6,8 @@ Define synchronous function declarations and function expressions.
 This issue covers defining void synchronous functions only, which do return but do not return a value (#70). This issue does not cover non-void functions, asynchronous functions, or error throwing.
 
 This is a function declaration:
-```point
-function add(a: int, b: int): void {
+```cpl
+func add(a: int, b: int): void {
 	"""
 		The first argument is {{ a }}.
 		The second argument is {{ b }}.
@@ -37,8 +37,8 @@ let my_fn: \(a: int, b: int) => void =
 ```
 
 Some parameters may be declared with `var`, which means they can be reassigned within the function body.
-```point
-function add(var a: int, b: int): void {
+```cpl
+func add(var a: int, b: int): void {
 	set a = a + 1; % ok
 	set b = b - 1; %> AssignmentError
 	return;
@@ -47,7 +47,7 @@ function add(var a: int, b: int): void {
 
 Some parameters may be **named**, which means when the function is called (see v0.7.0) its arguments must have a corresponding name. The **external name** is before the equals sign and is what the caller will use to name their arguments. The **internal name** comes after the equal sign and is used as the parameter name in the function body.
 ```cpl
-function add(alpha= a: int, bravo= var b: int): void {
+func add(alpha= a: int, bravo= var b: int): void {
 	set b = b - 1;
 	"""
 		The first argument is {{ a }}.
@@ -60,7 +60,7 @@ When called, the caller must supply arguments for `alpha` and `bravo`.
 
 If we want the external and internal names to be the same, we can use `$`-punning: `$a` is shorthand for `a= a`.
 ```cpl
-function add($a: int, var $b: int): void {
+func add($a: int, var $b: int): void {
 	set b = b - 1;
 	"""
 		The first argument is {{ a }}.
@@ -73,7 +73,7 @@ Now the caller must supply arguments for `a` and `b`, which are the same names u
 
 A function can have named and unnamed (“positional”) parameters, but all named parameters *must* come after all positional parameters. It is a syntax error to have them not in that order. However, within the named parameters, punned and un-punned parameters may be intermixed.
 ```cpl
-function foo(a: int, b: int, $c: int, delta= d: int, $e: int): void { return; }
+func foo(a: int, b: int, $c: int, delta= d: int, $e: int): void { return; }
 ```
 
 ## Type Signatures
@@ -136,7 +136,7 @@ Punctuator :::=
 
 Keyword :::=
 	// storage
-+		| "function"
++		| "func"
 	// statement
 +		| "return"
 ;
@@ -259,7 +259,7 @@ StatementBreak    ::= ("break" | "continue") ";";
 +;
 
 +DeclarationFunction
-+	::= "function" IDENTIFIER DeclaredFunction;
++	::= "func" IDENTIFIER DeclaredFunction;
 
 Declaration ::=
 	| DeclarationVariable

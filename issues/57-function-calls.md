@@ -9,10 +9,10 @@ Function arguments may be a mix of **positional arguments** and **named argument
 
 Positional arguments correspond to positional parameters, and named arguments correspond to named parameters. It’s an error to assign a named argument to a positional parameter or vice versa.
 ```cpl
-function add(a: int, b: int): int => a + b;
-function subtract(a: int, $b: int): int => a - b;
-function multiply($a: int, $b: int): int => a * b;
-function divide($a: int, b: int): int => a / b; %> Error % positional param cannot appear after named param
+func add(a: int, b: int): int => a + b;
+func subtract(a: int, $b: int): int => a - b;
+func multiply($a: int, $b: int): int => a * b;
+func divide($a: int, b: int): int => a / b; %> Error % positional param cannot appear after named param
 add.(5, 3);            %== 8
 add.(5, b= 3);         %> Error
 subtract.(5, 3);       %> Error
@@ -34,7 +34,7 @@ multiply.(a= 5, b= 3, c= 2); %> TypeError: too many arguments
 
 After all arguments are assigned, and assuming no type errors, any unassigned optional parameters are then evaluated. This happens in the function *call*, not in its definition.
 ```cpl
-function multiply(a: float, b: float ?= 1.0): float {
+func multiply(a: float, b?: float = 1.0): float {
 	return a * b;
 };
 multiply.(2.0); % evaluates default `b` here
