@@ -95,10 +95,12 @@ TypeFunction
 DeclaredFunction   ::=     "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
 ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
 
--ParameterFunction<Named>
-+ParameterFunction<Named, Optional>
--	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)                ":" Type;
-+	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
+-ParameterFunction<Named>           ::= (
++ParameterFunction<Named, Optional> ::= (
+	| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
+	| <Named+>("mut"? "$" IDENTIFIER)
+-)                ":" Type;
++) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
 
 ParametersType ::=
 -	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?

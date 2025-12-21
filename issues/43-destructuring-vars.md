@@ -175,18 +175,21 @@ val ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
 ## Syntax Grammar
 ```diff
 +DestructureVariable<Named, Typed> ::=
-+	|          <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
-+	|                         <Named+>(Word "=")                     DestructureVariables<?Typed>
-+	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> ":" Type)
++	| (
++		| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
++		| <Named+>("mut"? "$" IDENTIFIER)
++	) <Typed+>(":" Type)
++	|          <Named+>(Word "=") DestructureVariables<?Typed>
++	| <Typed+>(<Named+>(Word "=") DestructureVariables<-Typed> ":" Type)
 +;
 
 +DestructureVariables<Typed>
 +	::= "(" ","? (DestructureVariable<-Named><?Typed># | DestructureVariable<+Named><?Typed>#) ","? ")";
 
 DeclarationVariable<Break, Return> ::=
-	| "let" "mut"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
-	| "let" "mut"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
-+	| "let" DestructureVariables<-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
-+	| "let" DestructureVariables<+Typed>           "=" Expression<+Block><?Break><?Return> ";"
+	| "val"        "mut"  IDENTIFIER     "?" ":" Type                                         ";"
+	| "val" ("_" | "mut"? IDENTIFIER)        ":" Type "=" Expression<+Block><?Break><?Return> ";"
++	| "val" DestructureVariables<-Typed>     ":" Type "=" Expression<+Block><?Break><?Return> ";"
++	| "val" DestructureVariables<+Typed>              "=" Expression<+Block><?Break><?Return> ";"
 ;
 ```
