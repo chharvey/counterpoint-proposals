@@ -179,18 +179,24 @@ type B = Union.<(T, U)= (int, float)>; % destructured
 ## Syntax Grammar
 ```diff
 +DestructureTypeAlias<Named, Restricted> ::=
-+	|               <Named+>(Word ":" | "$") ("_" | IDENTIFIER) <Restricted+>(("narrows" | "widens") Type)?
-+	|               <Named+>(Word ":")       DestructureTypeAliases<?Restricted>
-+	| <Restricted+>(<Named+>(Word ":")       DestructureTypeAliases<-Restricted> (("narrows" | "widens") Type)?)
++	| (
++		| <Named+>(Word ":") ("_" | IDENTIFIER)
++		| <Named+>("$" IDENTIFIER)
++	)                                                                      <Restricted+>(("narrows" | "widens") Type)?
++	|               <Named+>(Word ":") DestructureTypeAliases<?Restricted>
++	| <Restricted+>(<Named+>(Word ":") DestructureTypeAliases<-Restricted>              (("narrows" | "widens") Type)?)
 +;
 
 +DestructureTypeAliases<Restricted>
 +	::= "(" ","? (DestructureTypeAlias<-Named><?Restricted># | DestructureTypeAlias<+Named><?Restricted>#) ","? ")";
 
 ParameterGeneric<Named, Optional> ::=
-	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER)                  <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
-+	| <Named+>(Word "=")       DestructureTypeAliases<-Restricted> <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
-+	| <Named+>(Word "=")       DestructureTypeAliases<+Restricted> <Optional+>"?"                                <Optional+>("=" Type)
+	| (
+		| <Named+>(Word "=") ("_" | IDENTIFIER)
+		| <Named+>("$" IDENTIFIER)
+	)                                                          <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=") DestructureTypeAliases<-Restricted> & <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
++	| <Named+>(Word "=") DestructureTypeAliases<+Restricted> & <Optional+>"?"                                <Optional+>("=" Type)
 ;
 
 DeclarationType ::=

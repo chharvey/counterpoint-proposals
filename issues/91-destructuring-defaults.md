@@ -139,12 +139,15 @@ The program first prints `3` and `2` in that order, then assigns variables `a`, 
 ```diff
 -DestructureVariable<Named,                          Typed> ::=
 +DestructureVariable<Named, Optional, Break, Return, Typed> ::=
--	|          <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) <Typed+>(":" Type)
--	|                         <Named+>(Word "=")                     DestructureVariables<?Typed>
--	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> ":" Type)
-+	|          <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)           <Optional+>"?" <Typed+>(":" Type)  <Optional+>("=" Expression<+Block><?Break><?Return>)
-+	|                         <Named+>(Word "=")                     DestructureVariables<?Typed> <Optional+>"?"                     <Optional+>("=" Expression<+Block><?Break><?Return>)
-+	| <Typed+>(               <Named+>(Word "=")                     DestructureVariables<-Typed> <Optional+>"?"          ":" Type & <Optional+>("=" Expression<+Block><?Break><?Return>))
+	| (
+		| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
+		| <Named+>("mut"? "$" IDENTIFIER)
+-	)                                                                           <Typed+>(":" Type)
+-	|          <Named+>(Word "=") DestructureVariables<?Typed>
+-	| <Typed+>(<Named+>(Word "=") DestructureVariables<-Typed>                           ":" Type)
++	)                                                            <Optional+>"?" <Typed+>(":" Type)  <Optional+>("=" Expression<+Block><?Break><?Return>)
++	|          <Named+>(Word "=") DestructureVariables<?Typed> & <Optional+>"?"                     <Optional+>("=" Expression<+Block><?Break><?Return>)
++	| <Typed+>(<Named+>(Word "=") DestructureVariables<-Typed> & <Optional+>"?"          ":" Type & <Optional+>("=" Expression<+Block><?Break><?Return>))
 ;
 
 -DestructureVariables<Typed>                ::= "(" ","? (
@@ -157,19 +160,22 @@ The program first prints `3` and `2` in that order, then assigns variables `a`, 
 ) ","? ")";
 
 DeclarationVariable<Break, Return> ::=
-	| "let" "mut"  ("_" | IDENTIFIER)    "?:" Type                                         ";"
-	| "let" "mut"? ("_" | IDENTIFIER)    ":"  Type "=" Expression<+Block><?Break><?Return> ";"
--	| "let" DestructureVariables                 <-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
--	| "let" DestructureVariables                 <+Typed>           "=" Expression<+Block><?Break><?Return> ";"
-+	| "let" DestructureVariables<?Break><?Return><-Typed> ":"  Type "=" Expression<+Block><?Break><?Return> ";"
-+	| "let" DestructureVariables<?Break><?Return><+Typed>           "=" Expression<+Block><?Break><?Return> ";"
+	| "val"        "mut"  IDENTIFIER                      "?" ":" Type                                         ";"
+	| "val" ("_" | "mut"? IDENTIFIER)                         ":" Type "=" Expression<+Block><?Break><?Return> ";"
+-	| "val" DestructureVariables                 <-Typed>     ":" Type "=" Expression<+Block><?Break><?Return> ";"
+-	| "val" DestructureVariables                 <+Typed>              "=" Expression<+Block><?Break><?Return> ";"
++	| "val" DestructureVariables<?Break><?Return><-Typed>     ":" Type "=" Expression<+Block><?Break><?Return> ";"
++	| "val" DestructureVariables<?Break><?Return><+Typed>              "=" Expression<+Block><?Break><?Return> ";"
 ;
 
 ParameterFunction<Named, Optional> ::=
-	| <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)                            <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
--	|                <Named+>(Word "=")                     DestructureVariables                 <-Typed> <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
--	|                <Named+>(Word "=")                     DestructureVariables                 <+Typed> <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
-+	|                <Named+>(Word "=")                     DestructureVariables<-Break><-Return><-Typed> <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
-+	|                <Named+>(Word "=")                     DestructureVariables<-Break><-Return><+Typed> <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
+	| (
+		| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
+		| <Named+>("mut"? "$" IDENTIFIER)
+	)                                                                    <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
+-	| <Named+>(Word "=") DestructureVariables                 <-Typed> & <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
+-	| <Named+>(Word "=") DestructureVariables                 <+Typed> & <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	| <Named+>(Word "=") DestructureVariables<-Break><-Return><-Typed> & <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	| <Named+>(Word "=") DestructureVariables<-Break><-Return><+Typed> & <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
 ;
 ```

@@ -245,8 +245,10 @@ StatementBreak    ::= ("break" | "continue") ";";
 -Block<Break>         ::= "{" Statement<?Break>*          "}";
 +Block<Break, Return> ::= "{" Statement<?Break><?Return>* "}";
 
-+ParameterFunction<Named>
-+	::= <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER) ":" Type;
++ParameterFunction<Named> ::= (
++	| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
++	| <Named+>("mut"? "$" IDENTIFIER)
++) ":" Type;
 
 +ParametersType ::=
 +	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?
