@@ -80,7 +80,7 @@ func voidFn(no_default_value) {;}                       %> AssignmentError
 func sum(x? = 1 - 1, mut y? = parseInt.("0")) => x + y; %> AssignmentError
 ```
 
-If the symbol is declared/initialized to a collection literal (tuple/record/list/dict/set/map), then the above rules are applied recursively based on that collection’s entries. For example, if the collection only contains primitive literals, typed lambdas, and constructor calls, then the symbol may be unannotated. If the collection literal contains variables, operations, property accesses, or function calls, then the symbol must be explicitly annotated.
+If the symbol is declared/initialized to a tuple/record literal, then the above rules are applied recursively based on that collection’s entries. For example, if the collection only contains primitive literals, typed lambdas, and constructor calls, then the symbol may be unannotated. If the collection literal contains variables, operations, property accesses, or function calls, then the symbol must be explicitly annotated.
 ```cpl
 val untyped_var = (
 	null,
