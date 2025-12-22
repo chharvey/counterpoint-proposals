@@ -10,12 +10,12 @@ A function’s type signature is basically its *type*, with additional informati
 ```cpl
 func add(x: float, y: float): float => x + y;
 %         ^         ^       ^ these types form the type signature
-add; %: (x: float, y: float) => float
+add; %: \(x: float, y: float) => float
 ```
 
 Type signatures are useful in higher-order functions. For example, the type signature of a typical list folding (or “reducing”) function would include a function type as a parameter. We can use our `add` function above as a reducer of a list of floats.
 ```cpl
-claim foldList: <T>(list: List.<T>, reducer: (T, T) => T) => T;
+claim foldList<T>(list: List.<T>, reducer: \(T, T) => T): T;
 val sum: float = foldList.<float>([4.2, 40.2], add); %== 44.4
 ```
 In fact, `add` could be used many times in dozens of higher-order functions like `foldList`. But what if the type signature of `add` changes? This could break our function call.
@@ -23,21 +23,21 @@ In fact, `add` could be used many times in dozens of higher-order functions like
 func add(x: float, y: float, z: float): float => x + y + z;
 val sum: float = foldList.<float>([4.2, 40.2], add); %> TypeError
 ```
-> TypeError: `(x: float, y: float, z: float) => float` not assignable to `(float, float) => float`.
+> TypeError: `\(float, float, float) => float` not assignable to `\(float, float) => float`.
 
 It’s a good thing this error is raised, because it’s warning us that the function type is not valid where it’s used. But the problem is, the error is reported at the *call sites*, wherever the function is used, instead of just once at the *source site*. Making one change to `add` could result in dozens of new compile-time errors, possibly far away from where the change even occurred. It would be nice to have a stricter form of function signature, to warn us that we shouldn’t change `add` in the first place.
 
 ## Description
 This is where function annotations save the day. Functions can be **annotated** with the `impl` keyword, indicating their type signature must match the given type.
 ```cpl
-type BinaryOperatorFloat = (float, float) => float;
+type BinaryOperatorFloat = \(float, float) => float;
 func add(x, y) impl BinaryOperatorFloat {
 	x; %: float
 	y; %: float
 	return x + y; %: float
 }
 ```
-Since the type signature of `foldList.<float>` expects a `(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
+Since the type signature of `foldList.<float>` expects a `\(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
 ```cpl
 val sum: float = foldList.<float>([4.2, 40.2], add); % ok
 ```
@@ -52,3 +52,17 @@ func add(x, y, z) impl BinaryOperatorFloat => x + y + z; %> TypeError
 val sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported here
 ```
 > TypeError: Got 3 parameters, but expected 2.
+
+### Optional Parameters
+When a function implements an annotation that has optional parameters, the optional parameter is succeeded by a `?` sigil. When it has no default value, it implicitly defaults to `null` (#55).
+```cpl
+type Binop = \(float, ?: float) => float; % second parameter is optional
+function add(a, b?) impl Binop {
+%               ^ optional, defaulting to `null`
+	a; %: float
+	b; %: float | null
+	return a + (b || 0.0);
+};
+add.(2.0, 3.0); %== 5.0
+add.(2.0);      %== 2.0
+```

@@ -213,8 +213,11 @@ nestOptional.(
 ## Syntax Grammar
 ```diff
 ParameterFunction<Named, Optional> ::=
-	| <Named->"mut"? <Named+>(Word "=" "mut"? | "mut"? "$") ("_" | IDENTIFIER)           <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
-+	|                <Named+>(Word "=")                     DestructureVariables<-Typed> <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
-+	|                <Named+>(Word "=")                     DestructureVariables<+Typed> <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
+	| (
+		| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
+		| <Named+>("mut"? "$" IDENTIFIER)
+	)                                                   <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	| <Named+>(Word "=") DestructureVariables<-Typed> & <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>)?
++	| <Named+>(Word "=") DestructureVariables<+Typed> & <Optional+>"?"            <Optional+>("=" Expression<+Block><-Break><-Return>)?
 ;
 ```

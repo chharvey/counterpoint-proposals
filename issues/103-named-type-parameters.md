@@ -43,8 +43,11 @@ GenericArguments ::=
 
 -ParameterGeneric<Optional> ::=
 +ParameterGeneric<Named, Optional> ::=
--	|                          ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
-+	| <Named+>(Word "=" | "$") ("_" | IDENTIFIER) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
+	| (
+-		|                    ("_" | IDENTIFIER)
++		| <Named+>(Word "=") ("_" | IDENTIFIER)
++		| <Named+>("$" IDENTIFIER)
+	) <Optional+>"?" (("narrows" | "widens") Type)? <Optional+>("=" Type)
 ;
 
 ParametersGeneric ::=
