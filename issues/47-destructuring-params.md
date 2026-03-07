@@ -13,7 +13,7 @@ func printPlanet(planet: (str, float)): void {
 Rather than keep track of a tuple argument, we can **destructure the tuple** into function parameters.
 ```cpl
 func printPlanet((name, value): (str, float)): void {
-%                    ^ destructured parameter
+%                ^ destructured parameter
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: \((str, float)) => void
@@ -40,26 +40,39 @@ func printPlanet((mut name, value): (str, float)): void {
 The syntax for named parameters (#46) is the same as before; just prepend the destructured pattern with the name of the parameter and an equals sign `=`. When the parameter is named, the caller is expected to provide that label for the argument when calling the function.
 ```cpl
 func printPlanet(planet= (name, value): (str, float)): void {
-%                    ^ label for destructured parameter
+%                ^ label for destructured parameter
 	planet; %> ReferenceError
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: \(planet: (str, float)) => void
 printPlanet.(planet= my_planet);
 ```
-Because the purpose of destructuring is to simplify parameter names inside the function body, named destructured parameters cannot be “punned” (using the `$` sigil).
-```cpl
-func printPlanet($(name, value): (str, float)): void {;} %> SyntaxError
-```
 
-Above, we used **tuple destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter…
+Be careful using the “inside typings” syntax with a named parameter, as it can be easily confused with an undestructured record parameter.
 ```cpl
+func printPlanet(planet= (name: str, value: float)): void {
+%                ^     ^ ^ tuple destructuring with “inside typings”
+%                ^     ^ equals sign
+%                ^ named parameter label
+	name;   %: str
+	value;  %: float
+	planet; %> ReferenceError
+	"""The radius of {{ name }} is {{ value }}km.""";
+}
+% typeof printPlanet: \((str, float)) => void
 func printPlanet(planet: (name: str, value: float)): void {
+%                ^     ^ ^ regular record type
+%                ^     ^ colon
+%                ^ positional parameter
+	name;   %> ReferenceError
+	value;  %> ReferenceError
+	planet; %: (name: str, value: float)
 	"""The radius of {{ planet.name }} is {{ planet.value }}km.""";
 }
 % typeof printPlanet: \((name: str, value: float)) => void
 ```
-we can destructure the record into separate parameters:
+
+We covered **tuple destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter as above, we can destructure the record into separate parameters:
 ```cpl
 func printPlanet(($name, $value): (name: str, value: float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
