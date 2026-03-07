@@ -29,7 +29,7 @@ func printPlanet((name: str, value: float)): void {
 }
 ```
 
-Destructuring applies to unfixed parameters as well.
+Destructuring applies to writable parameters as well.
 ```cpl
 func printPlanet((mut name, value): (str, float)): void {
 	set name  = """Planet {{ name }}"""; % ok
@@ -54,7 +54,7 @@ func printPlanet($(name, value): (str, float)): void {;} %> SyntaxError
 
 Above, we used **tuple destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter…
 ```cpl
-func printPlanet((name: str, value: float)): void {
+func printPlanet(planet: (name: str, value: float)): void {
 	"""The radius of {{ planet.name }} is {{ planet.value }}km.""";
 }
 % typeof printPlanet: \((name: str, value: float)) => void
@@ -96,7 +96,7 @@ func printPlanet((name= n: str, value= v: float)): void {
 ```
 The caller must supply a `(name: str, value: float)` argument, but the internal implementation of the function references the parameters `n` and `v`.
 
-Again, we can declare unfixed parameters.
+Again, we can declare writable parameters.
 ```cpl
 func f((
 	$w:          int, % punning for `w= w: int`

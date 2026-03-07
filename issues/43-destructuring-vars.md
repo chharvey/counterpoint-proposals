@@ -38,7 +38,7 @@ Or we can move the type annotations inside the destructure pattern. Both variati
 val (x: int, y: int) = (42, 420);
 ```
 
-Destructuring applies to unfixed variables as well.
+Destructuring applies to writable variables as well.
 ```cpl
 val (x, mut y): (int, int) = (42, 420);
 set x = 0; %> AssignmentError
@@ -67,7 +67,7 @@ xray;   %> ReferenceError
 
 Record destructuring has an advantage over tuple destructuring: we can change up the order in which we declare variables. With a tuple, the order of declared variables must match the order of entries in the tuple. With a record, we can switch the order as shown above.
 
-Again, we can assign unfixed variables.
+Again, we can assign writable variables.
 ```cpl
 val (
 	$w:          int, % punning for `w= w: int`

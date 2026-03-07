@@ -320,7 +320,7 @@ SemanticStatement =:=
 +SemanticFunction
 +	::= SemanticParameter* SemanticBlock;
 
-+SemanticParameter[unfixed: Boolean]
++SemanticParameter[writable: Boolean]
 +	::= SemanticKey? SemanticVariable? SemanticType;
 
 SemanticDeclaration =:=
@@ -392,63 +392,63 @@ Decorate(StatementContinue ::= "continue" INTEGER ";") -> SemanticContinue := (S
 +	);
 
 +Decorate(ParameterFunction<-Named> ::= "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<-Named> ::= IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<-Named> ::= "mut" "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<-Named> ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= "$" "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		(SemanticKey[id=TokenWorth("_")])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= "$" IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= "mut" "$" "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		(SemanticKey[id=TokenWorth("_")])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction <+Named>::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		(SemanticKey[id=TokenWorth(IDENTIFIER)])
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= Word "=" "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		Decorate(Word)
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= Word "=" IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=false]
++	:= (SemanticParameter[writable=false]
 +		Decorate(Word)
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		Decorate(Word)
 +		Decorate(Type)
 +	);
 +Decorate(ParameterFunction<+Named> ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
-+	:= (SemanticParameter[unfixed=true]
++	:= (SemanticParameter[writable=true]
 +		Decorate(Word)
 +		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)

@@ -22,7 +22,7 @@ func from_below[my_var_below](): str => my_var; % ReferenceError: `my_var_below`
 val my_var_below: str = "hello world";
 ```
 
-Even if a captured variable is unfixed (declared with `mut`), it may not be reassigned within the function body by default. (More on that in the next section.)
+Even if a captured variable is writable (declared with `mut`), it may not be reassigned within the function body by default. (More on that in the next section.)
 ```cpl
 val mut my_var:       str       = "hello";
 val     my_vars_list: mut [str] = ["world"];
@@ -46,7 +46,7 @@ val my_fn: \() => str = main.();
 my_fn.(); %== "hello"
 ```
 
-Because a new reference is created, if the original reference is ever reassigned after it’s captured, the reassignment *will not* be observed by the function call. However, all mutations, whether on a fixed or unfixed variable, *will* be observed.
+Because a new reference is created, if the original reference is ever reassigned after it’s captured, the reassignment *will not* be observed by the function call. However, all mutations, whether on a read-only or writable variable, *will* be observed.
 ```cpl
 val mut my_var:       str       = "";
 val     my_vars_list: mut [str] = ["world"];
@@ -102,7 +102,7 @@ val     my_vars_list: mut [str] = ["world"];
 func my_fn1[ref my_var, my_vars_list](): str {
 %           ^ shared capture
 	set my_var       = "ciao";             % reassigment is allowed, and it affects outer scope
-	set my_vars_list = ["hello", "world"]; %> AssignmentError % outer variable is not unfixed
+	set my_vars_list = ["hello", "world"]; %> AssignmentError % outer variable is not writable
 
 	return """{{ my_var }}!""";
 }
