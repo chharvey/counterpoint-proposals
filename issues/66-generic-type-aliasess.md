@@ -66,7 +66,7 @@ Keyword :::=
 +;
 
 +GenericSpecifier
-+	::= "<" ParametersGeneric ">";
++	::= "[" ParametersGeneric "]";
 
 -DeclarationType ::= "type" ("_" | IDENTIFIER)                   "=" Type ";";
 +DeclarationType ::= "type" ("_" | IDENTIFIER) GenericSpecifier? "=" Type ";";
@@ -156,12 +156,12 @@ SemanticDeclaration =:=
 		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 		Decorate(Type)
 	);
-+Decorate(DeclarationType ::= "type" "_" "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
++Decorate(DeclarationType ::= "type" "_" "[" ","? ParametersGeneric "]" "=" Type ";") -> SemanticDeclarationTypeGeneric
 +	:= (SemanticDeclarationTypeGeneric
 +		...Decorate(ParametersGeneric)
 +		Decorate(Type)
 +	);
-+Decorate(DeclarationType ::= "type" IDENTIFIER "<" ","? ParametersGeneric ">" "=" Type ";") -> SemanticDeclarationTypeGeneric
++Decorate(DeclarationType ::= "type" IDENTIFIER "[" ","? ParametersGeneric "]" "=" Type ";") -> SemanticDeclarationTypeGeneric
 +	:= (SemanticDeclarationTypeGeneric
 +		(SemanticTypeAlias[id=TokenWorth(IDENTIFIER)])
 +		...Decorate(ParametersGeneric)

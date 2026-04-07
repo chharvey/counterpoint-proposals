@@ -116,63 +116,63 @@ Type function parameters can be destructured in the same way as type declaration
 
 When unrestricted, type parameters only narrow `anything`, which means we cannot infer anything abou them.
 ```cpl
-typefunc Or<T>  => T.0 | T.1; % TypeError: `0` is not a property of type `T`
-typefunc And<T> => T.a | T.b; % TypeError: `0` is not a property of type `T`
+typefunc Or[T]  => T.0 | T.1; % TypeError: `0` is not a property of type `T`
+typefunc And[T] => T.a | T.b; % TypeError: `0` is not a property of type `T`
 ```
 When these generics are “called”, `T` can be specified as any type, so we can’t be sure it has those properties. However, we can restrict `T` with the `narrows` clause.
 ```cpl
-typefunc Or<T narrows (anything, anything)>        => T.0 | T.1;
-typefunc And<T narrows (a: anything, b: anything)> => T.0 | T.1;
+typefunc Or[T narrows (anything, anything)]        => T.0 | T.1;
+typefunc And[T narrows (a: anything, b: anything)] => T.0 | T.1;
 
 % specifying type generic must obey destructured pattern
-type W = Or.<(int, float)>;        % ok
-type X = And.<(b: float, a: int)>; % ok
-type Y = Or.<(int,)>;              % TypeError: `(int,)` does not narrow `(anything, anything)`
-type Z = And.<(c: int, d: float)>; % TypeError: `(c: int, d: float)` does not narrow `(a: anything, b: anything)`
+type W = Or[(int, float)];        % ok
+type X = And[(b: float, a: int)]; % ok
+type Y = Or[(int,)];              % TypeError: `(int,)` does not narrow `(anything, anything)`
+type Z = And[(c: int, d: float)]; % TypeError: `(c: int, d: float)` does not narrow `(a: anything, b: anything)`
 ```
 
 An alternative to providing restrictions with `narrows`, we can destructure the generic parameter `T`.
 ```cpl
-typefunc Or<(U, V)>        => U | V; % `narrows (anything, anything)` is implied
-typefunc And<(a: U, b: V)> => U & V; % `narrows (a: anything, b: anything)` is implied
+typefunc Or[(U, V)]        => U | V; % `narrows (anything, anything)` is implied
+typefunc And[(a: U, b: V)] => U & V; % `narrows (a: anything, b: anything)` is implied
 ```
 By default, each part of the destructured parameter narrows `anything`, but we can still explicitly declare its restriction to refine it more.
 ```cpl
-typefunc Flatten<T narrows ((anything,), (a: anything))>           => (T.0.0, T.1.a); % not destructured
-typefunc Flatten<(U, V) narrows ((anything,), (a: anything))>      => (U.0, V.a);     % destructured
-typefunc Flatten<(U narrows (anything,), V narrows (a: anything))> => (U.0, V.a);     % destructured, inner style
+typefunc Flatten[T narrows ((anything,), (a: anything))]           => (T.0.0, T.1.a); % not destructured
+typefunc Flatten[(U, V) narrows ((anything,), (a: anything))]      => (U.0, V.a);     % destructured
+typefunc Flatten[(U narrows (anything,), V narrows (a: anything))] => (U.0, V.a);     % destructured, inner style
 
-type W = Flatten.<((int,), (a: float))>; %== (int, float)
+type W = Flatten[((int,), (a: float))]; %== (int, float)
 ```
 Above, `U` narrows `(anything,)` and `V` narrows `(a: anything)`, so the property accesses are valid.
 
 However, this can also be achieved with *nested* destructuring.
 ```cpl
-typefunc Flatten<((U), (a: V))> => (U, V);
+typefunc Flatten[((U), (a: V))] => (U, V);
 
-type W = Flatten.<((int,), (a: float))>; %== (int, float)
+type W = Flatten[((int,), (a: float))]; %== (int, float)
 ```
 
 As with function parameters (#47), we can have *named* destructured generic parameters.
 ```cpl
-typefunc Or<T= (U, V)>        => U | V;
-typefunc And<T= (a: U, b: V)> => U & V;
+typefunc Or[T= (U, V)]        => U | V;
+typefunc And[T= (a: U, b: V)] => U & V;
 
-typefunc Flatten<T= (U, V) narrows ((anything,), (a: anything))> => (U.0, V.a);
-typefunc Flatten<T= ((U), (a: V))> => (U, V);
+typefunc Flatten[T= (U, V) narrows ((anything,), (a: anything))] => (U.0, V.a);
+typefunc Flatten[T= ((U), (a: V))] => (U, V);
 ```
 When specified, the generic type call’s arguments must be labeled.
 ```cpl
-type X = Or.<T= (int, float)>;
-type Y = And.<T= (a: int, b: float)>;
-type W = Flatten.<T= ((int,), (a: float))>;
+type X = Or[T= (int, float)];
+type Y = And[T= (a: int, b: float)];
+type W = Flatten[T= ((int,), (a: float))];
 ```
 
 ## Destructuring Generic Type Named Arguments
 When *specifying* (“calling”) generic types with named arguments, we can destructure the named arguments in the same way that we can with function calls.
 ```cpl
-type A = Union.<T= int, U= float>;     % not destructured
-type B = Union.<(T, U)= (int, float)>; % destructured
+type A = Union[T= int, U= float];     % not destructured
+type B = Union[(T, U)= (int, float)]; % destructured
 ```
 
 # Specfication

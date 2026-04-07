@@ -43,46 +43,46 @@ greet; %: \(?: str) => void
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cpl
 func say_hello(): void {
-	print.("hello");
+	print("hello");
 };
-func run(x?: void = say_hello.()): void with (say_hello) {}; % does not print "hello" here
-run.(); % prints "hello" here
-run.(); % prints "hello" again
+func run(x?: void = say_hello()): void with (say_hello) {}; % does not print "hello" here
+run(); % prints "hello" here
+run(); % prints "hello" again
 ```
 
 If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cpl
 %-- Variable Reassignment --%
 %% line 2 %% val mut init: bool = false;
-func say(b?: bool = init): void with (init) { print.(b); }
+func say(b?: bool = init): void with (init) { print(b); }
 %                   ^ refers to the `init` from line 2
-say.(); % prints `false`
+say(); % prints `false`
 
 set init = true; % reassigns `init` from line 2, but not captured variable on line 3
-say.();          % still prints `false`
+say();          % still prints `false`
 %   ^ reads from the value `false` in line 2
 ```
 ```cpl
 %-- Import Shadowing --%
 % Module "a"
 %% line 3 %% val init: bool = false;
-public func say(b?: bool = init): void with (init) { print.(b); }
+public func say(b?: bool = init): void with (init) { print(b); }
 %                          ^ refers to the `init` from line 3
-say.(); % prints `false`
+say(); % prints `false`
 
 % Module "b"
 from "a" import say;
 val init: bool = true;
-say.();                % still prints `false`
-%   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
+say();                % still prints `false`
+%  ^ reads from same `init` as Module "a" (not new `init` from Module "b")
 ```
 ```cpl
 %-- Variable Mutation --%
 val a: mut [int] = [42];
-func twice(x?: int = a.[0]): int with (a) => x * 2;
-twice.(); %== 84
-set a.[0] = 12;
-twice.(); %== 24
+func twice(x?: int = a.get(0)): int with (a) => x * 2;
+twice(); %== 84
+a.set(0, 12);
+twice(); %== 24
 ```
 
 # Specification

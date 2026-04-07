@@ -45,7 +45,7 @@ func printPlanet(planet= (name, value): (str, float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: \(planet: (str, float)) => void
-printPlanet.(planet= my_planet);
+printPlanet(planet= my_planet);
 ```
 
 Be careful using the “inside typings” syntax with a named parameter, as it can be easily confused with an undestructured record parameter.
@@ -93,7 +93,7 @@ func printPlanet(planet= ($name: str, $value: float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
 }
 % typeof printPlanet: \(planet: (name: str, value: float)) => void
-printPlanet.(planet= my_planet);
+printPlanet(planet= my_planet);
 ```
 
 As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why abstract methods don’t allow it.
@@ -185,7 +185,7 @@ func nest(
 	pqr: (papa: int, quebec: (q: int, romeo: int)),
 ) => void %%
 % example call:
-nest.(
+nest(
 	ab=  (1, 2),
 	cd=  (c= 3, delta= 4),
 	ghi= (7, (8, 9)),
@@ -194,7 +194,7 @@ nest.(
 	pqr= (papa= 16, quebec= (q= 17, romeo= 18)),
 );
 
-function nestOptional(
+func nestOptional(
 	s= (a, b)?: (int, int)                               = (19, 20),
 	t= ($c: int, delta= d: int)?                         = (c= 21, delta= 22),
 	u= (g: int, (h, i): (int, int))?                     = (23, (24, 25)),
@@ -211,7 +211,7 @@ function nestOptional(
 	x?: (papa: int, quebec: (q: int, romeo: int)),
 ) => void %%
 % example call:
-nestOptional.(
+nestOptional(
 	s= (1, 2),
 	t= (c= 3, delta= 4),
 	u= (7, (8, 9)),
