@@ -23,7 +23,7 @@ All optional parameters must be declared after all required parameters; otherwis
 ```cpl
 func breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
 func dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
-type Meal = \(?:str, str) => void;                            %> ParseError
+type Meal = \(?:str, str) => void;                        %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
 ```cpl
@@ -37,6 +37,23 @@ func greet(mut greeting?: str = "Hello"): void {
 	"""{{ greeting }}, world!""";
 }
 greet; %: \(?: str) => void
+```
+
+Named arguments give us a fantastic advantage here:
+They let us skip optional parameters so that we don’t have to remember their default values.
+Say we want to call `move2D` with only a `player` and a `y`, but no `x`.
+Since unnamed arguments must be provided in order, we need to provide the argument for `x` before the argument for `y`.
+That would require us knowing its default value, which introduces unnecessary redundancy and upkeep.
+But with named arguments, we can skip optional arguments in the function call.
+```cpl
+func move2D_positional(x?: float = 0.0, y?: float = 0.0): void { return; }
+
+move2D.(0.0, 1.0);
+%       ^ need to write default value of `x`
+
+func move2D_named($x?: float = 0.0, $y?: float = 0.0): void { return; }
+
+move2D.(y= 1.0); % skip `x`, using its default value
 ```
 
 ## Default Parameter Evaluation

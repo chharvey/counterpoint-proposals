@@ -203,3 +203,40 @@ my_list.forEach.(\() with (wrapped_counter) {
 	set wrapped_counter.value += 1;
 });
 ```
+
+## Closures
+**Closures** are functions that are executed in a different scope from where they were defined.
+These could be functions returned by a higher-order function, or functions that are themselves captured
+into another other control structure or function.
+
+One kind of closure is a function that captures a variable and then is returned by a higher-order function.
+When the closure is called in the outer scope, the captured variable could become visible to that scope.
+```cpl
+func return_closure(): \(b: int) => int {
+	val a: int = 5;
+	return \($b) with (a) => a + b;
+}
+```
+The returned function expression captures `a` from its containing scope.
+When we call the closure, we have (indirect) access to `a`.
+```cpl
+val closure: \(b: int) => int = return_closure();
+assert closure(b= 8) == 13;
+```
+We can infer the value of `a` by subtracting 8 from 13.
+
+The code above showed an example of a closure being called “outside” the scope in which it was defined.
+Another kind of closure is a function that is called in an “inner” scope.
+```cpl
+val b: int = 3;
+func plus5(): int with (b) => b + 5;
+```
+The closure `plus5` is defined in the outermost scope and captures `b` from that scope.
+When we call it within a new scope below, we have indirect access to `b`.
+```cpl
+func capture_closure(): void {
+	assert plus5() == 8;
+}
+```
+(Note: `capture_closure` cannot capture `plus5` since `plus5` is a declared function and declared functions are not capturable.)
+Inside this scope, we can infer the value of `b` without explicitly capturing it, by subtracting 5 from 8.
