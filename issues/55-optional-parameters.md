@@ -48,12 +48,12 @@ But with named arguments, we can skip optional arguments in the function call.
 ```cpl
 func move2D_positional(x?: float = 0.0, y?: float = 0.0): void { return; }
 
-move2D.(0.0, 1.0);
+move2D(0.0, 1.0);
 %       ^ need to write default value of `x`
 
 func move2D_named($x?: float = 0.0, $y?: float = 0.0): void { return; }
 
-move2D.(y= 1.0); % skip `x`, using its default value
+move2D(y= 1.0); % skip `x`, using its default value
 ```
 
 ## Default Parameter Evaluation

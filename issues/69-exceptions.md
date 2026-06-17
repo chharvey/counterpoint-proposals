@@ -54,7 +54,7 @@ func sqrt(x: float): float | Exception
 ```
 When the function has a return type `float | Exception`, the caller may use that information to address the returned value how it sees fit, rather than being forced to deal with an Exception they didn’t ask for. For example:
 ```cpl
-val valueOrEx: float | Exception = sqrt.(x);
+val valueOrEx: float | Exception = sqrt(x);
 if !valueOrEx then {
 	% `valueOrEx` is guaranteed to be an exception, since all floats, including 0.0, are “truthy”
 	% do something with the exception
@@ -67,9 +67,9 @@ That said, a more robust approach would be to return the built-in `Result` type 
 ```cpl
 func sqrt(x: float): float!
 	=> if x < 0.0
-		then Fail.("Argument must not be negative.")
-		else Ok.(x ^ 0.5);
-val result: float! = sqrt.(x);
+		then Fail("Argument must not be negative.")
+		else Ok(x ^ 0.5);
+val result: float! = sqrt(x);
 when result is
 	Fail              then """do something with {{ result.reason }}""",
 	Ok                then """{{ result~! }} is a floating-point value.""",

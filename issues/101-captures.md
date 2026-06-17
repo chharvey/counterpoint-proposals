@@ -42,8 +42,8 @@ func main(): \() => str {
 	return \(): str with (my_var) => my_var; % `my_var` is copied and bound to the lambda
 	% leaving `main` scope, reference `my_var` is destroyed
 }
-val my_fn: \() => str = main.();
-my_fn.(); %== "hello"
+val my_fn: \() => str = main();
+my_fn(); %== "hello"
 ```
 
 Because a new reference is created, if the original reference is ever reassigned after it’s captured, the reassignment *will not* be observed by the function call. However, all mutations, whether on a read-only or writable variable, *will* be observed.
@@ -62,7 +62,7 @@ func my_fn(): [str] with (my_var, my_vars_list) { % copies and binds new referen
 set my_var           = "ciao!";  % reassigning an already-captured variable does not affect the function binding,
 set my_vars_list.[0] = "mondo!"; % but mutating one does!
 
-my_fn.(); %== ["hello", "mondo!"]
+my_fn(); %== ["hello", "mondo!"]
 ```
 
 Unbound variables in default parameter values must be captured.
@@ -71,25 +71,25 @@ val my_var: str = "hello";
 
 func make_question(s?: str = my_var): str with (my_var) => """{{ s }}?""";
 
-make_question.(); %== "hello?"
+make_question(); %== "hello?"
 
 set my_var = "ciao"; % has no effect, since `my_var` was already copied
 
-make_question.(); %== "hello?"
+make_question(); %== "hello?"
 ```
 Note that default parameters are still re-evaluated on each function call (see #55). As a minimal example:
 ```cpl
 func my_fn(): str {
-	print.("hello")
+	print("hello")
 	return "world";
 }
 
-func make_question(s?: str = my_fn.()): str => """{{ s }}?""";
+func make_question(s?: str = my_fn()): str => """{{ s }}?""";
 %                            ^ named functions cannot be captured since they aren’t “real” bindings
 
-make_question.();     % prints `"hello"`, returns `"world?"`
-make_question.("hi"); % prints nothing,   returns `"hi?"`
-make_question.();     % prints `"hello"`, returns `"world?"`
+make_question();     % prints `"hello"`, returns `"world?"`
+make_question("hi"); % prints nothing,   returns `"hi?"`
+make_question();     % prints `"hello"`, returns `"world?"`
 ```
 In the example above, capturing `my_fn` was not needed, and not even possible, since it is a named function, not a variable. In Counterpoint, named functions (function declarations) and named classes are static, so they don’t have pointers. They’re not true environment bindings. However, as discussed in #46, they cannot be passed around like anonymous functions (function expressions); they must be called when referenced.
 
@@ -107,18 +107,18 @@ func my_fn1(): str with (ref my_var, my_vars_list) {
 	return """{{ my_var }}!""";
 }
 
-my_fn1.(); %== "ciao!"
+my_fn1(); %== "ciao!"
 
 assert my_var == "ciao";
 
 func my_fn2(): void with (ref my_var)
-	=> print.(my_var);
+	=> print(my_var);
 
-my_fn2.(); % prints "ciao"
+my_fn2(); % prints "ciao"
 
 set my_var = "hi"; % affects `my_fn1` and `my_fn2` scope
 
-my_fn2.(); % prints "hi"
+my_fn2(); % prints "hi"
 ```
 
 Only declared functions may use shared captures. It’s a syntax error to use shared captures with function expressions.
@@ -139,13 +139,13 @@ func returns_lambda(): \() => str {
 	return \(): str with (ref my_var) => my_var;
 	% leaving `returns_lambda` scope, reference `my_var` is destroyed
 }
-returns_lambda.().(); % crash! trying to access destroyed `my_var` reference
+returns_lambda()(); % crash! trying to access destroyed `my_var` reference
 
 val my_vars_list: mut [str] = ["world"];
 func takes_lambda(lambda: \() => void): void
-	=> lambda.();
+	=> lambda();
 % If this were allowed:
-takes_lambda.(\() with (ref my_vars_list) { my_vars_list; });
+takes_lambda(\() with (ref my_vars_list) { my_vars_list; });
 % lambda could be called after `my_vars_list` is destroyed
 ```
 In the examples above, if we were allowed to return the function from `returns_lambda` then it would not have any reference to `my_var` after it is destroyed. Similarly, sending a lambda into `takes_lambda` with a shared capture is also problematic, because the lambda might outlive this scope (if, for example, `takes_lambda` were sent to another scope). Similar problems would occur if share-capturing functions were allowed to be stored in longer-living objects (such as Lists).
@@ -171,7 +171,7 @@ Class<Abstract, Final, Data, Declared, Instance> ::=
 It’s pretty common for lambdas to need shared captures. Take this simple example of incrementing a global counter in a `.forEach` callback:
 ```cpl
 val mut counter: int = 0;
-my_list.forEach.(\() with (ref counter) { %> SyntaxError
+my_list.forEach(\() with (ref counter) { %> SyntaxError
 	set counter += 1;
 });
 ```
@@ -183,8 +183,8 @@ val mut counter: int = 0;
 func increment(): void with (ref counter) {
 	set counter += 1;
 }
-my_list.forEach.(\() {
-	increment.();
+my_list.forEach(\() {
+	increment();
 	return;
 });
 ```
@@ -193,13 +193,13 @@ This pattern plays by the rules, and is safe when it comes to reference counting
 If you don’t like adding a new function to your code, another potential workaround would be to use a mutable copy-captured object to track shared state. This example copy-captures an object that contains the counter.
 ```cpl
 val wrapped_counter: mut Dict.<int> = [value= 0];
-my_list.forEach.(\() with (wrapped_counter) {
-	wrapped_counter.set.(@value, wrapped_counter.get.(@value) + 1);
+my_list.forEach(\() with (wrapped_counter) {
+	wrapped_counter.set(@value, wrapped_counter.get(@value) + 1);
 });
 
 % or use an interface type:
 val wrapped_counter: mut interface { value: int; } = [value= 0];
-my_list.forEach.(\() with (wrapped_counter) {
+my_list.forEach(\() with (wrapped_counter) {
 	set wrapped_counter.value += 1;
 });
 ```
