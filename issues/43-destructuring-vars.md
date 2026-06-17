@@ -45,7 +45,7 @@ set x = 0; %> AssignmentError
 set y = 0; % ok
 ```
 
-Above, we used **tuple destructuring**, that is, assigning the “pattern” *(`x`, `y`)* a tuple. We can also use **record destructuring** by assigning it a record.
+Above, we used **positional destructuring**, that is, assigning the “pattern” *(`x`, `y`)* a tuple. We can also use **named destructuring** by assigning it a record.
 ```cpl
 val ($y, $x): (x: int, y: int) = (x= 42, y= 420);
 y; %== 420
@@ -65,7 +65,7 @@ yankee; %> ReferenceError
 xray;   %> ReferenceError
 ```
 
-Record destructuring has an advantage over tuple destructuring: we can change up the order in which we declare variables. With a tuple, the order of declared variables must match the order of entries in the tuple. With a record, we can switch the order as shown above.
+Named destructuring has an advantage over positional destructuring: we can change up the order in which we declare variables. With positional, the order of declared variables must match the order of entries in the tuple. With named, we can switch the order as shown above.
 
 Again, we can assign writable variables.
 ```cpl
@@ -89,31 +89,31 @@ set z = 0; % ok
 ## Nested Destructuring
 Destructuring for variable declaration can be recursive: We can nest destructured patterns within each other.
 ```cpl
-% regular variable destructuring, tuple
+% regular variable destructuring, positional
 val (a, b): (int, int) = (1, 2);
 
-% regular variable destructuring, record
+% regular variable destructuring, named
 val ($c: int, delta= d: int) = (c= 3, delta= 4);
 
 (a, b, c, d) ==
 (1, 2, 3, 4); %== true
 
-% nested variable destructuring, tuple within tuple
+% nested variable destructuring, positional within positional
 val (g, (h, i)): (int, (int, int)) = (7, (8, 9));
 val (g: int, (h, i): (int, int))   = (7, (8, 9));
 val (g: int, (h: int, i: int)) = (7, (8, 9));
 
-% nested variable destructuring, record within tuple
+% nested variable destructuring, named within positional
 val (j, ($k, lima= l)): (int, (k: int, lima: int)) = (10, (k= 11, lima= 12));
 val (j: int, ($k, lima= l): (k: int, lima: int))   = (10, (k= 11, lima= 12));
 val (j: int, ($k: int, lima= l: int))              = (10, (k= 11, lima= 12));
 
-% nested variable destructuring, tuple within record
+% nested variable destructuring, positional within named
 val ($m, november= (n, o)): (m: int, november: (int, int)) = (m= 13, november= (14, 15));
 val ($m: int, november= (n, o): (int, int))                = (m= 13, november= (14, 15));
-val ($m: int, november= (n: int, o: int))              = (m= 13, november= (14, 15));
+val ($m: int, november= (n: int, o: int))                  = (m= 13, november= (14, 15));
 
-% nested variable destructuring, record within record
+% nested variable destructuring, named within named
 val ($p, quebec= ($q, romeo= r)): (p: int, quebec: (q: int, romeo: int)) = (p= 16, quebec= (q= 17, romeo= 18));
 val ($p: int, quebec= ($q, romeo= r): (q: int, romeo: int))              = (p= 16, quebec= (q= 17, romeo= 18));
 val ($p: int, quebec= ($q: int, romeo= r: int))                          = (p= 16, quebec= (q= 17, romeo= 18));
@@ -148,14 +148,14 @@ Type errors are raised when the assigned expression of a destructuring statement
 Assigning a tuple with greater items is fine, but not fewer items.
 ```cpl
 val (a, b, c): (int, int, int) = (42, 420, 4200, 42000); % `42000` is dropped, but no error
-val (d, e, f): (int, int) = (42, 420);              %> TypeError (index `2` is missing)
+val (d, e, f): (int, int) = (42, 420);                   %> TypeError (index `2` is missing)
 ```
 
 Assigning a list gives us the same error.
 ```cpl
 val list: [int] = [42, 420, 4200, 42000];
-val (a, b, c): (int, int, int) = list;                       %> TypeError (index `0` could be missing)
-val (d, e, f): [int] = [42, 420, 4200]; %> TypeError (`[int]` not assignable to `(anything, anything, anything)`)
+val (a, b, c): (int, int, int) = list;   %> TypeError (index `0` could be missing)
+val (d, e, f): [int] = [42, 420, 4200];  %> TypeError (`[int]` not assignable to `(anything, anything, anything)`)
 ```
 
 Assigning a record with extra properties is fine, but not missing properties.
@@ -167,8 +167,8 @@ val (golf= g: int, hotel= h: int) = (golf= 42, h= 420);               %> TypeErr
 
 Of course, the assigned items must be assignable to the variables’ types.
 ```cpl
-val (a, b, c): (int, int, int)       = (42, 420, 123.45);      %> TypeError (`123.45` is not an int)
-val ($d: int, echo= e: int) = (d= null, echo= "420"); %> TypeError
+val (a, b, c): (int, int, int) = (42, 420, 123.45);      %> TypeError (`123.45` is not an int)
+val ($d: int, echo= e: int)    = (d= null, echo= "420"); %> TypeError
 ```
 
 # Specfication

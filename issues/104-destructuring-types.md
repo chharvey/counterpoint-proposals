@@ -18,7 +18,7 @@ val y: Y = 42;        %> TypeError
 val y: Y = 42 as <Y>; % ok
 ```
 
-Above, we used **tuple destructuring**, that is, assigning the “pattern” *(`A`, `B`)* a tuple type. We can also use **record destructuring** by assigning it a record type.
+Above, we used **positional type destructuring**, that is, assigning the “pattern” *(`A`, `B`)* a tuple type. We can also use **named type destructuring** by assigning it a record type.
 ```cpl
 type ($A, $B) = (A: int, B: str);
 ```
@@ -32,7 +32,7 @@ val x: alpha = 42;    %> ReferenceError
 val y: bravo = "420"; %> ReferenceError
 ```
 
-Record type destructuring has an advantage over tuple type destructuring: we can change up the order in which we declare types. With a tuple, the order of declared types must match the order of entries in the tuple type. With a record type, we can switch the order as shown above.
+Positional type destructuring has an advantage over named type destructuring: we can change up the order in which we declare types. With positional, the order of declared types must match the order of entries in the tuple type. With named, we can switch the order as shown above.
 
 Again, we can assign nominal types.
 ```cpl
@@ -63,22 +63,22 @@ type (echo: E? = int, foxtrot: F? = str) = (x: bool); % `(E, F) == (int, str)`
 ## Nested Destructuring
 Destructuring for type declaration can be recursive: We can nest destructured patterns within each other.
 ```cpl
-% regular type destructuring, tuple
+% regular type destructuring, positional
 type (A, B) = (int, int);
 
-% regular type destructuring, record
+% regular type destructuring, named
 type ($C, delta: D) = (c: int, delta: int);
 
-% nested type destructuring, tuple within tuple
+% nested type destructuring, positional within positional
 type (G, (H, I)) = (int, (int, int));
 
-% nested type destructuring, record within tuple
+% nested type destructuring, named within positional
 type (J, ($K, lima: L)) = (int, (K: int, lima: int));
 
-% nested type destructuring, tuple within record
+% nested type destructuring, positional within named
 type ($M, november: (N, O)) = (M: int, november: (int, int));
 
-% nested type destructuring, record within record
+% nested type destructuring, named within named
 type ($P, quebec: ($Q, romeo: R)) = (P: int, quebec: (Q: int, romeo: int));
 ```
 
