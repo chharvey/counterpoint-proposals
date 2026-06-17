@@ -10,7 +10,7 @@ my_record.y; %== 420
 ```
 The syntax `((x, y)= my_data)` is shorthand for `(x= my_data.0, y= my_data.1)`.
 
-In the example above, we used tuple destructuring, but we could have just as well used record destructuring. Both are well-formed inside a record literal.
+In the example above, we used positional destructuring, but we could have just as well used named destructuring. Both are well-formed inside a record literal.
 ```cpl
 val my_data: (x: int, y: int, z: int) = (x= 42, y= 420, z= 4200);
 val my_record: (x: int, y: int) = (($y, $x)= my_data);
@@ -19,7 +19,7 @@ my_record.y; %== 420
 ```
 `(($y, $x)= my_data)` is shorthand for `(y= my_data.y, x= my_data.x)`.
 
-As with all record destructuring, we can use aliases instead of `$` punning:
+As with all named destructuring, we can use aliases instead of `$` punning:
 ```cpl
 val my_data: (xray: int, yankee: int, zulu: int) = (xray= 42, yankee= 420, zulu= 4200);
 val my_record: (x: int, y: int) = ((yankee= y, xray= x)= my_data);
@@ -28,7 +28,7 @@ my_record.y; %== 420
 ```
 `((yankee= y, xray= x)= my_data)` is shorthand for `(y= my_data.yankee, x= my_data.xray)`.
 
-It’s worth mentioning that destructuring inside a record literal is a bit like spreading (#64).
+It’s worth mentioning that named destructuring inside a record literal is a bit like spreading (#64).
 ```cpl
 val font_styles: FontStyles = (
 	weight= 600,
@@ -50,7 +50,7 @@ all_styles == (
 ```
 In contrast with spreading, we must explicitly list out all of the record’s properties when destructuring, and any properties that we leave out are not entered into the record.
 
-But we can destructure a tuple inside a record, which is not possible with spread.
+But we can use positional destructuring inside a record, which is not possible with spread.
 ```cpl
 val all_styles: Styles = (
 	color=     "#0000ff",
@@ -77,22 +77,22 @@ val my_record: (a: int, b: int, c: int, d: int, e: int) = (
 Destructuring for property declaration can be recursive: We can nest destructured patterns within each other.
 ```cpl
 val rec = (
-	% regular property destructuring, tuple
+	% regular property destructuring, positional
 	(a, b)= (1, 2),
 
-	% regular property destructuring, record
+	% regular property destructuring, named
 	($c, delta= d)= (c= 3, delta= 4),
 
-	% nested property destructuring, tuple within tuple
+	% nested property destructuring, positional within positional
 	(g, (h, i))= (7, (8, 9)),
 
-	% nested property destructuring, record within tuple
+	% nested property destructuring, named within positional
 	(j, ($k, lima= l))= (10, (k= 11, lima= 12)),
 
-	% nested property destructuring, tuple within record
+	% nested property destructuring, positional within named
 	($m, november= (n, o))= (m= 13, november= (14, 15)),
 
-	% nested property destructuring, record within record
+	% nested property destructuring, named within named
 	(papa= p, quebec= ($q, romeo= r))= (papa= 16, quebec= (q= 17, romeo= 18)),
 );
 

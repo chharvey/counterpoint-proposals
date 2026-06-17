@@ -51,7 +51,7 @@ printPlanet(planet= my_planet);
 Be careful using the “inside typings” syntax with a named parameter, as it can be easily confused with an undestructured record parameter.
 ```cpl
 func printPlanet(planet= (name: str, value: float)): void {
-%                ^     ^ ^ tuple destructuring with “inside typings”
+%                ^     ^ ^ positional destructuring with “inside typings”
 %                ^     ^ equals sign
 %                ^ named parameter label
 	name;   %: str
@@ -72,7 +72,7 @@ func printPlanet(planet: (name: str, value: float)): void {
 % typeof printPlanet: \((name: str, value: float)) => void
 ```
 
-We covered **tuple destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **record destructuring** by assigning it a record. Instead of declaring a record parameter as above, we can destructure the record into separate parameters:
+We covered **positional destructuring**, that is, assigning the pattern *(`a`, `b`)* a tuple. We can also use **named destructuring** by assigning it a record. Instead of declaring a record parameter as above, we can destructure the record into separate parameters:
 ```cpl
 func printPlanet(($name, $value): (name: str, value: float)): void {
 	"""The radius of {{ name }} is {{ value }}km.""";
@@ -96,9 +96,9 @@ func printPlanet(planet= ($name: str, $value: float)): void {
 printPlanet(planet= my_planet);
 ```
 
-As with tuple destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why abstract methods don’t allow it.
+As with positional destructuring, this doesn’t change the type signature of the function. It only allows the function body to reference each component of the pattern separately. **Destructuring parameters is an *implementation technique***, which is why abstract methods don’t allow it.
 
-Recall that with record destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `($x)` is shorthand for `(x= x)`. This is called “punning”. This holds for parameters as well. We can replace `$` with an internal parameter names.
+Recall that with named destructuring for variables (#43), the symbol `$` is shorthand for repeating the variable name — `($x)` is shorthand for `(x= x)`. This is called “punning”. This holds for parameters as well. We can replace `$` with an internal parameter names.
 ```cpl
 func printPlanet((name= n: str, value= v: float)): void {
 	name;  %> ReferenceError
@@ -132,13 +132,18 @@ func printPlanetNamed((name: str, value: float)? = ("Earth", 6371.0)): void {
 }
 % typeof printPlanetNamed: \(?: (str, float)) => void
 ```
-We can also have optional record destructuring parameters:
+We can also have optional named destructuring parameters:
 ```cpl
 func printPlanetNamed((name= n: str, value= v: float)? = (name= "Earth", value= 6371.0)): void {
 	"""The radius of {{ n }} is {{ v }}km.""";
 }
 % typeof printPlanetNamed: \(?: (name: str, value: float)) => void
 ```
+
+These are all examples of the *entire parameter* being optional.
+If the parameter is supplied, its entries are all required.
+For *optional* entries of a destructured parameter, see #91.
+
 It’s a syntax error to have an optional destructured parameter without a default value.
 ```cpl
 func printPlanetNamed((name, value)?: (str, float)): void {;} % SyntaxError
@@ -149,22 +154,22 @@ func printPlanetNamed((name, value)?: (str, float)): void {;} % SyntaxError
 Like destructuring for variables, we can nest destructuing syntax for functions.
 ```cpl
 func nest(
-	% regular parameter destructuring, tuple
+	% regular parameter destructuring, positional
 	ab= (a, b): (int, int),
 
-	% regular parameter destructuring, record
+	% regular parameter destructuring, named
 	cd= ($c: int, delta= d: int),
 
-	% nested parameter destructuring, tuple within tuple
+	% nested parameter destructuring, positional within positional
 	ghi= (g: int, (h, i): (int, int)),
 
-	% nested parameter destructuring, record within tuple
+	% nested parameter destructuring, named within positional
 	jkl= (j: int, ($k: int, lima= l: int)),
 
-	% nested parameter destructuring, tuple within record
+	% nested parameter destructuring, positional within named
 	mno= ($m: int, november= (n, o): (int, int)),
 
-	% nested parameter destructuring, record within record
+	% nested parameter destructuring, named within named
 	pqr= (papa= p: int, quebec= ($q: int, romeo= r: int)),
 ): void {
 	% typeof each of (a, b, c, d, g, h, i, j, k, l, m, n, o, p, q, r) == int

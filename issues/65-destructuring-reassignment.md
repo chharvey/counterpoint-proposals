@@ -1,28 +1,28 @@
 Destructuring for variable & property reassignment. Depends on #43.
 
 # Discussion
-Destructuring reassignment is shorthand syntax for reassignment of variables and properties. As with variable and property declaration, we can use either tuple or record destructuring.
+Destructuring reassignment is shorthand syntax for reassignment of variables and properties. As with variable and property declaration, we can use either positional or named destructuring.
 ```cpl
 val mut x: int = 42;
 val mut y: int = 420;
 
-% tuple destructuring:
+% positional destructuring:
 set (x, y) = (43, 430);
 x == 43;
 y == 430;
 
-% record destructuring:
+% named destructuring:
 set (yankee= y, xray= x) = (xray= 44, yankee= 440);
 x == 44;
 y == 440;
 
-% record destructuring, punning:
+% named destructuring, punning:
 set ($y, $x) = (x= 45, y= 450);
 x == 45;
 y == 450;
 ```
 
-Destructuring for index/key reassignment allows us to reassign entries on mutable lists and dicts. Note: Punning (`k$`) can only be used for variable reassignment, not for property reassignment.
+Destructuring for index/key reassignment allows us to reassign entries on mutable lists and dicts. Note: Punning (`$k`) can only be used for variable reassignment, not for property reassignment.
 ```cpl
 val list: mut [float] = [4.2, 0.42];
 val dict: mut [:int]  = [x= 42, y= 420];
@@ -36,16 +36,16 @@ set ($y, $x) = (x= 45, y= 450); % ReferenceError: `x` and `y` not defined
 
 Destructuring for reassignment can be nested as well.
 ```cpl
-% nested reassignment, tuple within tuple
+% nested reassignment, positional within positional
 set (g, (h, i)) = (7, (8, 9));
 
-% nested reassignment, record within tuple
+% nested reassignment, named within positional
 set (j, ($k, lima= l)) = (10, (k= 11, lima= 12));
 
-% nested reassignment, tuple within record
+% nested reassignment, positional within named
 set ($m, november= (n, o)) = (m= 13, november= (14, 15));
 
-% nested reassignment, record within record
+% nested reassignment, named within named
 set ($p, quebec= ($q, romeo= r)) = (p= 16, quebec= (q= 17, romeo= 18));
 
 (g, h, i,  j,  k,  l,  m,  n,  o,  p,  q,  r) ==
