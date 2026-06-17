@@ -5,28 +5,27 @@ Type functions are functions that run at compile-time. They can have zero or mor
 ## Generic Type Functions
 Generic Types formalize the concept of variable types — types that are variable and may change.
 
-A typical example: A generic type function `Nullable<T>` that takes a single type argument `T` and produces a union of `T` and `null`.
+A typical example: A generic type function `Nullable[T]` that takes a single type argument `T` and produces a union of `T` and `null`.
 ```cpl
-typefunc Nullable<T> => T | null;
+typefunc Nullable[T] => T | null;
 ```
 `T` is not a type, but a **type variable** that serves as a parameter to the type function. The act of providing an actual value for `T` is called **specifying** the generic type function `Nullable`. It can also be thought of as “calling” or “instantiating” it.
 
 ```cpl
-val my_value_int: Nullable.<int> = 42;   % resolves to type `int | null`
-val my_value_str: Nullable.<str> = null; % resolves to type `str | null`
+val my_value_int: Nullable[int] = 42;   % resolves to type `int | null`
+val my_value_str: Nullable[str] = null; % resolves to type `str | null`
 ```
-Notice the difference in syntax between generic type declaration and generic type specification: `Nullable<T>` versus `Nullable.<int>`.
 
 Generic type parameters can be reused across type function declarations, in the same way that function parameters can be reused across function declarations.
 ```cpl
-typefunc Nullable<T> => T | null;
-typefunc And<T, U>   => T & U;
+typefunc Nullable[T] => T | null;
+typefunc And[T, U]   => T & U;
 % parameter `T` is reused
 ```
 Providing the incorrect number of arguments resolves in a TypeError.
 ```cpl
-typefunc Or<T, U> => T | U;
-val x: Or.<int> = 42;       %> TypeError: Got 1 generic arguments, but expected 2.
+typefunc Or[T, U] => T | U;
+val x: Or[int] = 42;        %> TypeError: Got 1 generic arguments, but expected 2.
 ```
 
 Type functions that take inputs are just one example of “generic types” (though not the only one — functions, classes, and interfaces can be generic too). Not all type functions are generic — they could have no parameters. An example of a non-generic type function is:
@@ -40,20 +39,20 @@ When considering whether to use a non-generic type function versus a plain type 
 %% 1. %% type A = TypeAlias;           % `TypeAlias` is evaluated here
 %% 2. %% val a: A = some_expression;   % type `A` is already known
 
-%% 3. %% type TypeFunction<T> = T | [T];
-%% 4. %% type B = TypeFunction.<str>;    % `TypeFunction.<str>` is specified here, but not evaluated yet
-%% 5. %% val b: B = some_expression;     % `TypeFunction.<str>` is evaluated here!
+%% 3. %% type TypeFunction[T] = T | [T];
+%% 4. %% type B = TypeFunction[str];    % `TypeFunction[str]` is specified here, but not evaluated yet
+%% 5. %% val b: B = some_expression;     % `TypeFunction[str]` is evaluated here!
 ```
 When a type alias is declared (line 1), it’s evaluated right then and there. Its definition (`str | [str]`) is injected in place wherever it’s used. In other words, type aliases are just a surface-level construct — line 1 is exactly identical to `type A = str | [str];`, and line 2 is exactly identical to `val a: str | [str] = some_expression;`
 
-But on line 4, when a type function is referenced, it’s not evaluated yet! It’s only evaluated, and only part by part, *when assigned an expression*, on line 5. The type-checker first asks, “is `some_expression` assignable to `TypeFunction.<str>`?” and then evaluates `TypeFunction` by parts to compute the answer. This is unlike a type alias where it already knows the type before assigning a variable to it.
+But on line 4, when a type function is referenced, it’s not evaluated yet! It’s only evaluated, and only part by part, *when assigned an expression*, on line 5. The type-checker first asks, “is `some_expression` assignable to `TypeFunction[str]`?” and then evaluates `TypeFunction` by parts to compute the answer. This is unlike a type alias where it already knows the type before assigning a variable to it.
 
 This lazy-evaluation is extremely powerful. It means that it’s possible for a type function to never be evaluated! It’s also possible for it to be evaluated several times, returning a different result each time (depending on what’s assigned to it)! We can utilize this mechanism to implement **recursive types**.
 
 ## Recursive Type Functions
 ```cpl
 type JsonPrimitive = null | bool | int | float | str;
-typefunc JsonValue => JsonPrimitive | List.<JsonValue> | Dict.<JsonValue>;
+typefunc JsonValue => JsonPrimitive | List[JsonValue] | Dict[JsonValue];
 ```
 Above is a typical representation of the various JSON types. `JsonValue` cannot be a type alias, since it circularly references itself. When we assign a value to `JsonValue`, the type-checker checks each operand of the type union at assignment-time (during compile-time).
 
@@ -65,10 +64,10 @@ In this example, `BinaryTree` references itself, as a 2-tuple of `BinaryTree`s. 
 ```cpl
 func depth(tree: BinaryTree): int
 	=> if tree.count > 0
-		then 1 + max.(depth.(tree.0), depth.(tree.1))
+		then 1 + max(depth(tree.0), depth(tree.1))
 		else 0;
 
-depth.((
+depth((
 	(),
 	( (), () ),
 ));
@@ -83,20 +82,20 @@ Even though `BinaryTree` is not evaluated yet (because it’s not being assigned
 
 The following example is a recursive generic type function.
 ```cpl
-typefunc Induction<T> => T | Induction.<[T]>;
+typefunc Induction[T] => T | Induction[[T]];
 
-val x: Induction.<float> = [[42]]; % `Induction.<float>` is evaluated here
+val x: Induction[float] = [[42]]; % `Induction[float]` is evaluated here
 ```
-Since `Induction<T>` is defined as a union, the type-checker tests `[[42]]` on an operand basis — first checking against `float` and then recursively checking against `Induction.<[float]>`, then `[float]`, `Induction.<[[float]]>`, etc.
+Since `Induction[T]` is defined as a union, the type-checker tests `[[42]]` on an operand basis — first checking against `float` and then recursively checking against `Induction[[float]]`, then `[float]`, `Induction[[[float]]]`, etc.
 
 We can use **type spread** (#68) in type functions.
 ```cpl
-typefunc EvenTuple<T> => [] | [T, T, #EvenTuple.<T>];
+typefunc EvenTuple[T] => [] | [T, T, #EvenTuple[T]];
 
-val n0: EvenTuple.<null> = [];
-val n1: EvenTuple.<null> = [null, null];
-val n2: EvenTuple.<null> = [null, null, null, null];
-val n3: EvenTuple.<null> = [null, null, null, null, null, null];
+val n0: EvenTuple[null] = [];
+val n1: EvenTuple[null] = [null, null];
+val n2: EvenTuple[null] = [null, null, null, null];
+val n3: EvenTuple[null] = [null, null, null, null, null, null];
 ```
 
 ## Infinite Loops
@@ -120,36 +119,36 @@ There are other kinds of type functions that aren’t infinite loops, but simply
 ## Optional Parameters
 Generic type functions can be defined with **optional generic parameters**, which must have a default value. When the generic is specified, the argument may be omitted, in which case the default value is assumed. All optional parameters must come after all required parameters.
 ```cpl
-typefunc Or<T, U? = null> => T | U;
-type X = Or.<int, bool>;            % resolves to type `int | bool`
-type Y = Or.<int>;                  % resolves to type `int | null`
+typefunc Or[T, U? = null] => T | U;
+type X = Or[int, bool];            % resolves to type `int | bool`
+type Y = Or[int];                  % resolves to type `int | null`
 ```
 
 ## Constrained Parmeters
 Use the `narrows` keyword to constrain a generic parameter. When a parameter `T narrows U` is declared, the argument sent in for `T` must be a subtype of `U`, otherwise it’s a type error.
 ```cpl
-typefunc Nullish<T narrows int | float> => T | null;
-type Z = Nullish.<str>;                              %> TypeError: Type `str` is not a subtype of type `int | float`.
+typefunc Nullish[T narrows int | float] => T | null;
+type Z = Nullish[str];                               %> TypeError: Type `str` is not a subtype of type `int | float`.
 ```
 Use the `widens` keyword to constrain a type parameter in the opposite direction: to declare it as a supertype.
 ```cpl
-typefunc Nullish<T widens int> => T | null;
-val x: Nullish.<42 | 43> = 42;              %> TypeError: Type `int` is not a subtype of type `42 | 43`.
+typefunc Nullish[T widens int] => T | null;
+val x: Nullish[42 | 43] = 42;               %> TypeError: Type `int` is not a subtype of type `42 | 43`.
 ```
 
 `widens` is only recommended when `narrows` would require accessing latter parameters.
 ```cpl
-typefunc T<A narrows B, B> => A;
+typefunc T[A narrows B, B] => A;
 %                    ^ ReferenceError: `B` is used before it is declared.
 ```
 To fix this error, we could switch the parameters:
 ```cpl
-typefunc T<B, A narrows B> => A;
+typefunc T[B, A narrows B] => A;
 %                       ^ ok
 ```
 However, if switching is not possible, we can use the `widens` keyword:
 ```cpl
-typefunc T<A, B widens A> => A;
+typefunc T[A, B widens A] => A;
 %                      ^ ok
 ```
 
@@ -177,7 +176,7 @@ Keyword :::=
 +;
 
 +GenericSpecifier
-+	::= "<" ParametersGeneric ">";
++	::= "[" ParametersGeneric "]";
 
  DeclarationType         ::= "type"     ("_" | IDENTIFIER)                   "="  Type ";";
 +DeclarationTypeFunction ::= "typefunc" ("_" | IDENTIFIER) GenericSpecifier? "=>" Type ";";
@@ -282,7 +281,7 @@ SemanticDeclaration =:=
 +		...ParseList(ParameterGeneric<+Optional>),
 +	];
 
-+Decorate(GenericSpecifier ::= "<" ParametersGeneric ">") -> Sequence<SemanticTypeParam>
++Decorate(GenericSpecifier ::= "[" ParametersGeneric "]") -> Sequence<SemanticTypeParam>
 +	:= Decorate(ParametersGeneric);
 
 -Decorate(DeclarationType ::= "type" "_" "=" Type ";") -> SemanticDeclarationType

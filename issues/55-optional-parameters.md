@@ -23,7 +23,7 @@ All optional parameters must be declared after all required parameters; otherwis
 ```cpl
 func breakfast(entree: str, dessert?: str = ""): void {;} % fine, type `\(str, ?: str) => void`
 func dinner   (dessert?: str = "", entree: str): void {;} %> ParseError
-type Meal = \(?:str, str) => void;                            %> ParseError
+type Meal = \(?:str, str) => void;                        %> ParseError
 ```
 Specifying an initializer that mismatches the parameter type results in a TypeError.
 ```cpl
@@ -39,50 +39,67 @@ func greet(mut greeting?: str = "Hello"): void {
 greet; %: \(?: str) => void
 ```
 
+Named arguments give us a fantastic advantage here:
+They let us skip optional parameters so that we don’t have to remember their default values.
+Say we want to call `move2D` with only a `player` and a `y`, but no `x`.
+Since unnamed arguments must be provided in order, we need to provide the argument for `x` before the argument for `y`.
+That would require us knowing its default value, which introduces unnecessary redundancy and upkeep.
+But with named arguments, we can skip optional arguments in the function call.
+```cpl
+func move2D_positional(x?: float = 0.0, y?: float = 0.0): void { return; }
+
+move2D(0.0, 1.0);
+%       ^ need to write default value of `x`
+
+func move2D_named($x?: float = 0.0, $y?: float = 0.0): void { return; }
+
+move2D(y= 1.0); % skip `x`, using its default value
+```
+
 ## Default Parameter Evaluation
 Optional parameter initializers are evaluated when the function is *called*, not when it’s *defined*.
 ```cpl
 func say_hello(): void {
-	print.("hello");
+	print("hello");
 };
-func run[say_hello](x?: void = say_hello.()): void {}; % does not print "hello" here
-run.();                                                % prints "hello" here
-run.();                                                % prints "hello" again
+func run(x?: void = say_hello()): void with (say_hello) {}; % does not print "hello" here
+run(); % prints "hello" here
+run(); % prints "hello" again
 ```
 
 If an optional parameter initializer references a variable, it must be captured (as shown above), and it refers to the variable bound to the environment in which it’s *initialized*, not in which the function is *called*. And, if that variable is ever reassigned outside the function, the reassignment is not observed. However, mutations will still be observed.
 ```cpl
 %-- Variable Reassignment --%
 %% line 2 %% val mut init: bool = false;
-func say[init](b?: bool = init): void { print.(b); }
-%                         ^ refers to the `init` from line 2
-say.(); % prints `false`
+func say(b?: bool = init): void with (init) { print(b); }
+%                   ^ refers to the `init` from line 2
+say(); % prints `false`
 
 set init = true; % reassigns `init` from line 2, but not captured variable on line 3
-say.();          % still prints `false`
+say();          % still prints `false`
 %   ^ reads from the value `false` in line 2
 ```
 ```cpl
 %-- Import Shadowing --%
 % Module "a"
 %% line 3 %% val init: bool = false;
-public func say[init](b?: bool = init): void { print.(b); }
-%                                ^ refers to the `init` from line 3
-say.(); % prints `false`
+public func say(b?: bool = init): void with (init) { print(b); }
+%                          ^ refers to the `init` from line 3
+say(); % prints `false`
 
 % Module "b"
 from "a" import say;
 val init: bool = true;
-say.();                % still prints `false`
-%   ^ reads from same `init` as Module "a" (not new `init` from Module "b")
+say();                % still prints `false`
+%  ^ reads from same `init` as Module "a" (not new `init` from Module "b")
 ```
 ```cpl
 %-- Variable Mutation --%
 val a: mut [int] = [42];
-func twice[a](x?: int = a.[0]): int => x * 2;
-twice.(); %== 84
-set a.[0] = 12;
-twice.(); %== 24
+func twice(x?: int = a.get(0)): int with (a) => x * 2;
+twice(); %== 84
+a.set(0, 12);
+twice(); %== 24
 ```
 
 # Specification

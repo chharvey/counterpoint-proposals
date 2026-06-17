@@ -71,13 +71,13 @@ Just because a destructured function parameter may have optional entries doesnâ€
 ```cpl
 func f(arg= (a: int, b: int, c?: int = 3)? = (4, 5, 6)): anything => (a, b, c);
 % typeof f: \(arg?: (int, int, ?: int)) => anything
-f.(arg= (1, 2)); %== (1, 2, 3)
-f.();            %== (4, 5, 6)
+f(arg= (1, 2)); %== (1, 2, 3)
+f();            %== (4, 5, 6)
 
 func h(arg= ($a: int, $b?: int = 3, $c: int)? = (a= 4, c= 5)): anything => (a, b, c);
 % typeof h: \(arg?: (a: int, b?: int, c: int)) => anything
-h.(arg= (a= 1, c= 2)); %== (1, 3, 2)
-h.();                  %== (4, 3, 5)
+h(arg= (a= 1, c= 2)); %== (1, 3, 2)
+h();                  %== (4, 3, 5)
 ```
 
 ## Syntax Note
@@ -115,19 +115,19 @@ val (a: int, b: int, (c: int, (d?: int = 7)? = (6))?     = (4, (5,))) = (1, 2, (
 ## Execution Order
 As with function parameter defaults, the default value is only evaluated if being assigned. If an assigned value is provided, the default value is ignored.
 ```cpl
-val ($a: int, $b: int, $c?: int = some_fn_with_side_effects.()) = (a= 1, c= 2, b= 3);
+val ($a: int, $b: int, $c?: int = some_fn_with_side_effects()) = (a= 1, c= 2, b= 3);
 ```
 Since `c` is assigned `2`, the function call is not executed and its side effects are not observed.
 
 If *multiple* default values are evaluated, they are done so left-to-right in source code order.
 ```cpl
-val ($a: int, $b?: int = print_and_return_2.(), $c?: int = print_and_return_3.()) = (a= 1);
+val ($a: int, $b?: int = print_and_return_2(), $c?: int = print_and_return_3()) = (a= 1);
 ```
 After assigning `a`, the program will print `2` and assign `b`, then print `3` and assign `c`.
 
 However, as demonstrated in #65, itâ€™s important to remember that the assigned object is *completely evaluated* before any assignments take place. This means that any function calls in the assigned object are evaluated in source order, regardless of variable assignment order.
 ```cpl
-val ($a: int, $b: int, $c: int) = (c= print_and_return_3.(), b= print_and_return_2.(), a= 1);
+val ($a: int, $b: int, $c: int) = (c= print_and_return_3(), b= print_and_return_2(), a= 1);
 ```
 The program first prints `3` and `2` in that order, then assigns variables `a`, `b`, and `c` in that order.
 

@@ -130,13 +130,13 @@ Destructuring is not *perfect* syntax sugar. That is, you could not replace the 
 
 Say `f` is a function that generates a pseudo-random number `r` and returns a tuple `(r, r)` of that number duplicated. Then with destructuring two variables, we can be sure the variables are equal.
 ```cpl
-val (r1, r2): (float, float) = f.();
+val (r1, r2): (float, float) = f();
 r1 == r2; %== true
 ```
 We’re not afforded this certainty if we “desugar” the destructuring statement, since the function is called twice, resulting in two possibly different random numbers.
 ```cpl
-val r1: float = f.().0;
-val r2: float = f.().1;
+val r1: float = f().0;
+val r2: float = f().1;
 r1 == r2; % not necessarily true, in fact most likely false
 ```
 

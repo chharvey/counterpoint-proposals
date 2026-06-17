@@ -15,13 +15,13 @@ add; %: \(x: float, y: float) => float
 
 Type signatures are useful in higher-order functions. For example, the type signature of a typical list folding (or “reducing”) function would include a function type as a parameter. We can use our `add` function above as a reducer of a list of floats.
 ```cpl
-claim foldList<T>(list: List.<T>, reducer: \(T, T) => T): T;
-val sum: float = foldList.<float>([4.2, 40.2], add); %== 44.4
+claim foldList[T](list: List[T], reducer: \(T, T) => T): T;
+val sum: float = foldList[float]([4.2, 40.2], add); %== 44.4
 ```
 In fact, `add` could be used many times in dozens of higher-order functions like `foldList`. But what if the type signature of `add` changes? This could break our function call.
 ```cpl
 func add(x: float, y: float, z: float): float => x + y + z;
-val sum: float = foldList.<float>([4.2, 40.2], add); %> TypeError
+val sum: float = foldList[float]([4.2, 40.2], add); %> TypeError
 ```
 > TypeError: `\(float, float, float) => float` not assignable to `\(float, float) => float`.
 
@@ -37,9 +37,9 @@ func add(x, y) impl BinaryOperatorFloat {
 	return x + y; %: float
 }
 ```
-Since the type signature of `foldList.<float>` expects a `\(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
+Since the type signature of `foldList[float]` expects a `\(float, float) => float`, providing an implementation of `BinaryOperatorFloat` suffices.
 ```cpl
-val sum: float = foldList.<float>([4.2, 40.2], add); % ok
+val sum: float = foldList[float]([4.2, 40.2], add); % ok
 ```
 When annotating a function type implementation, explicit parameter and return type annotations must be removed. The type-checker uses the `impl` clause to determine the function type, so explicit annotations are redundant.
 ```cpl
@@ -49,7 +49,7 @@ func add(x: float, y: float): float impl BinaryOperatorFloat => x + y; %> Syntax
 Now when we make a breaking change to `add`, we get only one new error, right at the source of that change.
 ```cpl
 func add(x, y, z) impl BinaryOperatorFloat => x + y + z; %> TypeError
-val sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported here
+val sum: float = foldList[float]([4.2, 40.2], add); % error is not reported here
 ```
 > TypeError: Got 3 parameters, but expected 2.
 
@@ -57,12 +57,12 @@ val sum: float = foldList.<float>([4.2, 40.2], add); % error is not reported her
 When a function implements an annotation that has optional parameters, the optional parameter is succeeded by a `?` sigil. When it has no default value, it implicitly defaults to `null` (#55).
 ```cpl
 type Binop = \(float, ?: float) => float; % second parameter is optional
-function add(a, b?) impl Binop {
+func add(a, b?) impl Binop {
 %               ^ optional, defaulting to `null`
 	a; %: float
 	b; %: float | null
 	return a + (b || 0.0);
 };
-add.(2.0, 3.0); %== 5.0
-add.(2.0);      %== 2.0
+add(2.0, 3.0); %== 5.0
+add(2.0);      %== 2.0
 ```
