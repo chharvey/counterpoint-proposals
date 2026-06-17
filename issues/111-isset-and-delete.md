@@ -3,7 +3,7 @@
 # The `isset` Operator
 `isset` is a new unary operator that returns a boolean indicating whether or not a variable or parameter is currently set.
 ```cpl
-let var greeting?: str;
+val mut greeting?: str;
 assert greeting == null;
 assert isset greeting == false;
 
@@ -13,7 +13,7 @@ assert isset greeting == true;
 ```
 `isset` is used to determine whether a variable has been *set*, regardless of its value, even if that value is `null`. This is why testing whether the variable is `== null` is not sufficient.
 ```cpl
-let var greeting?: str | null;
+val mut greeting?: str | null;
 assert greeting == null;
 assert isset greeting == false;
 
@@ -23,7 +23,7 @@ assert isset greeting == true;
 ```
 This operator is also useful for when we need to see whether a value has been supplied for an optional parameter. Suppose instead of using `isset` we were to check the value of the parameter against `null`:
 ```cpl
-function get<T>(list: [T], index: int, 'default'?: T): Maybe.<T>
+func get<T>(list: [T], index: int, 'default'?: T): Maybe.<T>
 	=> if list.hasIndex.(index) then Some.<T>(list.[index]) else
 	if 'default' != null then Some.<T>('default') else None.<T>();
 
@@ -32,7 +32,7 @@ assert get<str | null>(["hello"], 1, null) == None.<str | null>(); % got `None`,
 ```
 With `isset`, we get the expected return value.
 ```cpl
-function get<T>(list: [T], index: int, 'default'?: T): Maybe.<T>
+func get<T>(list: [T], index: int, 'default'?: T): Maybe.<T>
 	=> if list.hasIndex.(index) then Some.<T>(list.[index]) else
 	if isset 'default' then Some.<T>('default') else None.<T>();
 
@@ -42,15 +42,15 @@ assert get<str | null>(["hello"], 1, null) == Some.<str | null>(null); % got `So
 
 `isset` may be used to check whether a property has been set on a tuple, record, or statically-known object.
 ```cpl
-let tup: (int, ?: float | null) = (42,);
+val tup: (int, ?: float | null) = (42,);
 assert isset tup.0 == true;
 assert isset tup.1 == false;
 
-let rec: (a?: int | null, b: float) = (b= 4.2);
+val rec: (a?: int | null, b: float) = (b= 4.2);
 assert isset rec.a == false;
 assert isset rec.b == true;
 
-let my_object: mut (interface { field?: str; }) = (class { public field?: str; }).();
+val my_object: mut (interface { field?: str; }) = (class { public field?: str; }).();
 assert isset my_object.field == false;
 set my_object.field = "hello";
 assert isset my_object.field == true;
@@ -112,12 +112,12 @@ Therefore, syntaxes like `?isset a` and `isset (a || b)` are not well-formed, wh
 
 # The `delete` Statement
 ```cpl
-let var greeting?: str;
+val mut greeting?: str;
 set greeting = null; %> TypeError: Expression of type `null` is not assignable to type `str`.
 ```
 Because the write type of `greeting` is only `str`, we cannot explicitly set its value to `null`. A new `delete` keyword, deletes the value of an uninitialized variable or optional parameter.
 ```cpl
-let var greeting?: str;
+val mut greeting?: str;
 assert isset greeting == false;
 
 set greeting = "hello";
@@ -127,7 +127,7 @@ delete greeting;
 assert isset greeting == false;
 assert greeting == null;
 
-let var is_done: bool = true;
+val mut is_done: bool = true;
 delete is_done; %> MutabilityError: Deletion of a required variable `is_done`.
 
 function move(x: float, y?: float): void {
@@ -154,7 +154,7 @@ For Lists, Dicts, Sets, and Maps, which are dynamic, use their respective method
 
 To delete an optional field from an object, use the `delete` keyword with the statically bound property.
 ```cpl
-let my_object: mut (interface { field?: str; }) = (class { public field?: str; }).();
+val my_object: mut (interface { field?: str; }) = (class { public field?: str; }).();
 set my_object.field = "hello";
 assert my_object.field == "hello";
 delete my_object.field;
@@ -162,7 +162,7 @@ assert my_object.field == null;
 ```
 This is not quite the same as required fields, which always have values (even if nullish).
 ```cpl
-let my_object: mut (interface { field: str | null; }) = (class { public field: str | null = null; }).();
+val my_object: mut (interface { field: str | null; }) = (class { public field: str | null = null; }).();
 set my_object.field = "hello";
 assert my_object.field == "hello";
 set my_object.field = null;
@@ -181,8 +181,8 @@ interface T {
 	optional?: str;
 }
 
-let my_immutable_object: T     = T.();
-let my_mutable_object:   mut T = T.();
+val my_immutable_object: T     = T.();
+val my_mutable_object:   mut T = T.();
 
 delete my_immutable_object.optional; %> MutabilityError: Mutation of an object of immutable type `T`.
 delete my_mutable_object.opt;        %> TypeError: Property `opt` does not exist on type `mut T`.
