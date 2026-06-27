@@ -1,6 +1,6 @@
 Functions can be made **stateful** by **capturing** variables from outside their scope.
 
-By default, function scopes do not have access to any variables declared outside. But with a **capture clause**, variables can be cherry-picked and read inside the function body. The capture clause is a bracketed list of previously-declared variables, written before the function parameters (and after the generic parameters). Functions cannot capture from below.
+By default, function scopes do not have access to any variables declared outside. But with a **capture clause**, variables can be cherry-picked and read inside the function body. The capture clause is a parenthesized list of previously-declared variables, written after the `with` keyword following the return type. Functions cannot capture from below.
 ```cpl
 val mut my_var:       str       = "hello";
 val     my_vars_list: mut [str] = ["world"];
@@ -56,11 +56,11 @@ set my_var = "hello"; % reassigning before capturing will affect the capture
 func my_fn(): [str] with (my_var, my_vars_list) { % copies and binds new references
 	my_var;       %== "hello"
 	my_vars_list; %== ["world"]
-	return [my_var, my_vars_list.[0]];
+	return [my_var, my_vars_list.get(0)];
 }
 
-set my_var           = "ciao!";  % reassigning an already-captured variable does not affect the function binding,
-set my_vars_list.[0] = "mondo!"; % but mutating one does!
+set my_var = "ciao!";          % reassigning an already-captured variable does not affect the function binding,
+my_vars_list.set(0, "mondo!"); % but mutating one does!
 
 my_fn(); %== ["hello", "mondo!"]
 ```
