@@ -59,14 +59,9 @@ if maybe is Some then {
 	set maybe  = Some[int](maybe~? + 1);           % better
 };
 % pattern-matching/unwrapping
-if maybe is Some[int](val x) then {
-	set maybe += 1;                 %> TypeErrorInvalidOperation
-	set maybe  = Some[int](x + 1); % best
-};
-match maybe {
-	None[int]()      -> print("none"),
-	Some[int](val x) -> print(x),
-};
+set maybe = match maybe
+	case Some[int](val x) -> Some[int](x + 1), % best
+default maybe;
 ```
 
 ### Type Shorthand and The Maybe Access Operator
@@ -227,15 +222,9 @@ if result is Ok then {
 	set result  = result.map(\(value) => value + 1); % ok
 	set result  = Ok[int](result~! + 1);             % better
 };
-% pattern-matching/unwrapping
-if result is Ok[int](val x) then {
-	set result += 1;               %> TypeErrorInvalidOperation
-	set result  = Ok[int](x + 1); % best
-};
-match result {
-	Fail[int]()    -> print("err"),
-	Ok[int](val x) -> print(x),
-};
+set result = match result
+	case Ok[int](val x) -> Ok[int](x + 1), % best
+default result;
 ```
 
 ### Type Shorthand and The Result Access Operator
