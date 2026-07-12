@@ -168,6 +168,16 @@ type Y = And[T= (a: int, b: float)];
 type W = Flatten[T= ((int,), (a: float))];
 ```
 
+## Destructuring Generic Type Record Properties
+The properties of record type literals can be destructured just like the properties of record (value) literals (#44).
+```cpl
+type RecordTypePropertyDest = (
+	(a, b): TupType,
+	($x, $y): RecType,
+	(x: xray, y: yankee): RecType,
+);
+```
+
 ## Destructuring Generic Type Named Arguments
 When *specifying* (“calling”) generic types with named arguments, we can destructure the named arguments in the same way that we can with function calls.
 ```cpl
