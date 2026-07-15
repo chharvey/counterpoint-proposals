@@ -86,7 +86,7 @@ Property    ::=                          Word       "="  Expression;
 +MapLiteral ::= "{" ","? CaseMap# ","? "}";
 
 +ExpressionSwitch
-+	::= "switch" Expression CaseSwitch# "default" Expression;
++	::= "switch" Expression CaseSwitch* "default" Expression;
 
 Expression ::=
 	| ExpressionDisjunctive
@@ -97,48 +97,43 @@ Expression ::=
 
 ## Semantic Schema
 ```diff
--SemanticCase
-+SemanticCaseMap
-	::= SemanticExpression SemanticExpression;
-
-+SemanticCaseSwitch
+SemanticCase
+-	::= SemanticExpression SemanticExpression;
 +	::= SemanticExpression+ SemanticExpression;
 
-+SemanticExpressionOperation[operator: SWITCH]
-+	::= SemanticExpression SemanticCaseSwitch* SemanticExpression;
++SemanticExpressionSwitch
++	::= SemanticExpression SemanticCase* SemanticExpression;
 ```
 
 ## Decorate
 ```diff
--Decorate(Case    ::= Expression "->" Expression) -> SemanticCase
-+Decorate(CaseMap ::= Expression "->" Expression) -> SemanticCaseMap
--	:= (SemanticCase
-+	:= (SemanticCaseMap
+Decorate(Case ::= Expression "->" Expression) -> SemanticCase
+	:= (SemanticCase
 		Decorate(Expression)
 		Decorate(Expression)
 	);
 
-+Decorate(CaseSwitch ::= "case" Expression__0 "->" Expression__1) -> SemanticCaseSwitch
-+	:= (SemanticCaseSwitch
++Decorate(CaseSwitch ::= "case" Expression__0 "->" Expression__1) -> SemanticCase
++	:= (SemanticCase
 +		Decorate(Expression__0)
 +		Decorate(Expression__1)
 +	);
-+Decorate(CaseSwitch ::= "case" (Expression__0 "|")+ Expression__1 "->" Expression__2) -> SemanticCaseSwitch
-+	:= (SemanticCaseSwitch
++Decorate(CaseSwitch ::= "case" (Expression__0 "|")+ Expression__1 "->" Expression__2) -> SemanticCase
++	:= (SemanticCase
 +		...ParseList(Expression__0, SemanticExpression)
 +		Decorate(Expression__1)
 +		Decorate(Expression__2)
 +	);
 
-+Decorate(ExpressionSwitch ::= "switch" Expression__0 "default" Expression__1) -> SemanticExpressionOperation
-+	:= (SemanticExpressionOperation[operator=SWITCH]
++Decorate(ExpressionSwitch ::= "switch" Expression__0 "default" Expression__1) -> SemanticExpressionSwitch
++	:= (SemanticExpressionSwitch
 +		Decorate(Expression__0)
 +		Decorate(Expression__1)
 +	);
-+Decorate(ExpressionSwitch ::= "switch" Expression__0 CaseSwitch+ "default" Expression__1) -> SemanticExpressionOperation
-+	:= (SemanticExpressionOperation[operator=SWITCH]
++Decorate(ExpressionSwitch ::= "switch" Expression__0 CaseSwitch# "default" Expression__1) -> SemanticExpressionSwitch
++	:= (SemanticExpressionSwitch
 +		Decorate(Expression__0)
-+		...ParseList(CaseSwitch, SemanticCaseSwitch)
++		...ParseList(CaseSwitch, SemanticCase)
 +		Decorate(Expression__1)
 +	);
 ```
@@ -170,7 +165,7 @@ Object! Interpret(SemanticExpressionOperation[operator=SWITCH] expr) :=
 		2. *Let* `i` be 0.
 	2. *Else:*
 		1. *Assert:* `expr.children.count` is greater than or equal to 2.
-		2. *If* `expr.children.0` is a `SemanticCaseSwitch`:
+		2. *If* `expr.children.0` is a `SemanticCas`:
 			1. *Let* `assess_switch` be `true`.
 		3. *Else:*
 			1. *Assert:* `expr.children.0` is a `SemanticExpression`.
