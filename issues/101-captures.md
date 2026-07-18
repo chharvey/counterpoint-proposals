@@ -11,14 +11,14 @@ func my_fn(): void {
 	return;
 }
 
-func my_fn(): void with (my_var, my_vars_list) {
-%                  ^ capture clause
+func my_fn() with (my_var, my_vars_list): void {
+%            ^ capture clause
 	my_var;       %== "hello"
 	my_vars_list; %== ["world"]
 	return;
 }
 
-func from_below(): str with (my_var_below) => my_var; % ReferenceError: `my_var_below` is used before it is declared.
+func from_below() with (my_var_below): str => my_var; % ReferenceError: `my_var_below` is used before it is declared.
 val my_var_below: str = "hello world";
 ```
 
@@ -27,7 +27,7 @@ Even if a captured variable is writable (declared with `mut`), it may not be rea
 val mut my_var:       str       = "hello";
 val     my_vars_list: mut [str] = ["world"];
 
-func my_fn(): void with (my_var, my_vars_list) {
+func my_fn() with (my_var, my_vars_list): void {
 	set my_var       = "ciao!";            %> AssignmentError
 	set my_vars_list = ["hello", "world"]; %> AssignmentError
 	return;
@@ -39,7 +39,7 @@ Under the hood: When a function captures a variable, a new reference to the vari
 func main(): \() => str {
 	val my_var: str = "hello";
 
-	return \(): str with (my_var) => my_var; % `my_var` is copied and bound to the lambda
+	return \() with (my_var): str => my_var; % `my_var` is copied and bound to the lambda
 	% leaving `main` scope, reference `my_var` is destroyed
 }
 val my_fn: \() => str = main();
@@ -53,7 +53,7 @@ val     my_vars_list: mut [str] = ["world"];
 
 set my_var = "hello"; % reassigning before capturing will affect the capture
 
-func my_fn(): [str] with (my_var, my_vars_list) { % copies and binds new references
+func my_fn() with (my_var, my_vars_list): [str] { % copies and binds new references
 	my_var;       %== "hello"
 	my_vars_list; %== ["world"]
 	return [my_var, my_vars_list.get(0)];
@@ -69,7 +69,7 @@ Unbound variables in default parameter values must be captured.
 ```cpl
 val my_var: str = "hello";
 
-func make_question(s?: str = my_var): str with (my_var) => """{{ s }}?""";
+func make_question(s?: str = my_var) with (my_var): str => """{{ s }}?""";
 
 make_question(); %== "hello?"
 
@@ -99,8 +99,8 @@ Variable references can be **shared** with function scopes via the `ref` modifie
 val mut my_var:       str       = "hello";
 val     my_vars_list: mut [str] = ["world"];
 
-func my_fn1(): str with (ref my_var, my_vars_list) {
-%                        ^ shared capture
+func my_fn1() with (ref my_var, my_vars_list): str {
+%                   ^ shared capture
 	set my_var       = "ciao";             % reassigment is allowed, and it affects outer scope
 	set my_vars_list = ["hello", "world"]; %> AssignmentError % outer variable is not writable
 
@@ -111,7 +111,7 @@ my_fn1(); %== "ciao!"
 
 assert my_var == "ciao";
 
-func my_fn2(): void with (ref my_var)
+func my_fn2() with (ref my_var): void
 	=> print(my_var);
 
 my_fn2(); % prints "ciao"
@@ -124,8 +124,8 @@ my_fn2(); % prints "hi"
 Only declared functions may use shared captures. It’s a syntax error to use shared captures with function expressions.
 ```cpl
 val my_var: str = "hello";
-val my_lambda: \() => str = \(): str with (ref my_var) => my_var; %> ParseError
-val my_lambda: \() => str = \(): str with (my_var)     => my_var; % ok
+val my_lambda: \() => str = \() with (ref my_var): str => my_var; %> ParseError
+val my_lambda: \() => str = \() with (my_var):     str => my_var; % ok
 ```
 
 The reasoning is this: Because a shared capture does not create a copy of the variable reference, it does not increment or decrement the VM’s reference counter. Therefore any function that is defined with shared captures must not leave its defining scope, otherwise it would be memory-unsafe. Declared functions are already unmovable (in fact they’re not even first-class values), so the use of shared-captures is restricted to these functions only.
@@ -136,7 +136,7 @@ func returns_lambda(): \() => str {
 	val my_var: str = "hello";
 
 	% If this were allowed:
-	return \(): str with (ref my_var) => my_var;
+	return \() with (ref my_var): str => my_var;
 	% leaving `returns_lambda` scope, reference `my_var` is destroyed
 }
 returns_lambda()(); % crash! trying to access destroyed `my_var` reference
@@ -180,7 +180,7 @@ my_list.forEach(\() with (ref counter) { %> SyntaxError
 The most sensible workaround would be to write a declared function with the shared capture that “does the work”, and then call that fuction in the callback. Remember, declared functions aren’t capturable since they’re not true bindings, so we can reference it in other functions.
 ```cpl
 val mut counter: int = 0;
-func increment(): void with (ref counter) {
+func increment() with (ref counter): void {
 	set counter += 1;
 }
 my_list.forEach(\() {
@@ -229,7 +229,7 @@ The code above showed an example of a closure being called “outside” the sco
 Another kind of closure is a function that is called in an “inner” scope.
 ```cpl
 val b: int = 3;
-func plus5(): int with (b) => b + 5;
+func plus5() with (b): int => b + 5;
 ```
 The closure `plus5` is defined in the outermost scope and captures `b` from that scope.
 When we call it within a new scope below, we have indirect access to `b`.
