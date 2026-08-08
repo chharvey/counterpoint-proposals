@@ -71,10 +71,10 @@ val rec_maybe: (item: int)? = Some[(item: int)]((item= 42));
 %              ^ shorthand for `Maybe[(item: int)]`
 ```
 
-The **maybe access operator** `?.` is overloaded to work with the `Maybe` type. It returns a new `Maybe` that either wraps the value if it is not a `None`, else it returns a new `None`.
+The **maybe access operator** `?.` is repurposed to work with the `Maybe` type. It returns a new `Maybe` that either wraps the value if it is not a `None`, else it returns a new `None`. The previous behavior (working with unions with `null`) is obsolete.
 ```cpl
 rec_maybe.item;  %> TypeErrorNoEntry
-rec_maybe?.item; % equivalent to `rec_maybe.then(\(val) => val.item)`
+rec_maybe?.item; % equivalent to `rec_maybe.then(\(rec) => rec.item)`
 assert rec_maybe?.item == Some[int](42);
 
 val tup_maybe: [int]? = None[[int]]();
@@ -82,35 +82,19 @@ assert tup_maybe?.0 == None[int]();
 assert tup_maybe?.0 !== tup_maybe; % returns a new Maybe reference type object
 ```
 
-Short-circuiting: When the operand of `?.` is `null` or a `None`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0()` is never evaluated, and nothing is printed.
+Short-circuiting: When the operand of `?.` is a `None`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0()` is never evaluated, and nothing is printed.
 ```cpl
 func return_0(): int {
 	print("I am returning 0.");
 	return 0;
 };
-val value_u: [int] | null = null;
-value_u?.get(return_0()); % returns `value_u`, does not execute function
-
 val value_m: [int]? = None[[int]]();
 value_m?.get(return_0()); % returns a new `None[int]`, does not execute function
 ```
 
-### Non-Null Assertion
-The **non-null assertion** operator `~?` has two functions. For most values, it subtracts `null` from the type of its operand: It’s equivalent to `expr as :T:`, where `expr` is of type `T | null`. However, if the operand is a `Maybe[T]` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually `null` or a `None` at runtime, the `~?` operator throws an error.
+### Unwrapping Maybes
+The **maybe unwrapping** operator `~?`, if the operand is a `Maybe[T]` type, ‘unwraps’ the value of the Maybe, returning type `T`. Additionally, if the value is actually a `None` at runtime, the `~?` operator throws an error.
 ```cpl
-claim rec_union: (item: int) | null;
-
-val rec: (item: int) = rec_union;   %> TypeError
-val rec: (item: int) = rec_union~?; % no TypeError, but unsafe!
-if !!rec_union then {
-	val rec: (item: int) = rec_union~?; % no TypeError, and safe
-};
-
-rec_union.item;                    %> TypeErrorNoEntry
-rec_union?.item;                   % maybe access: returns type `int | null`
-(rec_union as :(item: int):).item; % claims `rec_union` is type `(item: int)`; returns type `int`
-rec_union~?.item;                  % shorthand for the expression claim above, but throws at runtime if `rec_union` is `null`
-
 claim rec_maybe: Maybe[(item: int)];
 
 val rec: (item: int) = rec_maybe;   %> TypeError
@@ -119,13 +103,12 @@ if rec_maybe is Some then {
 	val rec: (item: int) = rec_maybe~?; % no TypeError, and safe
 };
 
-rec_maybe.item;                    %> TypeErrorNoEntry
-rec_maybe?.item;                   % maybe access: returns type `Maybe[int]`
-(rec_maybe as :(item: int):).item; %> TypeError: `Maybe[(item: int)]` cannot be narrowed to `(item: int)` since they have no overlap
-rec_maybe~?.item;                  % asserts `rec_maybe` is `(item: int)`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
+rec_maybe.item;   %> TypeErrorNoEntry
+rec_maybe?.item;  % maybe access: returns type `Maybe[int]`
+rec_maybe~?.item; % unwraps `rec_maybe` to `(item: int)`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
 ```
 
-Nested `Maybe`s *do not* automatically flatten. That is, a `Maybe[Maybe[T]]` is not the same as a `Maybe[T]`. Accordingly, the non-null assertion operator `~?` only unwraps a singular `Maybe`. (Keep in mind, these are rare cases; `Maybe`s should not typically be nested.)
+Nested `Maybe`s *do not* automatically flatten. That is, a `Maybe[Maybe[T]]` is not the same as a `Maybe[T]`. Accordingly, the maybe unwrap operator `~?` only unwraps a singular `Maybe`. (Keep in mind, these are rare cases; `Maybe`s should not typically be nested.)
 ```cpl
 val mut nested: int?? = None[Maybe[int]]();
 %               ^ shorthand for `Maybe[Maybe[int]]`
@@ -152,9 +135,9 @@ assert value == 1;
 ```
 
 ### Guidance
-For accessors, `maybe?.accessor` and `maybe~?.accessor` have different use cases. Use `maybe?.accessor` when `maybe` could be a value or `null`, or it’s a `Maybe` object and you don’t know what the branch will be at runtime. Use `maybe~?.accessor` when you know for sure that `maybe` is not `null` and it is not a `None` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
+For accessors, `maybe?.accessor` and `maybe~?.accessor` have different use cases. Use `maybe?.accessor` when `maybe` is a `Maybe` object and you don’t know what the branch will be at runtime. Use `maybe~?.accessor` when you know for sure that `maybe` is not a `None` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
 
-For operating on `Maybe` objects in general, using `?.` is not possible, so use conditionals in conjunction with `~?`.
+For operating on a `Maybe` object without getting its properties, using `?.` is not possible, so use conditionals in conjunction with `~?`.
 ```cpl
 return maybe == "foo"; % probably a mistake!
 
@@ -234,10 +217,10 @@ val rec_result: (item: int)! = Ok[(item: int)]([item= 42]);
 %               ^ shorthand for `Result[(item: int)]`
 ```
 
-The **result access operator** `!.` is overloaded to work with the `Result` type. It returns a new `Result` that either wraps the value if it is not a `Fail`, else it returns a new `Fail`.
+The **result access operator** `!.` works with the `Result` type. It returns a new `Result` that either wraps the value if it is not a `Fail`, else it returns a new `Fail`.
 ```cpl
 rec_result.item;  %> TypeErrorNoEntry
-rec_result!.item; % equivalent to `rec_result.then(\(val) => val.item)`
+rec_result!.item; % equivalent to `rec_result.then(\(rec) => rec.item)`
 assert rec_result!.item == Ok[int](42);
 
 val tup_result: [int]! = Fail[[int]]();
@@ -245,35 +228,19 @@ assert tup_result!.0 == Fail[int]();
 assert tup_result!.0 !== tup_result; % returns a new Result reference type object
 ```
 
-Short-circuiting: When the operand of `!.` is an `Exception` or a `Fail`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0()` is never evaluated, and nothing is printed.
+Short-circuiting: When the operand of `!.` is a `Fail`, and the accessor is an expression via brackets, the accessor is *not evaluated*. In the example below, `return_0()` is never evaluated, and nothing is printed.
 ```cpl
 func return_0(): int {
 	print("I am returning 0.");
 	return 0;
 };
-val value_u: [int] | Exception = Exception("oops!");
-value_u!.get(return_0()); % returns `value_u`, does not execute function
-
 val value_r: [int]! = Fail[[int]]("oops!");
 value_r!.get(return_0()); % returns a new `Fail[int]`, does not execute function
 ```
 
-### Non-Exception Assertion
-The **non-exception assertion** operator `~!` has two functions. For most values, it subtracts `Exception` from the type of its operand: It’s equivalent to `expr as :T:`, where `expr` is of type `T | Exception`. However, if the operand is a `Result[T, E]` type, then it performs an additional function at runtime: it ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually an `Exception` or a `Fail` at runtime, the `~!` operator throws the exception.
+### Unwrapping Results
+The **result unwrapping** operator `~!`, if the operand is a `Result[T, E]` type, ‘unwraps’ the value of the Result, returning type `T`. Additionally, if the value is actually a `Fail` at runtime, the `~!` operator throws the Fail’s held exception.
 ```cpl
-claim rec_union: (item: int) | Exception;
-
-val rec: (item: int) = rec_union;   %> TypeError
-val rec: (item: int) = rec_union~!; % no TypeError, but unsafe!
-if !!rec_union then { % (remember, Exceptions are falsy)
-	val rec: (item: int) = rec_union~!; % no TypeError, and safe
-};
-
-rec_union.item;                    %> TypeErrorNoEntry
-rec_union!.item;                   % result access: returns type `int | Exception`
-(rec_union as :(item: int):).item; % claims `rec_union` is type `(item: int)`; returns type `int`
-rec_union~!.item;                  % shorthand for the expression claim above, but throws at runtime if `rec_union` is an `Exception`
-
 claim rec_result: Result[(item: int)];
 
 val rec: (item: int) = rec_result;   %> TypeError
@@ -282,13 +249,12 @@ if rec_result is Ok then {
 	val rec: (item: int) = rec_result~!; % no TypeError, and safe
 };
 
-rec_result.item;                    %> TypeErrorNoEntry
-rec_result!.item;                   % result access: returns type `Result[int]`
-(rec_result as :(item: int):).item; %> TypeError: `Result[(item: int)]` cannot be narrowed to `(item: int)` since they have no overlap
-rec_result~!.item;                  % asserts `rec_result` is `(item: int)`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
+rec_result.item;   %> TypeErrorNoEntry
+rec_result!.item;  % result access: returns type `Result[int]`
+rec_result~!.item; % unwraps `rec_result` to `(item: int)`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
 ```
 
-Nested `Result`s *do not* automatically flatten. That is, a `Result[Result[T]]` is not the same as a `Result[T]`. Accordingly, the non-exception assertion operator `~!` only unwraps a singular `Result`. (Keep in mind, these are rare cases; `Result`s should not typically be nested.)
+Nested `Result`s *do not* automatically flatten. That is, a `Result[Result[T]]` is not the same as a `Result[T]`. Accordingly, the result unwrap operator `~!` only unwraps a singular `Result`. (Keep in mind, these are rare cases; `Result`s should not typically be nested.)
 ```cpl
 val mut nested: int!! = Fail[Result[int]]("reason 0");
 %               ^ shorthand for `Result[Result[int]]`
@@ -315,9 +281,9 @@ assert value == 1;
 ```
 
 ### Guidance
-For accessors, `result!.accessor` and `result~!.accessor` have different use cases. Use `result!.accessor` when `result` could be a value or an `Exception`, or it’s a `Result` object and you don’t know what the branch will be at runtime. Use `result~!.accessor` when you know for sure that `result` is not an `Exception` and it is not a `Fail` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
+For accessors, `result!.accessor` and `result~!.accessor` have different use cases. Use `result!.accessor` when `result` is a `Result` object and you don’t know what the branch will be at runtime. Use `result~!.accessor` when you know for sure that `result` is not a `Fail` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
 
-For operating on `Result` objects in general, using `!.` is not possible, so use conditionals in conjunction with `~!`.
+For operating on a `Result` object without getting its properties, using `!.` is not possible, so use conditionals in conjunction with `~!`.
 ```cpl
 return result == "foo"; % probably a mistake!
 
