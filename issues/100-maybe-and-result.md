@@ -108,7 +108,7 @@ rec_maybe?.item;  % maybe access: returns type `Maybe[int]`
 rec_maybe~?.item; % unwraps `rec_maybe` to `(item: int)`; returns type `int`; but throws at runtime if `rec_maybe` is a `None`
 ```
 
-Nested `Maybe`s *do not* automatically flatten. That is, a `Maybe[Maybe[T]]` is not the same as a `Maybe[T]`. Accordingly, the maybe unwrap operator `~?` only unwraps a singular `Maybe`. (Keep in mind, these are rare cases; `Maybe`s should not typically be nested.)
+Nested `Maybe`s *do not* automatically flatten. That is, a `Maybe[Maybe[T]]` is not the same as a `Maybe[T]`. Accordingly, the maybe unwrap operator `~?` only unwraps a singular `Maybe`.
 ```cpl
 val mut nested: int?? = None[Maybe[int]]();
 %               ^ shorthand for `Maybe[Maybe[int]]`
@@ -130,8 +130,7 @@ if nested is Some then {
 };
 assert value == Some[int](1); % `nested` is a `Some` whose wrapped value is also a `Some`
 
-set value = value~?; % unsafe, but we are sure `value` is not a `None`
-assert value == 1;
+assert value~? == 1;
 ```
 
 ### Guidance
@@ -254,7 +253,7 @@ rec_result!.item;  % result access: returns type `Result[int]`
 rec_result~!.item; % unwraps `rec_result` to `(item: int)`; returns type `int`; but throws at runtime if `rec_result` is a `Fail`
 ```
 
-Nested `Result`s *do not* automatically flatten. That is, a `Result[Result[T]]` is not the same as a `Result[T]`. Accordingly, the result unwrap operator `~!` only unwraps a singular `Result`. (Keep in mind, these are rare cases; `Result`s should not typically be nested.)
+Nested `Result`s *do not* automatically flatten. That is, a `Result[Result[T]]` is not the same as a `Result[T]`. Accordingly, the result unwrap operator `~!` only unwraps a singular `Result`.
 ```cpl
 val mut nested: int!! = Fail[Result[int]]("reason 0");
 %               ^ shorthand for `Result[Result[int]]`
@@ -276,8 +275,7 @@ if nested is Ok then {
 };
 assert value == Ok[int](1); % `nested` is an `Ok` whose wrapped value is also an `Ok`
 
-set value = value~!; % unsafe, but we are sure `value` is not a `Fail`
-assert value == 1;
+assert value~! == 1;
 ```
 
 ### Guidance
