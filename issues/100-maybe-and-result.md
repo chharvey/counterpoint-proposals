@@ -133,6 +133,23 @@ assert value == Some[int](1); % `nested` is a `Some` whose wrapped value is also
 assert value~? == 1;
 ```
 
+Nested Maybes occur when accessing an optional entry of an optional variable.
+```cpl
+val mut record?: (a?: int, b: float);
+val item_a: int??  = record?.a;
+val item_b: float? = record?.b;
+```
+Since `record` is optional, its type is `Maybe[(a?: int, b: float)]` when read, and its optional property `a` is a `Maybe[int]` when read. So accessing `record?.a` yields a `Maybe[Maybe[int]]` type. Since property `b` is not optional, `record?.b` is only a `Maybe[float]`.
+
+This might seem like overkill, but it contains useful information that a simple union with `null` or even a flattened `Maybe` cannot give us. If `item_a` is a `None[Maybe[int]]`, then it means the `record` variable was never initialized or it was initialized and then deleted. However, if `item_a` is a `Some[Maybe[int]]`, then it means `record` has a value and we’ve accessed its `a` property — a `Some[Some[int]]` means `a` is present (with a value), and a `Some[None[int]]` means `a` is absent.
+
+To get the value of `item_a`, we need to unwrap it twice:
+```cpl
+val i: int = item_a~?~?;
+```
+
+Note: `record?.b` being of type `Maybe[float]` could mean one of two things: that `record` is an optional variable with a required `b` entry, or that `record` is a required variable with an optional `b` entry. The type of the expression doesn’t give us enough information about the structure of `record`.
+
 ### Guidance
 For accessors, `maybe?.accessor` and `maybe~?.accessor` have different use cases. Use `maybe?.accessor` when `maybe` is a `Maybe` object and you don’t know what the branch will be at runtime. Use `maybe~?.accessor` when you know for sure that `maybe` is not a `None` branch at runtime, and it definitely has an `.accessor` property, based on external factors or business logic.
 
