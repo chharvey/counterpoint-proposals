@@ -138,158 +138,102 @@ ParametersFunction ::=
 
 ## Semantics
 ```diff
-SemanticParameter[writable: Boolean]
--	::= SemanticKey? SemanticVariable SemanticType;
-+	::= SemanticKey? SemanticVariable SemanticType SemanticExpression?;
+SemanticParameterFunction[named: true][writable: Boolean][id: Nil]
+-	::= SemanticKey SemanticType;
++	::= SemanticKey SemanticType SemanticExpression?;
+SemanticParameterFunction[named: true][writable: Boolean][id: RealNumber]
+-	::= SemanticKey? SemanticType;
++	::= SemanticKey? SemanticType SemanticExpression?;
+SemanticParameterFunction[named: false][writable: Boolean][id?: RealNumber]
+-	::= SemanticType;
++	::= SemanticType SemanticExpression?;
 ```
 
 ## Decorate
 ```diff
--Decorate(ParameterFunction<-Named>            ::= "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
+-Decorate(ParameterFunction<-Named>            ::= "_" ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<-Named><-Optional> ::= "_" ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=false][writable=false][id=*nil*]
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<-Named>            ::= IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
++Decorate(ParameterFunction<-Named><+Optional> ::= "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=false][writable=false][id=*nil*]
++		Decorate(Type)
++		Decorate(Expression<+Block><-Break><-Return>)
++	);
+-Decorate(ParameterFunction<-Named>            ::= IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<-Named><-Optional> ::= IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=false][writable=false][id=TokenWorth(IDENTIFIER)]
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<-Named>            ::= "mut" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= "mut" "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
++Decorate(ParameterFunction<-Named><+Optional> ::= IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=false][writable=false][id=TokenWorth(IDENTIFIER)]
++		Decorate(Type)
++		Decorate(Expression<+Block><-Break><-Return>)
++	);
+-Decorate(ParameterFunction<-Named>            ::= "mut" IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<-Named><-Optional> ::= "mut" IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=false][writable=true][id=TokenWorth(IDENTIFIER)]
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<-Named>            ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<-Named><-Optional> ::= "mut" IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= "$" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "$" "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
-		(SemanticKey[id=TokenWorth("_")])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= "$" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "$" IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
-		(SemanticKey[id=TokenWorth(IDENTIFIER)])
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= "mut" "$" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "mut" "$" "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
-		(SemanticKey[id=TokenWorth("_")])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
-		(SemanticKey[id=TokenWorth(IDENTIFIER)])
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
++Decorate(ParameterFunction<-Named><+Optional> ::= "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=false][writable=true][id=TokenWorth(IDENTIFIER)]
++		Decorate(Type)
++		Decorate(Expression<+Block><-Break><-Return>)
++	);
+-Decorate(ParameterFunction<+Named>            ::= Word "=" "_" ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "_" ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=true][writable=false][id=*nil*]
 		Decorate(Word)
 		Decorate(Type)
 	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=false]
-		Decorate(Word)
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "mut" "_" ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
-		Decorate(Word)
-		Decorate(Type)
-	);
--Decorate(ParameterFunction<+Named>            ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
-+Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameter
-	:= (SemanticParameter[writable=true]
-		Decorate(Word)
-		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-		Decorate(Type)
-	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= "mut" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<-Named><+Optional> ::= "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "$" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
-+		(SemanticKey[id=TokenWorth("_")])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
-+		(SemanticKey[id=TokenWorth(IDENTIFIER)])
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "mut" "$" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
-+		(SemanticKey[id=TokenWorth("_")])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= "mut" "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
-+		(SemanticKey[id=TokenWorth(IDENTIFIER)])
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
-+		Decorate(Type)
-+		Decorate(Expression<+Block><-Break><-Return>)
-+	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
++Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=true][writable=false][id=*nil*]
 +		Decorate(Word)
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=false]
+-Decorate(ParameterFunction<+Named>            ::= Word "=" IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=true][writable=false][id=TokenWorth(IDENTIFIER)]
+		Decorate(Word)
+		Decorate(Type)
+	);
++Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=true][writable=false][id=TokenWorth(IDENTIFIER)]
 +		Decorate(Word)
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "mut" "_" "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
+-Decorate(ParameterFunction<+Named>            ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<+Named><-Optional> ::= Word "=" "mut" IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=true][writable=true][id=TokenWorth(IDENTIFIER)]
+		Decorate(Word)
+		Decorate(Type)
+	);
++Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=true][writable=true][id=TokenWorth(IDENTIFIER)]
 +		Decorate(Word)
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
-+Decorate(ParameterFunction<+Named><+Optional> ::= Word "=" "mut" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameter
-+	:= (SemanticParameter[writable=true]
-+		Decorate(Word)
-+		(SemanticVariable[id=TokenWorth(IDENTIFIER)])
+-Decorate(ParameterFunction<+Named>            ::= "$" IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<+Named><-Optional> ::= "$" IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=true][writable=false][id=TokenWorth(IDENTIFIER)]
+		Decorate(Type)
+	);
++Decorate(ParameterFunction<+Named><+Optional> ::= "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=true][writable=false][id=TokenWorth(IDENTIFIER)]
++		Decorate(Type)
++		Decorate(Expression<+Block><-Break><-Return>)
++	);
+-Decorate(ParameterFunction<+Named>            ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameterFunction
++Decorate(ParameterFunction<+Named><-Optional> ::= "mut" "$" IDENTIFIER ":" Type) -> SemanticParameterFunction
+	:= (SemanticParameterFunction[named=true][writable=true][id=TokenWorth(IDENTIFIER)]
+		Decorate(Type)
+	);
++Decorate(ParameterFunction<+Named><+Optional> ::= "mut" "$" IDENTIFIER "?" ":" Type "=" Expression<+Block><-Break><-Return>) -> SemanticParameterFunction
++	:= (SemanticParameterFunction[named=true][writable=true][id=TokenWorth(IDENTIFIER)]
 +		Decorate(Type)
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
@@ -329,14 +273,14 @@ Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence
 +		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
 +	];
 
--Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># ","?) -> Sequence<SemanticParameter>
--	:= ParseList(ParameterFunction<-Named>, SemanticParameter)
--Decorate(ParametersFunction ::= ","? ParameterFunction<+Named># ","?) -> Sequence<SemanticParameter>
--	:= ParseList(ParameterFunction<+Named>, SemanticParameter)
--Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># "," ParameterFunction<+Named># ","?) -> Sequence<SemanticParameter>
+-Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># ","?) -> Sequence<SemanticParameterFunction>
+-	:= ParseList(ParameterFunction<-Named>, SemanticParameterFunction);
+-Decorate(ParametersFunction ::= ","? ParameterFunction<+Named># ","?) -> Sequence<SemanticParameterFunction>
+-	:= ParseList(ParameterFunction<+Named>, SemanticParameterFunction);
+-Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># "," ParameterFunction<+Named># ","?) -> Sequence<SemanticParameterFunction>
 -	:= [
--		...ParseList(ParameterFunction<-Named>, SemanticParameter),
--		...ParseList(ParameterFunction<+Named>, SemanticParameter),
+-		...ParseList(ParameterFunction<-Named>, SemanticParameterFunction),
+-		...ParseList(ParameterFunction<+Named>, SemanticParameterFunction),
 -	];
 
 +Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># ","?) -> Sequence<SemanticParameter>
