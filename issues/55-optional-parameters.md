@@ -106,19 +106,6 @@ twice(); %== 24
 
 ## Syntax
 ```diff
-TypeFunction
-	::= "\" "(" ParametersType? ")" "=>" ("void" | Type);
-
-DeclaredFunction   ::=     "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return> ";");
-ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return> | "=>" Expression<+Block><-Break><+Return>);
-
--ParameterFunction<Named>           ::= (
-+ParameterFunction<Named, Optional> ::= (
-	| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
-	| <Named+>("mut"? "$" IDENTIFIER)
--)                ":" Type;
-+) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
-
 ParametersType ::=
 -	| ","? EntryType<-Named><-Optional># ("," EntryType<+Named><-Optional>#)? ","?
 -	| ","?                                    EntryType<+Named><-Optional>#   ","?
@@ -126,6 +113,13 @@ ParametersType ::=
 +	| ","?                                    EntryType<-Named><+Optional>#   ("," EntryType<+Named><∓Optional>#)? ","?
 +	| ","?                                                                         EntryType<+Named><∓Optional>#   ","?
 ;
+
+-ParameterFunction<Named>           ::= (
++ParameterFunction<Named, Optional> ::= (
+	| <Named+>(Word "=") ("_" | "mut"? IDENTIFIER)
+	| <Named+>("mut"? "$" IDENTIFIER)
+-)                ":" Type;
++) <Optional+>"?" ":" Type & <Optional+>("=" Expression<+Block><-Break><-Return>);
 
 ParametersFunction ::=
 -	| ","? ParameterFunction<-Named># ("," ParameterFunction<+Named>#)? ","?
@@ -151,6 +145,41 @@ SemanticParameterFunction[named: false][writable: Boolean][id?: RealNumber]
 
 ## Decorate
 ```diff
+Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence<SemanticItemType>
+	:= ParseList(EntryType<-Named><-Optional>, SemanticItemType);
+-Decorate(ParametersType ::= ","? EntryType<+Named><-Optional># ","?) -> Sequence<SemanticPropertyType>
+-	:= ParseList(EntryType<+Named><-Optional>, SemanticPropertyType);
+-Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<+Named><-Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
+-	:= [
+-		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
+-		...ParseList(EntryType<+Named><-Optional>, SemanticPropertyType),
+-	];
++Decorate(ParametersType ::= ","? EntryType<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
++	:= ParseList(EntryType<-Named><+Optional>, SemanticItemType);
++Decorate(ParametersType ::= ","? EntryType<+Named><∓Optional># ","?) -> Sequence<SemanticPropertyType>
++	:= ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType);
++Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
++	:= [
++		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
++		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
++	];
++Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
++	:= [
++		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
++		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
++	];
++Decorate(ParametersType ::= ","? EntryType<-Named><+Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
++	:= [
++		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
++		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
++	];
++Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<-Named><+Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
++	:= [
++		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
++		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
++		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
++	];
+
 -Decorate(ParameterFunction<-Named>            ::= "_" ":" Type) -> SemanticParameterFunction
 +Decorate(ParameterFunction<-Named><-Optional> ::= "_" ":" Type) -> SemanticParameterFunction
 	:= (SemanticParameterFunction[named=false][writable=false][id=*nil*]
@@ -238,41 +267,6 @@ SemanticParameterFunction[named: false][writable: Boolean][id?: RealNumber]
 +		Decorate(Expression<+Block><-Break><-Return>)
 +	);
 
-Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence<SemanticItemType>
-	:= ParseList(EntryType<-Named><-Optional>, SemanticItemType);
--Decorate(ParametersType ::= ","? EntryType<+Named><-Optional># ","?) -> Sequence<SemanticPropertyType>
--	:= ParseList(EntryType<+Named><-Optional>, SemanticPropertyType);
--Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<+Named><-Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
--	:= [
--		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
--		...ParseList(EntryType<+Named><-Optional>, SemanticPropertyType),
--	];
-+Decorate(ParametersType ::= ","? EntryType<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
-+	:= ParseList(EntryType<-Named><+Optional>, SemanticItemType);
-+Decorate(ParametersType ::= ","? EntryType<+Named><∓Optional># ","?) -> Sequence<SemanticPropertyType>
-+	:= ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType);
-+Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<-Named><+Optional># ","?) -> Sequence<SemanticItemType>
-+	:= [
-+		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
-+		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
-+	];
-+Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
-+	:= [
-+		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
-+		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
-+	];
-+Decorate(ParametersType ::= ","? EntryType<-Named><+Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
-+	:= [
-+		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
-+		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
-+	];
-+Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># "," EntryType<-Named><+Optional># "," EntryType<+Named><∓Optional># ","?) -> Sequence<...Sequence<SemanticItemType>, ...Sequence<SemanticPropertyType>>
-+	:= [
-+		...ParseList(EntryType<-Named><-Optional>, SemanticItemType),
-+		...ParseList(EntryType<-Named><+Optional>, SemanticItemType),
-+		...ParseList(EntryType<+Named><∓Optional>, SemanticPropertyType),
-+	];
-
 -Decorate(ParametersFunction ::= ","? ParameterFunction<-Named># ","?) -> Sequence<SemanticParameterFunction>
 -	:= ParseList(ParameterFunction<-Named>, SemanticParameterFunction);
 -Decorate(ParametersFunction ::= ","? ParameterFunction<+Named># ","?) -> Sequence<SemanticParameterFunction>
@@ -282,31 +276,31 @@ Decorate(ParametersType ::= ","? EntryType<-Named><-Optional># ","?) -> Sequence
 -		...ParseList(ParameterFunction<-Named>, SemanticParameterFunction),
 -		...ParseList(ParameterFunction<+Named>, SemanticParameterFunction),
 -	];
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># ","?) -> Sequence<SemanticParameter>
-+	:= ParseList(ParameterFunction<-Named><-Optional>, SemanticParameter);
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticParameter>
-+	:= ParseList(ParameterFunction<-Named><+Optional>, SemanticParameter);
-+Decorate(ParametersFunction ::= ","? ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameter>
-+	:= ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameter);
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticParameter>
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># ","?) -> Sequence<SemanticParameterFunction>
++	:= ParseList(ParameterFunction<-Named><-Optional>, SemanticParameterFunction);
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticParameterFunction>
++	:= ParseList(ParameterFunction<-Named><+Optional>, SemanticParameterFunction);
++Decorate(ParametersFunction ::= ","? ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameterFunction>
++	:= ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameterFunction);
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># ","?) -> Sequence<SemanticParameterFunction>
 +	:= [
-+		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameter),
-+		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameter),
++		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameterFunction),
++		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameterFunction),
 +	];
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameter>
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameterFunction>
 +	:= [
-+		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameter),
-+		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameter),
++		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameterFunction),
++		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameterFunction),
 +	];
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameter>
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameterFunction>
 +	:= [
-+		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameter),
-+		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameter),
++		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameterFunction),
++		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameterFunction),
 +	];
-+Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameter>
++Decorate(ParametersFunction ::= ","? ParameterFunction<-Named><-Optional># "," ParameterFunction<-Named><+Optional># "," ParameterFunction<+Named><∓Optional># ","?) -> Sequence<SemanticParameterFunction>
 +	:= [
-+		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameter),
-+		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameter),
-+		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameter),
++		...ParseList(ParameterFunction<-Named><-Optional>, SemanticParameterFunction),
++		...ParseList(ParameterFunction<-Named><+Optional>, SemanticParameterFunction),
++		...ParseList(ParameterFunction<+Named><∓Optional>, SemanticParameterFunction),
 +	];
 ```
