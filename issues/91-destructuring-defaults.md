@@ -96,6 +96,30 @@ h();                  %== (4, 3, 5)
 	z; % set to `my_record.c`
 	```
 
+## Omitted Default Values
+When the default value of an optional destructured component is missing, it assumes `None`.
+This behavior is the same as uninitialized parameters (#55) and uninitialized variables (#94).
+```cpl
+val (a: int, b: int, c?: int) = (1, 2);
+%                           ^ default value omitted
+a; %== 1
+b; %== 2
+c; %== None[int]()
+
+val (a= alfa: int, b= bravo?: int, c= charlie: int) = (a= 1, c= 2);
+%                                ^ default value omitted
+alfa;    %== 1
+bravo;   %== None[int]()
+charlie; %== 2
+
+val ($a: int, $b?: int, $c: int) = (a= 1, c= 2);
+%                     ^ default value omitted
+a; %== 1
+b; %== None[int]()
+c; %== 2
+```
+In the examples above, the type of the destructured variable with no default value is `Maybe[T]`, where `T` is the declared type.
+
 ## Nested Destructuring
 Nested destructuring works the same as before. With nesting, the type annotation doesn’t need to go on the entry itself, as long as its innards are all typed.
 ```cpl
