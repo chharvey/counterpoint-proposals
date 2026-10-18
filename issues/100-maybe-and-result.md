@@ -427,6 +427,7 @@ Syntax      | Explicit Parsing | Expansion                  | Note
 
 The parentheses may contain any type expression, so `A!(X.p)`, `A!(X[P])`, `A!(X!)`, `A!(X!(Y))`, `A!(mut X)`, and `A!(X & Y)` are all well-formed type expressions.
 
+#### Syntax
 ```diff
 TypeCompound ::=
 	| TypeUnit
@@ -442,4 +443,27 @@ TypeCompound ::=
 
 TypeIntersection ::= (TypeIntersection "&")? TypeUnaryKeyword;
 TypeUnion        ::= (TypeUnion        "|")? TypeIntersection;
+```
+
+#### ToBoolean
+```diff
+Boolean ToBoolean(Value value) :=
+	1. *If* `value` is an instance of `Null`:
+		1. *Return:* `false`.
+	2. *If* `value` is an instance of `Boolean`:
+		1. *Return:* `value`.
+	3. *If* `value` is an instance of `Exception`:
+		1. *Return:* `false`.
++	4. *If* `value` is an instance of `Maybe`:
++		1. *If* `v` does not have a value:
++			1. *Return:* `false`.
++		2. *Else:*
++			1. Fall through.
++	5. *If* `value` is an instance of `Result`:
++		1. *If* `v` does not have a value:
++			1. *Assert:* `v` has a reason.
++			2. *Return:* `false`.
++		2. *Else:*
++			1. Fall through.
+	6. *Return:* `true`.
 ```

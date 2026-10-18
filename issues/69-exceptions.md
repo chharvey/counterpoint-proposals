@@ -203,13 +203,12 @@ Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatem
 
 ## ToBoolean
 ```diff
-Boolean ToBoolean(Object value) :=
+Boolean ToBoolean(Value value) :=
 	1. *If* `value` is an instance of `Null`:
 		1. *Return:* `false`.
 	2. *If* `value` is an instance of `Boolean`:
 		1. *Return:* `value`.
-+	3. *If* `value` is an instance of `Record` *and* `value` has a "message" key *and* `value.message` is an instance of `String`:
++	3. *If* `value` is an instance of `Exception`:
 +		1. *Return:* `false`.
-+		2. *Note:* This step is only temporary until the Exception class is created.
 	4. *Return:* `true`.
 ```
