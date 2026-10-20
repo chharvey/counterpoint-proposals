@@ -38,22 +38,22 @@ claim ex: Exception;
 ?ex == true;
 ```
 
-## Throw Statements
-Exceptions may be **thrown** by functions. This introduces a new `throw` keyword and statement. When an object is thrown, the throwing function “completes abruptly”: it does not finish execution, but instead sends the thrown object up to its caller, which in turn will do the same, until the top of the program is reached, at which point it will crash. There is no catching Exceptions or Exception handling. Functions that *definitely always throw* may be annotated with a return type of `nothing`, the Bottom Type.
+## Panic Statements
+Functions may **panic** with Exceptions. This introduces a new `panic` keyword and statement. When a function panics, it “completes abruptly”: it does not finish execution, but instead sends the object up to its caller, which in turn will do the same, until the top of the program is reached, at which point it will crash. There is no catching Exceptions or Exception handling. Functions that *definitely always panic* may be annotated with a return type of `nothing`, the Bottom Type.
 ```cpl
-func throwException(message: str): nothing {
+func panic_with_exception(message: str): nothing {
 	val err: Exception = Exception(message);
-	throw err;
+	panic err;
 }
 ```
-Only Exception objects may be thrown. Attempting to throw a non-exception results in type error.
+Only Exception objects may be used in a `panic` statement. Panicking with any other type is a type error.
 ```cpl
-func throwMessage(message: str): nothing {
-	throw message; %> TypeError: Expression of type `str` is not assignable to type `Exception`.
+func panic_with_message(message: str): nothing {
+	panic message; %> TypeError: Expression of type `str` is not assignable to type `Exception`.
 }
 ```
 
-Since Exceptions cannot be caught, we should only throw them in truly unrecoverable situations. For “exceptional circumstances”, you should *return* the Exception instead.
+Since Exceptions cannot be caught, we should only panic with them in truly unrecoverable situations. For “exceptional circumstances”, you should *return* the Exception instead.
 ```cpl
 func sqrt(x: float): float | Exception
 	=> if x < 0.0
@@ -91,7 +91,7 @@ else null;
 ```diff
 Keyword :::=
 	// statement
-+		| "throw"
++		| "panic"
 ;
 ```
 
@@ -99,7 +99,7 @@ Keyword :::=
 ```diff
  StatementBreak          ::= ("break" | "skip")                                      ";";
  StatementReturn <Break> ::=  "return"          Expression<+Block><?Break><+Return>? ";";
-+StatementThrow  <Break> ::=  "throw"           Expression<+Block><?Break><+Return>  ";";
++StatementPanic  <Break> ::=  "panic"           Expression<+Block><?Break><+Return>  ";";
 
 Statement<Break, Return> ::=
 	| Declaration
@@ -109,7 +109,7 @@ Statement<Break, Return> ::=
 	| StatementIteration<Return>
 	| <Break+> StatementBreak
 	| <Return+>StatementReturn<?Break>
-+	| StatementThrow<?Break>
++	| StatementPanic<?Break>
 ;
 ```
 
@@ -128,9 +128,9 @@ SemanticStatement =:=
 ;
 
 -SemanticStatementReturn
-+SemanticStatementReturn[throw=false]
++SemanticStatementReturn[panic=false]
 	::= SemanticExpression?;
-+SemanticStatementReturn[throw=true]
++SemanticStatementReturn[panic=true]
 +	::= SemanticExpression;
 ```
 
@@ -138,24 +138,24 @@ SemanticStatement =:=
 ```diff
 Decorate(StatementReturn<Break> ::= "return" ";") -> SemanticStatementReturn
 -	:= (SemanticStatementReturn);
-+	:= (SemanticStatementReturn[throw=false]);
++	:= (SemanticStatementReturn[panic=false]);
 Decorate(StatementReturn<Break> ::= "return" Expression<+Block><?Break><+Return> ";") -> SemanticStatementReturn
 -	:= (SemanticStatementReturn Decorate(Expression<+Block><?Break><+Return>));
-+	:= (SemanticStatementReturn[throw=false] Decorate(Expression<+Block><?Break><+Return>));
++	:= (SemanticStatementReturn[panic=false] Decorate(Expression<+Block><?Break><+Return>));
 
-+Decorate(StatementThrow<Break> ::= "throw" Expression<+Block><?Break><+Return> ";") -> SemanticStatementReturn
-+	:= (SemanticStatementReturn[throw=true] Decorate(Expression<+Block><?Break><+Return>));
++Decorate(StatementPanic<Break> ::= "panic" Expression<+Block><?Break><+Return> ";") -> SemanticStatementReturn
++	:= (SemanticStatementReturn[panic=true] Decorate(Expression<+Block><?Break><+Return>));
 
 Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatementReturn
 	:= Decorate(StatementReturn<?Break>);
-+Decorate(Statement<Break, Return> ::= StatementThrow<?Break>) -> SemanticStatementReturn
-+	:= Decorate(StatementThrow<?Break>);
++Decorate(Statement<Break, Return> ::= StatementPanic<?Break>) -> SemanticStatementReturn
++	:= Decorate(StatementPanic<?Break>);
 ```
 
 ## TypeCheck
 ```diff
 -Nil! TypeCheck(SemanticStatementReturn ::= ()) :=
-+Nil! TypeCheck(SemanticStatementReturn[throw=false] ::= ()) :=
++Nil! TypeCheck(SemanticStatementReturn[panic=false] ::= ()) :=
 	1. *Let* `parent` be the result of walking up the AST and finding a node
 		that is either a SemanticExpressionFunction or a SemanticDeclarationFunction.
 	2. *If* `parent` is set:
@@ -170,7 +170,7 @@ Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatem
 		1. *Return.*
 ;
 -Nil! TypeCheck(SemanticStatementReturn ::= SemanticExpression) :=
-+Nil! TypeCheck(SemanticStatementReturn[throw=false] ::= SemanticExpression) :=
++Nil! TypeCheck(SemanticStatementReturn[panic=false] ::= SemanticExpression) :=
 	1. *Let* `parent` be the result of walking up the AST and finding a node
 		that is either a SemanticExpressionFunction or a SemanticDeclarationFunction.
 	2. *If* `parent` is set:
@@ -183,20 +183,20 @@ Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatem
 	3. *Else:*
 		1. *Return.*
 ;
-+Nil! TypeCheck(SemanticStatementReturn[throw=true] ::= SemanticExpression)
++Nil! TypeCheck(SemanticStatementReturn[panic=true] ::= SemanticExpression)
 +	:= TypeCheckAssign(SemanticExpression, Exception);
 ```
 
 ## Build
 ```diff
 -Build(SemanticStatementReturn ::= ()) := [ (GOTO "caller") ];
-+Build(SemanticStatementReturn[throw=false] ::= ()) := [ (GOTO "caller") ];
++Build(SemanticStatementReturn[panic=false] ::= ()) := [ (GOTO "caller") ];
 -Build(SemanticStatementReturn ::= SemanticExpression) := [
-+Build(SemanticStatementReturn[throw=false] ::= SemanticExpression) := [
++Build(SemanticStatementReturn[panic=false] ::= SemanticExpression) := [
 	(RETURN `Build(SemanticExpression)`)
 	(GOTO "caller")
 ];
-+Build(SemanticStatementReturn[throw=true] ::= SemanticExpression) := [
++Build(SemanticStatementReturn[panic=true] ::= SemanticExpression) := [
 +	// TODO: implement
 +];
 ```
