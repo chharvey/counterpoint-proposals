@@ -30,12 +30,10 @@ declare class Exception {
 }
 ```
 
-In Counterpoint, Exception objects are “falsy”, like `null`, `false`, `None` instances, and `Fail` instances.
+In Counterpoint, Exception objects are “truthy”, like all other objects.
 ```cpl
 claim ex: Exception;
-!!ex == false;
-% And of course, all falsy objects are empty:
-?ex == true;
+!!ex == true;
 ```
 
 ## Panic Statements
@@ -199,16 +197,4 @@ Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatem
 +Build(SemanticStatementReturn[panic=true] ::= SemanticExpression) := [
 +	// TODO: implement
 +];
-```
-
-## ToBoolean
-```diff
-Boolean ToBoolean(Value value) :=
-	1. *If* `value` is an instance of `Null`:
-		1. *Return:* `false`.
-	2. *If* `value` is an instance of `Boolean`:
-		1. *Return:* `value`.
-+	3. *If* `value` is an instance of `Exception`:
-+		1. *Return:* `false`.
-	4. *Return:* `true`.
 ```
