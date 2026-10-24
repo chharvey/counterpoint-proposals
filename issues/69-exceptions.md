@@ -18,15 +18,20 @@ They have the following implementation:
 	;; --- own ---
 	;; the error message
 	(field $message (ref $String))
+	;; a cause of this Exception
+	(field $cause (ref null $Exception))
 )))
 ```
 The `Exception` keyword will be a “support class keyword” in the Counterpoint language. Eventually its class and type will be built in to the core library. It has the following signatures:
 ```cpl
 declare class Exception {
-	%%% Construct a new Exception object with a default message. %%%
-	new ();
-	%%% Construct a new Exception object with the given message. %%%
-	new (message: str);
+	%%% This Exception’s error message. %%%
+	public readonly message: str;
+	%%% A cause of this Exception. %%%
+	public readonly cause?: Exception;
+
+	%%% Construct a new Exception object with the given message and an optional cause. %%%
+	new (str, ?:Exception);
 }
 ```
 
@@ -61,11 +66,9 @@ func sqrt(x: float): float | Exception
 When the function has a return type `float | Exception`, the caller may use that information to address the returned value how it sees fit, rather than being forced to deal with an Exception they didn’t ask for. For example:
 ```cpl
 val valueOrEx: float | Exception = sqrt(x);
-if !valueOrEx then {
-	% `valueOrEx` is guaranteed to be an exception, since all floats, including 0.0, are “truthy”
+if valueOrEx is Exception then {
 	% do something with the exception
 } else {
-	% `valueOrEx` is guaranteed to be a float
 	% do something with the float
 };
 ```
