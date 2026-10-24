@@ -3,63 +3,72 @@ The Exception type is a new built-in type. It may be thrown by functions.
 # Discussion
 
 ## Exception Type
-In this version, the Exception type is a record type that has one property, `message`, which is a `str`. Once we get classes, `Exception` will be a class with its own constructor, but for now, “Exception objects” are constructed as records. They must have the following type:
+In this version, the Exception type is a new struct type that has one field, `message`, which is a string. Once we get classes, `Exception` will be a class with its own constructor, but for now, “Exception objects” are constructed via a custom `Exception` function keyword.
 ```cpl
-type Exception = (message: str);
+val ex: Exception = Exception("error!");
 ```
-The `Exception` keyword will be a “support class keyword” in the Counterpoint language. Eventually its class and type will be built in to the core library.
+They have the following implementation:
+```wasm
+;; precursor to the `Exception` class
+(type $Exception (sub final $Object (struct
+	;; --- inherited ---
+	;; unique id for hashing
+	(field $id i64)
 
-In Counterpoint, Exception objects are “falsy”. They are the only objects in the entire language (besides `null` and `false`) that are falsy.
-```cpl
-val ex: Exception = (message= "error!");
-!!ex == false;
-% And of course, all falsy objects are empty:
-?ex == true;
+	;; --- own ---
+	;; the error message
+	(field $message (ref $String))
+	;; a cause of this Exception
+	(field $cause (ref null $Exception))
+)))
 ```
+The `Exception` keyword will be a “support class keyword” in the Counterpoint language. Eventually its class and type will be built in to the core library. It has the following signatures:
+```cpl
+declare class Exception {
+	%%% This Exception’s error message. %%%
+	public readonly message: str;
+	%%% A cause of this Exception. %%%
+	public readonly cause?: Exception;
 
-## Throw Statements
-Exceptions may be **thrown** by functions. This introduces a new `throw` keyword and statement. When an object is thrown, the throwing function “completes abruptly”: it does not finish execution, but instead sends the thrown object up to its caller, which in turn will do the same, until the top of the program is reached, at which point it will crash. There is no catching Exceptions or Exception handling. Functions that *definitely always throw* may be annotated with a return type of `nothing`, the Bottom Type.
-```cpl
-func throwException(message: str): nothing {
-	val err: Exception = ($message);
-	throw err;
-}
-```
-Only Exception objects may be thrown. Attempting to throw a non-exception results in type error.
-```cpl
-func throwInt(n: int): nothing {
-	throw n; %> TypeError: Expression of type `int` is not assignable to type `Exception`.
-}
-```
-
-However, there is a shorthand syntax for throwing an Exception: using `throw` on a string. This doesn’t actually throw the string, but wraps it in an Exception type.
-```cpl
-func throwHello(): nothing {
-	throw "hello"; % equivalent to `throw (message= "hello");`
-}
-```
-An even shorter syntax is to use `throw` with no operand (throwing an Exception with an empty message). It’s not particularly helpful in production, but it can be ergonomic for debugging.
-```cpl
-func throwEmpty(): nothing {
-	throw; % equivalent to `throw (message= "");`
+	%%% Construct a new Exception object with the given message and an optional cause. %%%
+	new (str, ?:Exception);
 }
 ```
 
-Since Exceptions cannot be caught, we should only throw them in truly unrecoverable situations. For “exceptional circumstances”, the best practice is to *return* the Exception instead.
+In Counterpoint, Exception objects are “truthy”, like all other objects.
+```cpl
+claim ex: Exception;
+!!ex == true;
+```
+
+## Panic Statements
+Functions may **panic** with Exceptions. This introduces a new `panic` keyword and statement. When a function panics, it “completes abruptly”: it does not finish execution, but instead sends the object up to its caller, which in turn will do the same, until the top of the program is reached, at which point it will crash. There is no catching Exceptions or Exception handling. Functions that *definitely always panic* may be annotated with a return type of `nothing`, the Bottom Type.
+```cpl
+func panic_with_exception(message: str): nothing {
+	val err: Exception = Exception(message);
+	panic err;
+}
+```
+Only Exception objects may be used in a `panic` statement. Panicking with any other type is a type error.
+```cpl
+func panic_with_message(message: str): nothing {
+	panic message; %> TypeError: Expression of type `str` is not assignable to type `Exception`.
+}
+```
+
+Since Exceptions cannot be caught, we should only panic with them in truly unrecoverable situations. For “exceptional circumstances”, you should *return* the Exception instead.
 ```cpl
 func sqrt(x: float): float | Exception
 	=> if x < 0.0
-		then (message= "Argument must not be negative.")
+		then Exception("Argument must not be negative.")
 		else x ^ 0.5;
 ```
 When the function has a return type `float | Exception`, the caller may use that information to address the returned value how it sees fit, rather than being forced to deal with an Exception they didn’t ask for. For example:
 ```cpl
 val valueOrEx: float | Exception = sqrt(x);
-if !valueOrEx then {
-	% `valueOrEx` is guaranteed to be an exception, since all floats, including 0.0, are “truthy”
+if valueOrEx is Exception then {
 	% do something with the exception
 } else {
-	% `valueOrEx` is guaranteed to be a float
 	% do something with the float
 };
 ```
@@ -71,9 +80,9 @@ func sqrt(x: float): float!
 		else Ok(x ^ 0.5);
 val result: float! = sqrt(x);
 when result is
-	Fail              then """do something with {{ result.reason }}""",
-	Ok                then """{{ result~! }} is a floating-point value.""",
-	Ok.<float>(val x) then """{{ x }} is a floating-point value.""",
+	Fail             then """do something with {{ result.reason }}""",
+	Ok               then """{{ result~! }} is a floating-point value.""",
+	Ok[float](val x) then """{{ x }} is a floating-point value.""",
 else null;
 ```
 
@@ -83,17 +92,17 @@ else null;
 ```diff
 Keyword :::=
 	// statement
-+		| "throw"
++		| "panic"
 ;
 ```
 
 ## Syntax
 ```diff
-+StatementThrow<Break>
-+	::= "throw" Expression<+Block><?Break><+Return>? ";";
+ StatementBreak          ::= ("break" | "skip")                                      ";";
+ StatementReturn <Break> ::=  "return"          Expression<+Block><?Break><+Return>? ";";
++StatementPanic  <Break> ::=  "panic"           Expression<+Block><?Break><+Return>  ";";
 
--Statement<Break, Return> ::=
-+Statement<Break, Return, Throw> ::=
+Statement<Break, Return> ::=
 	| Declaration
 	| StatementExpression<?Break><?Return>
 	| StatementConditional<∓Unless><?Break><?Return>
@@ -101,13 +110,8 @@ Keyword :::=
 	| StatementIteration<Return>
 	| <Break+> StatementBreak
 	| <Return+>StatementReturn<?Break>
-+	| <Throw+>StatementThrow<?Break>
++	| StatementPanic<?Break>
 ;
-
--DeclaredFunction   ::=     "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return>         | "=>" Expression<+Block><-Break><+Return> ";");
--ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return>         | "=>" Expression<+Block><-Break><+Return>);
-+DeclaredFunction   ::=     "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return><+Throw> | "=>" Expression<+Block><-Break><+Return> ";");
-+ExpressionFunction ::= "\" "(" ParametersFunction? ")" ":" ("void" | Type) (Block<-Break><+Return><+Throw> | "=>" Expression<+Block><-Break><+Return>);
 ```
 
 ## Semantics
@@ -115,39 +119,85 @@ Keyword :::=
 SemanticStatement =:=
 	| SemanticDeclaration
 	| SemanticStatementExpression
+	| SemanticStatementClaim
+	| SemanticStatementReassignment
 	| SemanticStatementConditional
-	| SemanticLoop
-	| SemanticIteration
-	| SemanticBreak
-	| SemanticContinue
-	| SemanticReturn
-+	| SemanticThrow
+	| SemanticStatementLoop
+	| SemanticStatementIteration
+	| SemanticStatementBreak
+	| SemanticStatementReturn
 ;
 
-+SemanticThrow
-+	::= SemanticExpression?;
+-SemanticStatementReturn
++SemanticStatementReturn[panic=false]
+	::= SemanticExpression?;
++SemanticStatementReturn[panic=true]
++	::= SemanticExpression;
 ```
 
 ## Decorate
 ```diff
-+Decorate(StatementThrow ::= "throw" ";") -> SemanticThrow
-+	:= (SemanticThrow);
-+Decorate(StatementThrow ::= "throw" Expression ";") -> SemanticThrow
-+	:= (SemanticThrow Decorate(Expression));
+Decorate(StatementReturn<Break> ::= "return" ";") -> SemanticStatementReturn
+-	:= (SemanticStatementReturn);
++	:= (SemanticStatementReturn[panic=false]);
+Decorate(StatementReturn<Break> ::= "return" Expression<+Block><?Break><+Return> ";") -> SemanticStatementReturn
+-	:= (SemanticStatementReturn Decorate(Expression<+Block><?Break><+Return>));
++	:= (SemanticStatementReturn[panic=false] Decorate(Expression<+Block><?Break><+Return>));
 
-+Decorate(Statement<Throw> ::= <Throw+>StatementThrow) -> SemanticThrow
-+	:= Decorate(StatementThrow);
++Decorate(StatementPanic<Break> ::= "panic" Expression<+Block><?Break><+Return> ";") -> SemanticStatementReturn
++	:= (SemanticStatementReturn[panic=true] Decorate(Expression<+Block><?Break><+Return>));
+
+Decorate(Statement<Break, Return> ::= StatementReturn<?Break>) -> SemanticStatementReturn
+	:= Decorate(StatementReturn<?Break>);
++Decorate(Statement<Break, Return> ::= StatementPanic<?Break>) -> SemanticStatementReturn
++	:= Decorate(StatementPanic<?Break>);
 ```
 
-## ToBoolean
+## TypeCheck
 ```diff
-Boolean ToBoolean(Object value) :=
-	1. *If* `value` is an instance of `Null`:
-		1. *Return:* `false`.
-	2. *If* `value` is an instance of `Boolean`:
-		1. *Return:* `value`.
-+	3. *If* `value` is an instance of `Record` *and* `value` has a "message" key *and* `value.message` is an instance of `String`:
-+		1. *Return:* `false`.
-+		2. *Note:* This step is only temporary until the Exception class is created.
-	4. *Return:* `true`.
+-Nil! TypeCheck(SemanticStatementReturn ::= ()) :=
++Nil! TypeCheck(SemanticStatementReturn[panic=false] ::= ()) :=
+	1. *Let* `parent` be the result of walking up the AST and finding a node
+		that is either a SemanticExpressionFunction or a SemanticDeclarationFunction.
+	2. *If* `parent` is set:
+		1. *Let* `return_node` be an item `node` in `parent` such that `item` is a SemanticType.
+		2. *If* `return_node` is set:
+			1. *Let* `return_type` be *Unwrap:* `TypeValueOf(return_node)`.
+			2. *Throw:* a new Error """A function with return type \`{{ return_type.value }}\` does not return a value."""
+		3. *Else:*
+			1. *Note:* The function is a void function and the return statement has no expression.
+			2. *Return.*
+	3. *Else:*
+		1. *Return.*
+;
+-Nil! TypeCheck(SemanticStatementReturn ::= SemanticExpression) :=
++Nil! TypeCheck(SemanticStatementReturn[panic=false] ::= SemanticExpression) :=
+	1. *Let* `parent` be the result of walking up the AST and finding a node
+		that is either a SemanticExpressionFunction or a SemanticDeclarationFunction.
+	2. *If* `parent` is set:
+		1. *Let* `return_node` be an item `node` in `parent` such that `item` is a SemanticType.
+		2. *If* `return_node` is set:
+			1. *Let* `return_type` be *Unwrap:* `TypeValueOf(return_node)`.
+			2. *Return:* `TypeCheckAssign(SemanticExpression, return_type.value)`.
+		3. *Else:*
+			1. *Throw:* a new Error """Expression \`{{ SemanticExpression }}\` is returned from a void function."""
+	3. *Else:*
+		1. *Return.*
+;
++Nil! TypeCheck(SemanticStatementReturn[panic=true] ::= SemanticExpression)
++	:= TypeCheckAssign(SemanticExpression, Exception);
+```
+
+## Build
+```diff
+-Build(SemanticStatementReturn ::= ()) := [ (GOTO "caller") ];
++Build(SemanticStatementReturn[panic=false] ::= ()) := [ (GOTO "caller") ];
+-Build(SemanticStatementReturn ::= SemanticExpression) := [
++Build(SemanticStatementReturn[panic=false] ::= SemanticExpression) := [
+	(RETURN `Build(SemanticExpression)`)
+	(GOTO "caller")
+];
++Build(SemanticStatementReturn[panic=true] ::= SemanticExpression) := [
++	// TODO: implement
++];
 ```
